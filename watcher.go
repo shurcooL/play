@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io"
+  "io"
 //	"net/http"
 	"log"
 //	"html"
@@ -93,10 +93,10 @@ func main() {
 
 			cmd := exec.Command(path)
 
-      stdout, err := cmd.StdoutPipe()
-      checkError(err)
-      stderr, err := cmd.StderrPipe()
-      checkError(err)
+			stdout, err := cmd.StdoutPipe()
+			checkError(err)
+			stderr, err := cmd.StderrPipe()
+			checkError(err)
 
 			err = cmd.Start()
 			checkError(err)
