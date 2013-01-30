@@ -22,11 +22,9 @@ func checkError(err error) {
 
 func main() {
 	if 2 != len(os.Args) {
-
 		fmt.Fprintln(os.Stderr, "usage: ./watcher file\n (where file.go is the source of another program)")
 		//return
 		os.Exit(1)
-
 	}
 
 	var path string = os.Args[1]
