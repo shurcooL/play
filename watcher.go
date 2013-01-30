@@ -2,16 +2,16 @@ package main
 
 import (
 	"io"
-//	"net/http"
+	//"net/http"
 	"log"
-//	"html"
+	//"html"
+	"fmt"
 	"os"
 	"os/exec"
-	"fmt"
-//	"strconv"
-//	"time"
+	//"strconv"
+	//"time"
 	"github.com/howeyc/fsnotify"
-//	"flag"
+	//"flag"
 )
 
 func checkError(err error) {
@@ -21,7 +21,6 @@ func checkError(err error) {
 }
 
 func main() {
-
 	if 2 != len(os.Args) {
 
 		fmt.Fprintln(os.Stderr, "usage: ./watcher file\n (where file.go is the source of another program)")
@@ -31,11 +30,11 @@ func main() {
 	}
 
 	var path string = os.Args[1]
-	var process * os.Process = nil
+	var process *os.Process = nil
 
 	// Setup a watcher
 	{
-		var watcher * fsnotify.Watcher = nil
+		var watcher *fsnotify.Watcher = nil
 
 		// Create a new watcher
 		{
@@ -50,7 +49,7 @@ func main() {
 		go func() {
 			for {
 				select {
-					case /*ev :=*/ <-watcher.Event:
+				case /*ev :=*/ <-watcher.Event:
 					{
 						//log.Printf("Event: %v.\n", ev)
 
@@ -63,13 +62,13 @@ func main() {
 						}
 					}
 
-					case err := <-watcher.Error:
+				case err := <-watcher.Error:
 					{
 						checkError(err)
 					}
 				}
 			}
-		} ()
+		}()
 
 		// Start watching the source file
 		{
@@ -82,7 +81,7 @@ func main() {
 	for {
 		// Build the program, wait for completion
 		{
-			cmd := exec.Command("go", "build", path + ".go")
+			cmd := exec.Command("go", "build", path+".go")
 			err := cmd.Run()
 			checkError(err)
 		}
@@ -101,7 +100,7 @@ func main() {
 			err = cmd.Start()
 			checkError(err)
 
-			process = cmd.Process;
+			process = cmd.Process
 
 			go io.Copy(os.Stdout, stdout)
 			go io.Copy(os.Stderr, stderr)
