@@ -43,7 +43,7 @@ func main() {
 	fmt.Printf("Total words: %v\n", len(w))
 	m := map[string]int{}
 	for _, v := range w {
-		m[v] += 1
+		m[v]++
 	}
 	fmt.Printf("Total unique words: %v\n\n", len(m))
 	sm := sortMapByValue(m)
