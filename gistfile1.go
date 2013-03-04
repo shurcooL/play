@@ -28,6 +28,7 @@ func GenerateMainFunc() string {
 
 var alphabet = map[string]float64 {
 	";": 10.0,
+	"\n": 10.0,
 	" ": 5.0,
 	"print": 10.0,
 	"println": 10.0,
