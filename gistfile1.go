@@ -49,6 +49,6 @@ func main() {
 	sm := sortMapByValue(m)
 	for _, v := range sm {
 		x := float64(v.Value) / float64(len(w)) * 100
-		fmt.Printf("%v (%v%%): %v\n", v.Value, strconv.FormatFloat(x, 'f', 5, 64), v.Key)
+		fmt.Printf("%v\t%v%%\t%v\n", v.Value, strconv.FormatFloat(x, 'f', 5, 64), v.Key)
 	}
 }
