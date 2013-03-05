@@ -14,12 +14,7 @@ func main() {
 	file := "./GenProgram.go"
 	b, err := ioutil.ReadFile(file); CheckError(err)
 	//w := strings.Fields(strings.ToLower(string(b)))
-	w := strings.FieldsFunc(strings.ToLower(string(b)), func(r rune) bool {
-		if r >= 'a' && r <= 'z' {
-			return false
-		}
-		return true
-	})
+	w := strings.FieldsFunc(strings.ToLower(string(b)), func(r rune) bool { if r >= 'a' && r <= 'z' { return false }; return true })
 	fmt.Printf("Total words: %v\n", len(w))
 	m := map[string]int{}
 	for _, v := range w {
