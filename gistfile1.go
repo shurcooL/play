@@ -6,19 +6,24 @@ import (
 )
 
 var _ = time.Sleep
+var _ sync.WaitGroup
 
 func main() {
-	x := 2
-	y := 3
+	x := 1
+	y := 2
 
-	var w sync.WaitGroup
-	w.Add(2)
-	inc_x := func() { time.Sleep(7001); println("x_inc"); x = x + 1; w.Done() }
-	inc_y := func() { time.Sleep(1); println("y_inc"); y = y + 1; w.Done() }
+	if false {
+		x++; println("x++")
+		y++; println("y++")
+	} else {
+		var w sync.WaitGroup
+		w.Add(2)
+		inc_x := func() { time.Sleep(7001); x++; println("x++"); w.Done() }
+		inc_y := func() { time.Sleep(1); y++; println("y++"); w.Done() }
+		go inc_x()
+		go inc_y()
+		w.Wait()
+	}
 
-	go inc_x()
-	go inc_y()
-
-	w.Wait()
-	println(x + y)
+	print(x + y)
 }
