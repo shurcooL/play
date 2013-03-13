@@ -1,10 +1,10 @@
 package main
 
 import (
-    "bytes"
-    "encoding/gob"
-    "fmt"
-    "log"
+	"bytes"
+	"encoding/gob"
+	"fmt"
+	"log"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -13,8 +13,8 @@ var _ gob.GobEncoder
 var _ = spew.Dump
 
 type P_named_struct struct {
-    X, Y, Z int
-    Name    string
+	X, Y, Z int
+	Name    string
 	P * P_named_struct
 }
 
@@ -23,17 +23,17 @@ func main() {
 	spew.Config.DisableMethods = true
 	spew.Config.DisablePointerMethods = true
 
-    // Initialize the encoder and decoder.  Normally enc and dec would be
-    // bound to network connections and the encoder and decoder would
-    // run in different processes.
-    var network bytes.Buffer        // Stand-in for a network connection
-    enc := gob.NewEncoder(&network) // Will write to network.
-    // Encode (send) the value.
+	// Initialize the encoder and decoder.  Normally enc and dec would be
+	// bound to network connections and the encoder and decoder would
+	// run in different processes.
+	var network bytes.Buffer		// Stand-in for a network connection
+	enc := gob.NewEncoder(&network) // Will write to network.
+	// Encode (send) the value.
 	secret := P_named_struct{3, 4, 5, "Pypypy!", nil}
 	err := enc.Encode(secret)
-    if err != nil {
-        log.Fatal("encode error:", err)
-    }
+	if err != nil {
+		log.Fatal("encode error:", err)
+	}
 	secret2 := P_named_struct{
 		Y: 2,
 		Z: 900,
