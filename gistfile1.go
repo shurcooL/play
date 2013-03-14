@@ -135,6 +135,6 @@ func main() {
 			for i := range phrases {
 				phrases[i] = FilterMatches(phrases[i], model)
 			}
-			println(strings.Join(phrases, " "))
+			fmt.Println(strings.Join(phrases, " "))
 		})
 }
