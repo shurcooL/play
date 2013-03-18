@@ -11,12 +11,15 @@ import (
 	"go/ast"
 	"bufio"
 	"io"
+	"io/ioutil"
 	"strings"
 )
 
 var _ os.File
 var _ exec.Cmd
 var _ = time.Second
+
+var tempDir string
 
 func CheckError(err error) { if nil != err { fmt.Printf("err: %v\n", err); panic(err) } }
 
@@ -210,7 +213,7 @@ func (c *Chain) Generate(n int) string {
 }
 
 // for f in `find /usr/local/go/src/pkg -name '*.go'`; do echo "\"$f\","; done | pbcopy
-var filenames = []string{"/Users/Dmitri/Dmitri/^Work/^GitHub/Conception/Gen/5086673/gistfile1.go",
+var filenames = []string{//"/Users/Dmitri/Dmitri/^Work/^GitHub/Conception/Gen/5086673/gistfile1.go",
 "/usr/local/go/src/pkg/strconv/atob.go",
 "/usr/local/go/src/pkg/strconv/atob_test.go",
 "/usr/local/go/src/pkg/strconv/atof.go",
@@ -278,16 +281,16 @@ func VerifyProgram2(prog string) bool {
 }
 
 func VerifyProgram1(prog string) bool {
-	f, err := os.Create("./Gen/GenProgram.go"); CheckError(err)
+	f, err := os.Create(tempDir + "/GenProgram.go"); CheckError(err)
 	//defer os.Remove(f.Name())
 
 	f.WriteString(prog)
 	err = f.Close(); CheckError(err)
 	
-	err = exec.Command("/usr/local/go/bin/go", "build", "-o", "./Gen/Out", f.Name()).Run()
-	defer os.Remove("./Gen/Out")
+	err = exec.Command("/usr/local/go/bin/go", "build", "-o", tempDir + "/Out", f.Name()).Run()
+	defer os.Remove(tempDir + "/Out")
 	
-	return nil == err && FileExists("./Gen/Out")
+	return nil == err && FileExists(tempDir + "/Out")
 }
 
 func AppendToFile(name, text string) {
@@ -321,9 +324,15 @@ func main() {
 		return
 	}
 
+	// Create the temporary Gen folder
+	var err error
+	tempDir, err = ioutil.TempDir(".", "Gen-")
+	CheckError(err)
+	fmt.Printf("Using %q as temp output dir (you can remove it afterwards).\n", tempDir)
+
 	// Create log file if it doesn't exist (so we can append stuff to it)
-	/*if !FileExists("./Gen/Log.txt") {
-		f, err := os.Create("./Gen/Log.txt"); CheckError(err)
+	/*if !FileExists(tempDir + "/Log.txt") {
+		f, err := os.Create(tempDir + "/Log.txt"); CheckError(err)
 		err = f.Close(); CheckError(err)
 	}*/
 
@@ -333,7 +342,7 @@ func main() {
 
 	now := time.Now()
 	fmt.Printf("\n\n%v %v STARTED Stats: %v/%v good/tries\n", now.Unix(), now, Good, Tries)
-	//AppendToFile("./Gen/Log.txt", fmt.Sprintf("\n\n%v %v STARTED Stats: %v/%v good/tries\n", now.Unix(), now, Good, Tries))
+	//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf("\n\n%v %v STARTED Stats: %v/%v good/tries\n", now.Unix(), now, Good, Tries))
 
 	//for i := 0; i < 5000; i++ {
 	for {
@@ -345,7 +354,7 @@ func main() {
 		if (VerifyProgram2(prog) && VerifyProgram1(prog)) {
 			Good = Good + 1
 			fmt.Printf(" %v %v OMG SUCCESS: %s\n", now.Unix(), now, prog)
-			//AppendToFile("./Gen/Log.txt", fmt.Sprintf(" %v %v OMG SUCCESS: %s\n", now.Unix(), now, prog))
+			//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf(" %v %v OMG SUCCESS: %s\n", now.Unix(), now, prog))
 		} else {
 			//fmt.Printf(" %v %v Fail... err: %v\n", now.Unix(), now, err)
 		}
@@ -355,12 +364,12 @@ func main() {
 			successRate := float64(Good) / float64(Tries) * 100
 			opsPerSec := float64(Tries) / time.Since(startTime).Seconds()
 			fmt.Printf("%v %v Stats: %v/%v (%v%%) good/tries, %v ops/sec\n", now.Unix(), now, Good, Tries, successRate, opsPerSec)
-			//AppendToFile("./Gen/Log.txt", fmt.Sprintf("%v %v Stats: %v/%v (%v%%) good/tries, %v ops/sec\n", now.Unix(), now, Good, Tries, successRate, opsPerSec))
+			//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf("%v %v Stats: %v/%v (%v%%) good/tries, %v ops/sec\n", now.Unix(), now, Good, Tries, successRate, opsPerSec))
 		}
 		//time.Sleep(time.Millisecond)
 	}
 
 	now = time.Now()
 	fmt.Printf("%v %v FINISHED Stats: %v/%v (%v%%) good/tries\n\n", now.Unix(), now, Good, Tries, float64(Good) / float64(Tries) * 100)
-	//AppendToFile("./Gen/Log.txt", fmt.Sprintf("%v %v FINISHED Stats: %v/%v (%v%%) good/tries\n\n", now.Unix(), now, Good, Tries, float64(Good) / float64(Tries) * 100))
+	//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf("%v %v FINISHED Stats: %v/%v (%v%%) good/tries\n\n", now.Unix(), now, Good, Tries, float64(Good) / float64(Tries) * 100))
 }
