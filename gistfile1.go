@@ -21,12 +21,12 @@ func main() {
 }
 
 type socket struct {
-	io.ReadWriter
+	io.Writer
 }
 
 func (s socket) Write(b []byte) (int, error) {
 	os.Stdout.Write(b)
-	return s.ReadWriter.Write(b)
+	return s.Writer.Write(b)
 }
 
 var TotalHandlers int
@@ -34,8 +34,7 @@ var TotalHandlers int
 func handler(c *websocket.Conn) {
 	TotalHandlers++
 	println("New handler #", TotalHandlers)
-	s := socket{c}
-	io.Copy(s, c)
+	io.Copy(socket{c}, c)
 	println(".. done")
 	TotalHandlers--
 }
