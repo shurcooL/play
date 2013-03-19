@@ -22,11 +22,6 @@ func main() {
 	}
 }
 
-type socket struct {
-	io.Writer
-	conn *websocket.Conn
-}
-
 var statuses = map[*websocket.Conn]string{}
 
 func TrimLastNewline(str string) string {
@@ -36,17 +31,23 @@ func TrimLastNewline(str string) string {
 	return str
 }
 
-func (s socket) Write(b []byte) (int, error) {
-	statuses[s.conn] = TrimLastNewline(string(b))
-	os.Stdout.Write(b)
-	return s.Writer.Write(b)
-}
-
 func handler(c *websocket.Conn) {
-	println("New handler #", len(statuses) + 1)
-	io.Copy(socket{c, c}, c)
-	println(".. done")
-	delete(statuses, c)
+	statuses[c] = ""
+	defer delete(statuses, c)
+
+	println("New handler #", len(statuses))
+
+	ch, errCh := byteReader(c, 0)
+	for {
+		select {
+		case b := <-ch:
+			statuses[c] = TrimLastNewline(string(b))
+			c.Write(b)
+			os.Stdout.Write(b)
+		case <-errCh:
+			return
+		}
+	}
 }
 
 func list(w http.ResponseWriter, r *http.Request) {
@@ -55,3 +56,36 @@ func list(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "\n\t%q", v)
 	}
 }
+
+func byteReader(r io.Reader, size int) (<-chan []byte, <-chan error) {
+	if size <= 0 {
+		size = 2048
+	}
+
+	ch := make(chan []byte)
+	errCh := make(chan error)
+
+	go func() {
+		for {
+			buf := make([]byte, size)
+			s := 0
+		inner:
+			for {
+				n, err := r.Read(buf[s:])
+				if n > 0 {
+					ch <- buf[s : s+n]
+					s += n
+				}
+				if err != nil {
+					errCh <- err
+					return
+				}
+				if s >= len(buf) {
+					break inner
+				}
+			}
+		}
+	}()
+
+	return ch, errCh
+} 
