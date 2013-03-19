@@ -29,8 +29,15 @@ type socket struct {
 
 var statuses = map[*websocket.Conn]string{}
 
+func TrimLastNewline(str string) string {
+	if '\n' == str[len(str)-1] {
+		return str[0 : len(str)-1]
+	}
+	return str
+}
+
 func (s socket) Write(b []byte) (int, error) {
-	statuses[s.conn] = string(b)
+	statuses[s.conn] = TrimLastNewline(string(b))
 	os.Stdout.Write(b)
 	return s.Writer.Write(b)
 }
