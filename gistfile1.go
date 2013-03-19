@@ -57,6 +57,7 @@ func list(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Credit to Tarmigan
 func byteReader(r io.Reader, size int) (<-chan []byte, <-chan error) {
 	if size <= 0 {
 		size = 2048
