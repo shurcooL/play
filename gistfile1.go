@@ -32,7 +32,7 @@ func TrimLastNewline(str string) string {
 }
 
 func handler(c *websocket.Conn) {
-	statuses[c] = ""
+	statuses[c] = ""		// Default blank status
 	defer delete(statuses, c)
 
 	println("New handler #", len(statuses))
