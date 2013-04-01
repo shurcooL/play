@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"github.com/davecgh/go-spew/spew"
+	. "gist.github.com/5286084.git"
 )
 
 var _ = strings.Fields
@@ -15,13 +16,13 @@ var _ = ioutil.ReadFile
 var _ = SortMapByValue
 var _ = spew.Dump
 
-func CheckError(err error) { if nil != err { fmt.Printf("err: %v\n", err); panic(err) } }
-
 func main() {
 	file := "./GenProgram.go"
 	b, err := ioutil.ReadFile(file); CheckError(err)
 
-	if false {
+	if true {
+		// Prints frequencies of individual words
+
 		//w := strings.Fields(strings.ToLower(string(b)))
 		w := strings.FieldsFunc(strings.ToLower(string(b)), func(r rune) bool { if r >= 'a' && r <= 'z' { return false }; return true })
 		fmt.Printf("Total words: %v\n", len(w))
@@ -36,7 +37,9 @@ func main() {
 			x := float64(v.Value) / float64(len(w)) * 100
 			fmt.Printf("%v\t%v%%\t%v\n", v.Value, strconv.FormatFloat(x, 'f', 5, 64), v.Key)
 		}
-	else if false {
+	} else if false {
+		// 2-rune Markov chain
+
 		runes := []rune(string(b))
 		fmt.Printf("Total words: %v\n", len(runes)-1)
 		m := map[string]int{}
@@ -51,6 +54,8 @@ func main() {
 			fmt.Printf("%v\t%#v\n", v.Value, v.Key)
 		}
 	} else {
+		// 2-rune Markov chain: Given "y", this prints the occurrence of "xy" for all "x"
+
 		runes := []rune(string(b))
 		fmt.Printf("Total words: %v\n\n", len(runes)-1)
 		m := map[string]map[string]int{}
