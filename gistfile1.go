@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
+	//"os"
 	"github.com/davecgh/go-spew/spew"
+	. "gist.github.com/5286084.git"
 )
 
 var _ = spew.Dump
@@ -14,12 +15,10 @@ var _ = fmt.Print
 
 func main() {
 	println("starting")
-	http.Handle("/", websocket.Handler(handler))
+	http.Handle("/status", websocket.Handler(handler))
 	http.HandleFunc("/list", list)
-	err := http.ListenAndServe("localhost:4000", nil)
-	if err != nil {
-		panic("ListenAndServe: " + err.Error())
-	}
+	err := http.ListenAndServe(":8080", nil)
+	CheckError(err)
 }
 
 var statuses = map[*websocket.Conn]string{}
@@ -32,33 +31,47 @@ func TrimLastNewline(str string) string {
 }
 
 func handler(c *websocket.Conn) {
+	// TODO: Should use a mutex here or something
 	statuses[c] = ""		// Default blank status
-	defer delete(statuses, c)
-
 	println("New handler #", len(statuses))
+	update()
 
-	ch, errCh := byteReader(c, 0)
+	defer update()
+	defer delete(statuses, c)
+	defer println("End of handler #", len(statuses))
+
+	ch, errCh := byteReader(c)
 	for {
 		select {
 		case b := <-ch:
 			statuses[c] = TrimLastNewline(string(b))
-			c.Write(b)
-			os.Stdout.Write(b)
+			//c.Write(b)
+			//os.Stdout.Write(b)
+			update()
+			fmt.Printf("%#v\n", statuses)
 		case <-errCh:
 			return
 		}
 	}
 }
 
+func update() {
+	for c := range statuses {
+		c.Write([]byte(fmt.Sprintf("%#v", statuses)))
+	}	
+}
+
 func list(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "We have %v connections.", len(statuses))
-	for _, v := range statuses {
-		fmt.Fprintf(w, "\n\t%q", v)
-	}
+	fmt.Fprintf(w, "We have %v connections.\n", len(statuses))
+	fmt.Fprintf(w, "%#v", statuses)
+}
+
+func byteReader(r io.Reader) (<-chan []byte, <-chan error) {
+	return byteReaderSize(r, 0)
 }
 
 // Credit to Tarmigan
-func byteReader(r io.Reader, size int) (<-chan []byte, <-chan error) {
+func byteReaderSize(r io.Reader, size int) (<-chan []byte, <-chan error) {
 	if size <= 0 {
 		size = 2048
 	}
