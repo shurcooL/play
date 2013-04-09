@@ -8,6 +8,10 @@ import (
 	//"os"
 	"github.com/davecgh/go-spew/spew"
 	. "gist.github.com/5286084.git"
+
+	"sort"
+	"time"
+	"html"
 )
 
 var _ = spew.Dump
@@ -21,7 +25,11 @@ func main() {
 	CheckError(err)
 }
 
-var statuses = map[*websocket.Conn]string{}
+type ConnectionTime struct {
+	c *websocket.Conn
+	t time.Time
+}
+var statuses = map[ConnectionTime]string{}
 
 func TrimLastNewline(str string) string {
 	if '\n' == str[len(str)-1] {
@@ -30,35 +38,77 @@ func TrimLastNewline(str string) string {
 	return str
 }
 
+func CapLength(str string, max_len int) string {
+	if len(str) > max_len {
+		str = str[:max_len]
+	}
+	return str
+}
+
 func handler(c *websocket.Conn) {
 	// TODO: Should use a mutex here or something
-	statuses[c] = ""		// Default blank status
+	ct := ConnectionTime{c, time.Now()}
+	statuses[ct] = ""		// Default blank status
 	println("New handler #", len(statuses))
 	update()
 
 	defer update()
-	defer delete(statuses, c)
+	defer delete(statuses, ct)
 	defer println("End of handler #", len(statuses))
 
 	ch, errCh := byteReader(c)
 	for {
 		select {
 		case b := <-ch:
-			statuses[c] = TrimLastNewline(string(b))
+			statuses[ct] = TrimLastNewline(string(b))
+			if len(statuses[ct]) > 160 {
+				return
+			}
 			//c.Write(b)
 			//os.Stdout.Write(b)
 			update()
-			fmt.Printf("%#v\n", statuses)
+			//fmt.Printf("%#v\n", statuses)
 		case <-errCh:
 			return
 		}
 	}
 }
 
+// A data structure to hold a key/value pair.
+type Pair struct {
+	Key   ConnectionTime
+	Value string
+}
+
+// A slice of Pairs that implements sort.Interface to sort by Value.
+type PairList []Pair
+
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Less(i, j int) bool { return p[i].Key.t.UnixNano() < p[j].Key.t.UnixNano() }
+
+// A function to turn a map into a PairList, then sort and return it.
+func SortMapByKey(m map[ConnectionTime]string) PairList {
+	p := make(PairList, len(m))
+	i := 0
+	for k, v := range m {
+		p[i] = Pair{k, v}
+		i++
+	}
+	sort.Sort(p)
+	return p
+}
+
 func update() {
-	for c := range statuses {
-		c.Write([]byte(fmt.Sprintf("%#v", statuses)))
-	}	
+	full_update := ""
+	sorted_c := SortMapByKey(statuses)
+	for _, p := range sorted_c {
+		full_update += fmt.Sprintf("<span>Someone: %s</span><br>", html.EscapeString(p.Value))
+	}
+
+	for ct := range statuses {
+		ct.c.Write([]byte(full_update))
+	}
 }
 
 func list(w http.ResponseWriter, r *http.Request) {
@@ -102,4 +152,4 @@ func byteReaderSize(r io.Reader, size int) (<-chan []byte, <-chan error) {
 	}()
 
 	return ch, errCh
-} 
+}
