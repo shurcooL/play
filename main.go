@@ -8,12 +8,18 @@ import (
 	"github.com/shurcooL/go-goon"
 )
 
-var _= fmt.Printf
+var _ = fmt.Printf
 var _ = spew.Dump
 var _ = goon.Dump
 
 func main() {
-	ins := []string{"Hello.", "", "1", "12", "123"}
+	ins := []string{
+		"Hello.",
+		"",
+		"1",
+		"12",
+		"123",
+	}
 
 	for _, in := range ins {
 		spew.Dump(Reverse(in))
