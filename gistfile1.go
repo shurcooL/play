@@ -16,11 +16,18 @@ var _ = strconv.Itoa
 var _ = ioutil.ReadFile
 var _ = SortMapByValue
 var _ = spew.Dump
+var _ = GetThisGoSourceFilepath()
 
 func main() {
-	file := GetThisGoSourceFilepath()
-	//file := "./GenProgram.go"
-	b, err := ioutil.ReadFile(file); CheckError(err)
+	filepath := GetThisGoSourceFilepath()
+	//filepath := "/Users/Dmitri/Dropbox/Work/2013/yelp/Yelp/Gen/5star_text.txt"
+
+	Process(filepath)
+}
+
+func Process(filepath string) {
+	b, err := ioutil.ReadFile(filepath)
+	CheckError(err)
 
 	if true {
 		// Prints frequencies of individual words
