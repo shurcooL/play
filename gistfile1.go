@@ -8,6 +8,7 @@ import (
 	"strings"
 	"github.com/davecgh/go-spew/spew"
 	. "gist.github.com/5286084.git"
+	. "gist.github.com/5259939.git"
 )
 
 var _ = strings.Fields
@@ -17,7 +18,8 @@ var _ = SortMapByValue
 var _ = spew.Dump
 
 func main() {
-	file := "./GenProgram.go"
+	file := GetThisGoSourceFilepath()
+	//file := "./GenProgram.go"
 	b, err := ioutil.ReadFile(file); CheckError(err)
 
 	if true {
