@@ -47,6 +47,7 @@ func CapLength(str string, max_len int) string {
 
 func handler(c *websocket.Conn) {
 	// TODO: Should use a mutex here or something
+	// E.g., http://talks.godoc.org/github.com/nf/go11/talk.slide#19
 	ct := ConnectionTime{c, time.Now()}
 	statuses[ct] = ""		// Default blank status
 	println("New handler #", len(statuses))
