@@ -18,10 +18,8 @@ func main() {
 	} else {
 		var w sync.WaitGroup
 		w.Add(2)
-		inc_x := func() { time.Sleep(7001); x++; println("x++"); w.Done() }
-		inc_y := func() { time.Sleep(1); y++; println("y++"); w.Done() }
-		go inc_x()
-		go inc_y()
+		go func() { time.Sleep(7001); x++; println("x++"); w.Done() }()
+		go func() { time.Sleep(1); y++; println("y++"); w.Done() }()
 		w.Wait()
 	}
 
