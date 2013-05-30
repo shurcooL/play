@@ -5,12 +5,12 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/shurcooL/go-goon"
 )
 
 var _ = fmt.Printf
 var _ gob.GobEncoder
-var _ = spew.Dump
+var _ = goon.Dump
 
 type P_named_struct struct {
 	X, Y, Z int
@@ -19,10 +19,6 @@ type P_named_struct struct {
 }
 
 func main() {
-	spew.Config.Indent = "\t"
-	spew.Config.DisableMethods = true
-	spew.Config.DisablePointerMethods = true
-
 	// Initialize the encoder and decoder.  Normally enc and dec would be
 	// bound to network connections and the encoder and decoder would
 	// run in different processes.
@@ -43,6 +39,6 @@ func main() {
 	err = enc.Encode(secret2)
 	fmt.Printf("%#v", network.Bytes())
 	println()
-	spew.Dump(secret)
-	spew.Dump(secret2)
+	goon.Dump(secret)
+	goon.Dump(secret2)
 }
