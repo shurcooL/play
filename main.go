@@ -10,7 +10,8 @@ import (
 
 	//"github.com/go-gl/gl"
 	gl "github.com/chsc/gogl/gl33"
-	"github.com/go-gl/glfw"
+	//"github.com/go-gl/glfw"
+	glfw "github.com/tapir/glfw3-go"
 
 	"github.com/shurcooL/go-goon"
 
@@ -61,18 +62,25 @@ func DrawSpinner(spinner int) {
 func main() {
 	runtime.LockOSThread()
 
-	err := glfw.Init()
-	CheckError(err)
+	glfw.SetErrorCallback(func(err glfw.ErrorCode, desc string) {
+		panic(fmt.Sprintf("%v: %v\n", err, desc))
+	})
+
+	if !glfw.Init() {
+		panic("glfw.Init()")
+	}
 	defer glfw.Terminate()
 
 	//glfw.OpenWindowHint(glfw.FsaaSamples, 32)
-	glfw.OpenWindowHint(glfw.OpenGLVersionMajor, 3)
-	glfw.OpenWindowHint(glfw.OpenGLVersionMinor, 2)
-	glfw.OpenWindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	err = glfw.OpenWindow(400, 400, 0, 0, 0, 0, 0, 0, glfw.Windowed)
+	glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	glfw.WindowHint(glfw.ContextVersionMinor, 2)
+	glfw.WindowHint(glfw.OpenglForwardCompatible, gl.TRUE)
+	glfw.WindowHint(glfw.OpenglProfile, glfw.OpenglCoreProfile)
+	window, err := glfw.CreateWindow(400, 400, "", nil, nil)
 	CheckError(err)
+	window.MakeContextCurrent()
 
-	fmt.Println("glfw.OpenGLCoreProfile:", glfw.OpenGLCoreProfile == glfw.WindowParam(glfw.OpenGLProfile))
+	fmt.Println("glfw.OpenGLCoreProfile:", glfw.OpenglCoreProfile == window.GetAttribute(glfw.OpenglProfile))
 
 	err = gl.Init()
 	if (nil != err) {
@@ -81,13 +89,14 @@ func main() {
 
 	fmt.Println(gl.GoStringUb(gl.GetString(gl.VENDOR)), gl.GoStringUb(gl.GetString(gl.RENDERER)), gl.GoStringUb(gl.GetString(gl.VERSION)))
 
-	glfw.SetWindowPos(1600, 600)
+	window.SetPosition(1600, 600)
 	//glfw.SetWindowPos(1200, 300)
-	glfw.SetSwapInterval(1)
-	glfw.Disable(glfw.AutoPollEvents)
+	glfw.SwapInterval(1)
 
-	size := func(width, height int) {
-		fmt.Println("screen size:", width, height)
+	redraw := true
+
+	size := func(w *glfw.Window, width, height int) {
+		fmt.Println("Framebuffer Size:", width, height)
 		gl.Viewport(0, 0, gl.Sizei(width), gl.Sizei(height))
 
 		// Update the projection matrix
@@ -95,16 +104,18 @@ func main() {
 		gl.LoadIdentity()
 		gl.Ortho(0, float64(width), float64(height), 0, -1, 1)
 		gl.MatrixMode(gl.MODELVIEW)*/
+
+		redraw = true
 	}
-	glfw.SetWindowSizeCallback(size)
+	window.SetFramebufferSizeCallback(size)
+	width, height := window.GetFramebufferSize()
+	size(window, width, height)
 
-	redraw := true
-
-	MousePos := func(x, y int) {
+	MousePos := func(w *glfw.Window, x, y float64) {
 		redraw = true
 		//fmt.Println("MousePos:", x, y)
 	}
-	glfw.SetMousePosCallback(MousePos)
+	window.SetCursorPositionCallback(MousePos)
 
 	// Load Shaders
 	var programID gl.Uint = goglutils.CreateShaderProgram([]string{"/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/Ysgard/opengl-go-tut/shaders/simple_vertex_shader.vert",
@@ -127,25 +138,11 @@ func main() {
 
 	//var spinner int
 
-	/*in := make(chan int)
-	out := make(chan int)
-	go func(in, out chan int) {
-		for {
-			<-in
-			println("in goroutine")
-			out <- 0
-		}
-	}(in, out)*/
-
 	vao := createObject(vertices)
 
-	for gl.TRUE == glfw.WindowParam(glfw.Opened) &&
-		glfw.KeyPress != glfw.Key(glfw.KeyEsc) {
-		//in <- 0
+	for !window.ShouldClose() && glfw.Press != window.GetKey(glfw.KeyEscape) {
 		//glfw.WaitEvents()
 		glfw.PollEvents()
-		//println("glfw.WaitEvents()")
-		//<-out
 
 		if redraw {
 			redraw = false
@@ -162,7 +159,7 @@ func main() {
 			gl.DrawArrays(gl.TRIANGLES, 0, gl.Sizei(len(vertices)))
 			gl.BindVertexArray(0)
 
-			glfw.SwapBuffers()
+			window.SwapBuffers()
 			log.Println("swapped buffers")
 		} else {
 			time.Sleep(time.Millisecond)
