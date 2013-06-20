@@ -34,31 +34,6 @@ var vertices = [][2]gl.Float{
 	{0.0, 0.5},
 }
 
-/*func DrawSomething() {
-	gl.LoadIdentity()
-	gl.Translatef(50, 100, 0)
-	gl.Color3f(0, 0, 0)
-	gl.Rectf(0, 0, 300, 100)
-	if !updated {
-		gl.Color3f(1, 1, 1)
-	} else {
-		gl.Color3f(0, 1, 0)
-	}
-	gl.Rectf(0 + 1, 0 + 1, 300 - 1, 100 - 1)
-}
-
-func DrawSpinner(spinner int) {
-	gl.LoadIdentity()
-	gl.Color3f(0, 0, 0)
-	gl.Translatef(30, 30, 0)
-	gl.Rotatef(float32(spinner), 0, 0, 1)
-	//gl.Rotatef(gl.Float(spinner), 0, 0, 1)
-	gl.Begin(gl.LINES)
-	gl.Vertex2i(0, 0)
-	gl.Vertex2i(0, 20)
-	gl.End()
-}*/
-
 func main() {
 	runtime.LockOSThread()
 
@@ -136,8 +111,6 @@ func main() {
 
 	//gl.ClearColor(0.8, 0.3, 0.01, 1)
 
-	//var spinner int
-
 	vao := createObject(vertices)
 
 	for !window.ShouldClose() && glfw.Press != window.GetKey(glfw.KeyEscape) {
@@ -148,11 +121,6 @@ func main() {
 			redraw = false
 
 			gl.Clear(gl.COLOR_BUFFER_BIT)
-
-			/*DrawSpinner(spinner)
-			spinner++
-
-			DrawSomething()*/
 
 			gl.UseProgram(programID)
 			gl.BindVertexArray(vao)
