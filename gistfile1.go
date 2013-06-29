@@ -8,6 +8,7 @@ import (
 	//"os"
 	"github.com/davecgh/go-spew/spew"
 	. "gist.github.com/5286084.git"
+	. "gist.github.com/5892738.git"
 
 	"sort"
 	"time"
@@ -30,13 +31,6 @@ type ConnectionTime struct {
 	t time.Time
 }
 var statuses = map[ConnectionTime]string{}
-
-func TrimLastNewline(str string) string {
-	if '\n' == str[len(str)-1] {
-		return str[0 : len(str)-1]
-	}
-	return str
-}
 
 func CapLength(str string, max_len int) string {
 	if len(str) > max_len {
