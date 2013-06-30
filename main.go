@@ -10,11 +10,11 @@ import (
 
 	//"github.com/go-gl/gl"
 	gl "github.com/chsc/gogl/gl33"
-	//"github.com/go-gl/glfw"
-	glfw "github.com/tapir/glfw3-go"
+	"github.com/go-gl/glfw3"
 
 	"github.com/shurcooL/go-goon"
 
+	"github.com/Jragonmiris/mathgl"
 	"github.com/Ysgard/GoGLutils"
 )
 
@@ -22,16 +22,25 @@ var _ = goon.Dump
 
 var updated bool
 
-/*var vertices = [][2]gl.Float{
+var pMatrixUniform, mvMatrixUniform gl.Int
+
+var vertices = [][2]gl.Float{
 	{0, 0},
 	{300, 0},
 	{300, 100},
 	{0, 100},
-}*/
-var vertices = [][2]gl.Float{
+}
+/*var vertices = [][2]gl.Float{
 	{-0.5, -0.5},
 	{0.5, -0.5},
 	{0.0, 0.5},
+}*/
+
+func CheckGLError() {
+	errorCode := gl.GetError()
+	if (0 != errorCode) {
+		log.Panic("GL Error: ", errorCode)
+	}
 }
 
 func main() {
@@ -64,8 +73,8 @@ func main() {
 
 	fmt.Println(gl.GoStringUb(gl.GetString(gl.VENDOR)), gl.GoStringUb(gl.GetString(gl.RENDERER)), gl.GoStringUb(gl.GetString(gl.VERSION)))
 
-	window.SetPosition(1600, 600)
-	//glfw.SetWindowPos(1200, 300)
+	//window.SetPosition(1600, 600)
+	window.SetPosition(1200, 300)
 	glfw.SwapInterval(1)
 
 	redraw := true
@@ -93,14 +102,19 @@ func main() {
 	window.SetCursorPositionCallback(MousePos)
 
 	// Load Shaders
-	var programID gl.Uint = goglutils.CreateShaderProgram([]string{"/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/Ysgard/opengl-go-tut/shaders/simple_vertex_shader.vert",
-																   "/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/Ysgard/opengl-go-tut/shaders/simple_fragment_shader.frag"})
+	var programID gl.Uint = goglutils.CreateShaderProgram([]string{"./GoLand/src/gist.github.com/5816852.git/simple_vertex_shader.vert",
+																   "./GoLand/src/gist.github.com/5816852.git/simple_fragment_shader.frag"})
 	gl.ValidateProgram(programID)
 	var validationErr gl.Int
 	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)
 	if validationErr == gl.FALSE {
 		log.Print("Shader program failed validation!")
 	}
+
+	pMatrixUniform = gl.GetUniformLocation(programID, gl.GLString("uPMatrix"))
+	mvMatrixUniform = gl.GetUniformLocation(programID, gl.GLString("uMVMatrix"))
+	pMatrix := mathgl.Ortho2D(0, 400, 400, 0)
+	mvMatrix := mathgl.Translate3D(50, 100, 0)
 
 	go func() {
 		<-time.After(10 * time.Second)
@@ -123,12 +137,15 @@ func main() {
 			gl.Clear(gl.COLOR_BUFFER_BIT)
 
 			gl.UseProgram(programID)
+			gl.UniformMatrix4fv(pMatrixUniform, 1, gl.FALSE, (*gl.Float)(&pMatrix[0]))
+			gl.UniformMatrix4fv(mvMatrixUniform, 1, gl.FALSE, (*gl.Float)(&mvMatrix[0]))
 			gl.BindVertexArray(vao)
-			gl.DrawArrays(gl.TRIANGLES, 0, gl.Sizei(len(vertices)))
+			gl.DrawArrays(gl.TRIANGLE_FAN, 0, gl.Sizei(len(vertices)))
 			gl.BindVertexArray(0)
 
 			window.SwapBuffers()
 			log.Println("swapped buffers")
+			CheckGLError()
 		} else {
 			time.Sleep(time.Millisecond)
 		}
