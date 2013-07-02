@@ -10,7 +10,7 @@ import (
 
 	//"github.com/go-gl/gl"
 	gl "github.com/chsc/gogl/gl33"
-	"github.com/go-gl/glfw3"
+	glfw "github.com/go-gl/glfw3"
 
 	"github.com/shurcooL/go-goon"
 
@@ -79,15 +79,16 @@ func main() {
 
 	redraw := true
 
+	var pMatrix mathgl.Mat4f
+
 	size := func(w *glfw.Window, width, height int) {
 		fmt.Println("Framebuffer Size:", width, height)
+		windowWidth, windowHeight := w.GetSize()
+		fmt.Println("Window Size:", windowWidth, windowHeight)
 		gl.Viewport(0, 0, gl.Sizei(width), gl.Sizei(height))
 
 		// Update the projection matrix
-		/*gl.MatrixMode(gl.PROJECTION)
-		gl.LoadIdentity()
-		gl.Ortho(0, float64(width), float64(height), 0, -1, 1)
-		gl.MatrixMode(gl.MODELVIEW)*/
+		pMatrix = mathgl.Ortho2D(0, float64(windowWidth), float64(windowHeight), 0)
 
 		redraw = true
 	}
@@ -113,7 +114,6 @@ func main() {
 
 	pMatrixUniform = gl.GetUniformLocation(programID, gl.GLString("uPMatrix"))
 	mvMatrixUniform = gl.GetUniformLocation(programID, gl.GLString("uMVMatrix"))
-	pMatrix := mathgl.Ortho2D(0, 400, 400, 0)
 	mvMatrix := mathgl.Translate3D(50, 100, 0)
 
 	go func() {
