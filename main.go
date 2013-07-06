@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
 	. "gist.github.com/5286084.git"
-	"time"
+	"log"
 	"runtime"
+	"time"
 	"unsafe"
 
 	//"github.com/go-gl/gl"
@@ -36,10 +36,32 @@ var vertices = [][2]gl.Float{
 	{0.0, 0.5},
 }*/
 
+func CheckCoreProfile(window *glfw.Window) {
+	fmt.Println("glfw.OpenGLCoreProfile:", glfw.OpenglCoreProfile == window.GetAttribute(glfw.OpenglProfile))
+}
+
 func CheckGLError() {
 	errorCode := gl.GetError()
-	if (0 != errorCode) {
+	if 0 != errorCode {
 		log.Panic("GL Error: ", errorCode)
+	}
+}
+
+func ValidateProgram(programID gl.Uint) {
+	gl.ValidateProgram(programID)
+
+	var validationErr gl.Int
+	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)
+	if validationErr == gl.FALSE {
+		log.Print("Shader program failed validation!")
+	}
+
+	var infoLogLength gl.Int
+	gl.GetProgramiv(programID, gl.INFO_LOG_LENGTH, &infoLogLength)
+	if infoLogLength > 0 {
+		programErrorMsg := gl.GLStringAlloc(gl.Sizei(infoLogLength))
+		gl.GetProgramInfoLog(programID, gl.Sizei(infoLogLength), nil, programErrorMsg)
+		fmt.Printf("Program Info: %s\n", gl.GoString(programErrorMsg))
 	}
 }
 
@@ -64,10 +86,8 @@ func main() {
 	CheckError(err)
 	window.MakeContextCurrent()
 
-	fmt.Println("glfw.OpenGLCoreProfile:", glfw.OpenglCoreProfile == window.GetAttribute(glfw.OpenglProfile))
-
 	err = gl.Init()
-	if (nil != err) {
+	if nil != err {
 		log.Print(err)
 	}
 
@@ -80,6 +100,7 @@ func main() {
 	redraw := true
 
 	var pMatrix mathgl.Mat4f
+	mvMatrix := mathgl.Translate3D(50, 100, 0)
 
 	size := func(w *glfw.Window, width, height int) {
 		fmt.Println("Framebuffer Size:", width, height)
@@ -99,22 +120,19 @@ func main() {
 	MousePos := func(w *glfw.Window, x, y float64) {
 		redraw = true
 		//fmt.Println("MousePos:", x, y)
+
+		mvMatrix = mathgl.Translate3D(x, y, 0)
 	}
 	window.SetCursorPositionCallback(MousePos)
 
 	// Load Shaders
-	var programID gl.Uint = goglutils.CreateShaderProgram([]string{"./GoLand/src/gist.github.com/5816852.git/simple_vertex_shader.vert",
-																   "./GoLand/src/gist.github.com/5816852.git/simple_fragment_shader.frag"})
-	gl.ValidateProgram(programID)
-	var validationErr gl.Int
-	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)
-	if validationErr == gl.FALSE {
-		log.Print("Shader program failed validation!")
-	}
+	var programID gl.Uint = goglutils.CreateShaderProgram([]string{
+		"./GoLand/src/gist.github.com/5816852.git/simple_vertex_shader.vert",
+		"./GoLand/src/gist.github.com/5816852.git/simple_fragment_shader.frag",
+	})
 
 	pMatrixUniform = gl.GetUniformLocation(programID, gl.GLString("uPMatrix"))
 	mvMatrixUniform = gl.GetUniformLocation(programID, gl.GLString("uMVMatrix"))
-	mvMatrix := mathgl.Translate3D(50, 100, 0)
 
 	go func() {
 		<-time.After(10 * time.Second)
@@ -126,6 +144,9 @@ func main() {
 	//gl.ClearColor(0.8, 0.3, 0.01, 1)
 
 	vao := createObject(vertices)
+	gl.BindVertexArray(vao)
+
+	ValidateProgram(programID)
 
 	for !window.ShouldClose() && glfw.Press != window.GetKey(glfw.KeyEscape) {
 		//glfw.WaitEvents()
@@ -144,7 +165,7 @@ func main() {
 			gl.BindVertexArray(0)
 
 			window.SwapBuffers()
-			log.Println("swapped buffers")
+			//log.Println("swapped buffers")
 			CheckGLError()
 		} else {
 			time.Sleep(time.Millisecond)
