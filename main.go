@@ -141,7 +141,7 @@ func main() {
 		redraw = true
 	}()
 
-	//gl.ClearColor(0.8, 0.3, 0.01, 1)
+	gl.ClearColor(0.8, 0.3, 0.01, 1)
 
 	vao := createObject(vertices)
 	gl.BindVertexArray(vao)
@@ -165,7 +165,7 @@ func main() {
 			gl.BindVertexArray(0)
 
 			window.SwapBuffers()
-			//log.Println("swapped buffers")
+			log.Println("swapped buffers")
 			CheckGLError()
 		} else {
 			time.Sleep(time.Millisecond)
