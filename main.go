@@ -90,7 +90,6 @@ func main() {
 	if nil != err {
 		log.Print(err)
 	}
-
 	fmt.Println(gl.GoStringUb(gl.GetString(gl.VENDOR)), gl.GoStringUb(gl.GetString(gl.RENDERER)), gl.GoStringUb(gl.GetString(gl.VERSION)))
 
 	//window.SetPosition(1600, 600)
