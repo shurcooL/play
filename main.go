@@ -8,19 +8,27 @@ import (
 )
 
 func main() {
-	var network bytes.Buffer        // Stand-in for a network connection
-	enc := gob.NewEncoder(&network) // Will write to network.
-	dec := gob.NewDecoder(&network) // Will read from network.
+	var network bytes.Buffer            // Stand-in for a network connection
+	encoder := gob.NewEncoder(&network) // Will write to network
+	decoder := gob.NewDecoder(&network) // Will read from network
 
 	// Encode (send) the value.
-	err := enc.Encode("Pythagoras")
-	CheckError(err)
-	
-	//goon.Dump(network)
+	{
+		err := encoder.Encode("Pythagoras")
+		CheckError(err)
+		encoder.Encode(43)
+	}
+
+	goon.Dump(network.Bytes())
+	println()
 
 	// Decode (receive) the value.
-	var q string
-	err = dec.Decode(&q)
-	CheckError(err)
-	goon.Dump(q)
+	{
+		var s string
+		err := decoder.Decode(&s)
+		CheckError(err)
+		var i int
+		decoder.Decode(&i)
+		goon.Dump(s, i)
+	}
 }
