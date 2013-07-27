@@ -51,7 +51,7 @@ func handler(c *websocket.Conn) {
 	defer delete(statuses, ct)
 	defer println("End of handler #", len(statuses))
 
-	ch, errCh := byteReader(c)
+	ch, errCh := ByteReader(c)
 	for {
 		select {
 		case b := <-ch:
@@ -111,22 +111,14 @@ func list(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%#v", statuses)
 }
 
-func byteReader(r io.Reader) (<-chan []byte, <-chan error) {
-	return byteReaderSize(r, 0)
-}
-
 // Credit to Tarmigan
-func byteReaderSize(r io.Reader, size int) (<-chan []byte, <-chan error) {
-	if size <= 0 {
-		size = 2048
-	}
-
+func ByteReader(r io.Reader) (<-chan []byte, <-chan error) {
 	ch := make(chan []byte)
 	errCh := make(chan error)
 
 	go func() {
 		for {
-			buf := make([]byte, size)
+			buf := make([]byte, 2048)
 			s := 0
 		inner:
 			for {
