@@ -3,12 +3,12 @@ package main
 import (
 	"code.google.com/p/go.net/websocket"
 	"fmt"
-	"io"
 	"net/http"
 	//"os"
 	"github.com/davecgh/go-spew/spew"
 	. "gist.github.com/5286084.git"
 	. "gist.github.com/5892738.git"
+	. "gist.github.com/6096872.git"
 
 	"sort"
 	"time"
@@ -109,34 +109,4 @@ func update() {
 func list(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "We have %v connections.\n", len(statuses))
 	fmt.Fprintf(w, "%#v", statuses)
-}
-
-// Credit to Tarmigan
-func ByteReader(r io.Reader) (<-chan []byte, <-chan error) {
-	ch := make(chan []byte)
-	errCh := make(chan error)
-
-	go func() {
-		for {
-			buf := make([]byte, 2048)
-			s := 0
-		inner:
-			for {
-				n, err := r.Read(buf[s:])
-				if n > 0 {
-					ch <- buf[s : s+n]
-					s += n
-				}
-				if err != nil {
-					errCh <- err
-					return
-				}
-				if s >= len(buf) {
-					break inner
-				}
-			}
-		}
-	}()
-
-	return ch, errCh
 }
