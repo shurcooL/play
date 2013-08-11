@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	//"os"
-	"github.com/davecgh/go-spew/spew"
 	. "gist.github.com/5286084.git"
 	. "gist.github.com/5892738.git"
 	. "gist.github.com/6096872.git"
+	"github.com/davecgh/go-spew/spew"
 
+	"html"
 	"sort"
 	"time"
-	"html"
 )
 
 var _ = spew.Dump
@@ -30,6 +30,7 @@ type ConnectionTime struct {
 	c *websocket.Conn
 	t time.Time
 }
+
 var statuses = map[ConnectionTime]string{}
 
 func CapLength(str string, max_len int) string {
@@ -43,7 +44,7 @@ func handler(c *websocket.Conn) {
 	// TODO: Should use a mutex here or something
 	// E.g., http://talks.godoc.org/github.com/nf/go11/talk.slide#19
 	ct := ConnectionTime{c, time.Now()}
-	statuses[ct] = ""		// Default blank status
+	statuses[ct] = "" // Default blank status
 	println("New handler #", len(statuses))
 	update()
 
@@ -51,7 +52,7 @@ func handler(c *websocket.Conn) {
 	defer delete(statuses, ct)
 	defer println("End of handler #", len(statuses))
 
-	ch, errCh := ByteReader(c)
+	ch, errCh := LineReader(c)
 	for {
 		select {
 		case b := <-ch:
