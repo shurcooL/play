@@ -6,7 +6,6 @@ import (
 	"net/http"
 	//"os"
 	. "gist.github.com/5286084.git"
-	. "gist.github.com/5892738.git"
 	. "gist.github.com/6096872.git"
 	"github.com/davecgh/go-spew/spew"
 
@@ -56,7 +55,7 @@ func handler(c *websocket.Conn) {
 	for {
 		select {
 		case b := <-ch:
-			statuses[ct] = TrimLastNewline(string(b))
+			statuses[ct] = string(b)
 			if len(statuses[ct]) > 160 {
 				return
 			}
