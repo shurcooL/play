@@ -31,6 +31,26 @@ func approach2() {
 	print(x + y)
 }
 
+func approach3() {
+	cx := make(chan int)
+	cy := make(chan int)
+
+	go func() {
+		x := 1
+		time.Sleep(12001)
+		x++; println("x++")
+		cx <- x
+	}()
+	go func() {
+		y := 2
+		time.Sleep(1)
+		y++; println("y++")
+		cy <- y
+	}()
+
+	print(<-cx + <-cy)
+}
+
 func main() {
-	approach2()
+	approach3()
 }
