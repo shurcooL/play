@@ -1,18 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"os"
-	"os/exec"
-	"time"
-	"math/rand"
+	"go/ast"
 	"go/parser"
 	"go/token"
-	"go/ast"
-	"bufio"
 	"io"
 	"io/ioutil"
+	"math/rand"
+	"os"
+	"os/exec"
 	"strings"
+	"time"
 
 	. "gist.github.com/5286084.git"
 )
@@ -35,31 +35,31 @@ func GenerateMainFunc() string {
 	return `print_ln("Hi")`
 }
 
-var alphabet = map[string]float64 {
-	";": 10.0,
-	"\n": 10.0,
-	" ": 5.0,
-	"print": 10.0,
+var alphabet = map[string]float64{
+	";":       10.0,
+	"\n":      10.0,
+	" ":       5.0,
+	"print":   10.0,
 	"println": 10.0,
-	"(": 10.0,
-	")": 10.0,
-	"\"": 10.0,
-	":": 10.0,
-	",": 10.0,
-	"{": 10.0,
-	"}": 10.0,
-	"[": 10.0,
-	"]": 10.0,
-	"_": 10.0,
-	"+": 10.0,
-	"-": 10.0,
-	"*": 10.0,
-	"/": 1.0,
-	"\\": 10.0,
-	"&&": 10.0,
-	"||": 10.0,
-	"&": 10.0,
-	"|": 10.0,
+	"(":       10.0,
+	")":       10.0,
+	"\"":      10.0,
+	":":       10.0,
+	",":       10.0,
+	"{":       10.0,
+	"}":       10.0,
+	"[":       10.0,
+	"]":       10.0,
+	"_":       10.0,
+	"+":       10.0,
+	"-":       10.0,
+	"*":       10.0,
+	"/":       1.0,
+	"\\":      10.0,
+	"&&":      10.0,
+	"||":      10.0,
+	"&":       10.0,
+	"|":       10.0,
 
 	"a": 1.0,
 	"b": 1.0,
@@ -130,7 +130,7 @@ var totalProb float64
 
 func GenerateMainFunc2() string {
 	o := ""
-	for i := 0; i < 4 + rand.Int() % 20; i++ {
+	for i := 0; i < 4+rand.Int()%20; i++ {
 		r := rand.Float64() * totalProb
 		for k, v := range alphabet {
 			if r < v {
@@ -213,48 +213,48 @@ func (c *Chain) Generate(n int) string {
 }
 
 // for f in `find /usr/local/go/src/pkg -name '*.go'`; do echo "\"$f\","; done | pbcopy
-var filenames = []string{//"/Users/Dmitri/Dmitri/^Work/^GitHub/Conception/Gen/5086673/gistfile1.go",
-"/usr/local/go/src/pkg/strconv/atob.go",
-"/usr/local/go/src/pkg/strconv/atob_test.go",
-"/usr/local/go/src/pkg/strconv/atof.go",
-"/usr/local/go/src/pkg/strconv/atof_test.go",
-"/usr/local/go/src/pkg/strconv/atoi.go",
-"/usr/local/go/src/pkg/strconv/atoi_test.go",
-"/usr/local/go/src/pkg/strconv/decimal.go",
-"/usr/local/go/src/pkg/strconv/decimal_test.go",
-"/usr/local/go/src/pkg/strconv/extfloat.go",
-"/usr/local/go/src/pkg/strconv/fp_test.go",
-"/usr/local/go/src/pkg/strconv/ftoa.go",
-"/usr/local/go/src/pkg/strconv/ftoa_test.go",
-"/usr/local/go/src/pkg/strconv/internal_test.go",
-"/usr/local/go/src/pkg/strconv/isprint.go",
-"/usr/local/go/src/pkg/strconv/itoa.go",
-"/usr/local/go/src/pkg/strings/reader.go",
-"/usr/local/go/src/pkg/strings/reader_test.go",
-"/usr/local/go/src/pkg/strings/replace.go",
-"/usr/local/go/src/pkg/strings/replace_test.go",
-"/usr/local/go/src/pkg/strings/strings.go",
-"/usr/local/go/src/pkg/go/parser/error_test.go",
-"/usr/local/go/src/pkg/go/parser/example_test.go",
-"/usr/local/go/src/pkg/go/parser/interface.go",
-"/usr/local/go/src/pkg/go/parser/parser.go",
-"/usr/local/go/src/pkg/go/parser/parser_test.go",
-"/usr/local/go/src/pkg/go/parser/short_test.go",
-"/usr/local/go/src/pkg/go/printer/example_test.go",
-"/usr/local/go/src/pkg/go/printer/nodes.go",
-"/usr/local/go/src/pkg/go/printer/performance_test.go",
-"/usr/local/go/src/pkg/go/printer/printer.go",
-"/usr/local/go/src/pkg/go/printer/printer_test.go",
-"/usr/local/go/src/pkg/go/printer/testdata/parser.go",
-"/usr/local/go/src/pkg/go/scanner/errors.go",
-"/usr/local/go/src/pkg/go/scanner/example_test.go",
-"/usr/local/go/src/pkg/go/scanner/scanner.go",
-"/usr/local/go/src/pkg/go/scanner/scanner_test.go",
-"/usr/local/go/src/pkg/go/token/position.go",
-"/usr/local/go/src/pkg/go/token/position_test.go",
-"/usr/local/go/src/pkg/go/token/serialize.go",
-"/usr/local/go/src/pkg/go/token/serialize_test.go",
-"/usr/local/go/src/pkg/go/token/token.go",
+var filenames = []string{ //"/Users/Dmitri/Dmitri/^Work/^GitHub/Conception/Gen/5086673/gistfile1.go",
+	"/usr/local/go/src/pkg/strconv/atob.go",
+	"/usr/local/go/src/pkg/strconv/atob_test.go",
+	"/usr/local/go/src/pkg/strconv/atof.go",
+	"/usr/local/go/src/pkg/strconv/atof_test.go",
+	"/usr/local/go/src/pkg/strconv/atoi.go",
+	"/usr/local/go/src/pkg/strconv/atoi_test.go",
+	"/usr/local/go/src/pkg/strconv/decimal.go",
+	"/usr/local/go/src/pkg/strconv/decimal_test.go",
+	"/usr/local/go/src/pkg/strconv/extfloat.go",
+	"/usr/local/go/src/pkg/strconv/fp_test.go",
+	"/usr/local/go/src/pkg/strconv/ftoa.go",
+	"/usr/local/go/src/pkg/strconv/ftoa_test.go",
+	"/usr/local/go/src/pkg/strconv/internal_test.go",
+	"/usr/local/go/src/pkg/strconv/isprint.go",
+	"/usr/local/go/src/pkg/strconv/itoa.go",
+	"/usr/local/go/src/pkg/strings/reader.go",
+	"/usr/local/go/src/pkg/strings/reader_test.go",
+	"/usr/local/go/src/pkg/strings/replace.go",
+	"/usr/local/go/src/pkg/strings/replace_test.go",
+	"/usr/local/go/src/pkg/strings/strings.go",
+	"/usr/local/go/src/pkg/go/parser/error_test.go",
+	"/usr/local/go/src/pkg/go/parser/example_test.go",
+	"/usr/local/go/src/pkg/go/parser/interface.go",
+	"/usr/local/go/src/pkg/go/parser/parser.go",
+	"/usr/local/go/src/pkg/go/parser/parser_test.go",
+	"/usr/local/go/src/pkg/go/parser/short_test.go",
+	"/usr/local/go/src/pkg/go/printer/example_test.go",
+	"/usr/local/go/src/pkg/go/printer/nodes.go",
+	"/usr/local/go/src/pkg/go/printer/performance_test.go",
+	"/usr/local/go/src/pkg/go/printer/printer.go",
+	"/usr/local/go/src/pkg/go/printer/printer_test.go",
+	"/usr/local/go/src/pkg/go/printer/testdata/parser.go",
+	"/usr/local/go/src/pkg/go/scanner/errors.go",
+	"/usr/local/go/src/pkg/go/scanner/example_test.go",
+	"/usr/local/go/src/pkg/go/scanner/scanner.go",
+	"/usr/local/go/src/pkg/go/scanner/scanner_test.go",
+	"/usr/local/go/src/pkg/go/token/position.go",
+	"/usr/local/go/src/pkg/go/token/position_test.go",
+	"/usr/local/go/src/pkg/go/token/serialize.go",
+	"/usr/local/go/src/pkg/go/token/serialize_test.go",
+	"/usr/local/go/src/pkg/go/token/token.go",
 }
 
 var c *Chain
@@ -281,20 +281,23 @@ func VerifyProgram2(prog string) bool {
 }
 
 func VerifyProgram1(prog string) bool {
-	f, err := os.Create(tempDir + "/GenProgram.go"); CheckError(err)
+	f, err := os.Create(tempDir + "/GenProgram.go")
+	CheckError(err)
 	//defer os.Remove(f.Name())
 
 	f.WriteString(prog)
-	err = f.Close(); CheckError(err)
+	err = f.Close()
+	CheckError(err)
 
-	err = exec.Command("/usr/local/go/bin/go", "build", "-o", tempDir + "/Out", f.Name()).Run()
+	err = exec.Command("/usr/local/go/bin/go", "build", "-o", tempDir+"/Out", f.Name()).Run()
 	defer os.Remove(tempDir + "/Out")
 
-	return nil == err && FileExists(tempDir + "/Out")
+	return nil == err && FileExists(tempDir+"/Out")
 }
 
 func AppendToFile(name, text string) {
-	f, err := os.OpenFile(name, os.O_APPEND|os.O_WRONLY, 0666); CheckError(err)
+	f, err := os.OpenFile(name, os.O_APPEND|os.O_WRONLY, 0666)
+	CheckError(err)
 	defer f.Close()
 	f.WriteString(text)
 }
@@ -305,7 +308,7 @@ func main() {
 	}
 
 	// Markov chain init
-	c = NewChain(2)     // Initialize a new Chain.
+	c = NewChain(2) // Initialize a new Chain.
 	for _, filename := range filenames {
 		f, _ := os.Open(filename)
 		defer f.Close()
@@ -351,7 +354,7 @@ func main() {
 		now = time.Now()
 		Tries = Tries + 1
 
-		if (VerifyProgram2(prog) && VerifyProgram1(prog)) {
+		if VerifyProgram2(prog) && VerifyProgram1(prog) {
 			Good = Good + 1
 			fmt.Printf(" %v %v OMG SUCCESS: %s\n", now.Unix(), now, prog)
 			//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf(" %v %v OMG SUCCESS: %s\n", now.Unix(), now, prog))
@@ -370,6 +373,6 @@ func main() {
 	}
 
 	now = time.Now()
-	fmt.Printf("%v %v FINISHED Stats: %v/%v (%v%%) good/tries\n\n", now.Unix(), now, Good, Tries, float64(Good) / float64(Tries) * 100)
+	fmt.Printf("%v %v FINISHED Stats: %v/%v (%v%%) good/tries\n\n", now.Unix(), now, Good, Tries, float64(Good)/float64(Tries)*100)
 	//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf("%v %v FINISHED Stats: %v/%v (%v%%) good/tries\n\n", now.Unix(), now, Good, Tries, float64(Good) / float64(Tries) * 100))
 }
