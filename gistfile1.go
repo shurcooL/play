@@ -13,6 +13,8 @@ import (
 	"io"
 	"io/ioutil"
 	"strings"
+
+	. "gist.github.com/5286084.git"
 )
 
 var _ os.File
@@ -20,8 +22,6 @@ var _ exec.Cmd
 var _ = time.Second
 
 var tempDir string
-
-func CheckError(err error) { if nil != err { fmt.Printf("err: %v\n", err); panic(err) } }
 
 func FileExists(name string) bool {
 	_, err := os.Stat(name)
@@ -269,7 +269,7 @@ func GenerateProgram() string {
 
 func VerifyProgram2(prog string) bool {
 	//if len(strings.TrimSpace(prog)) == 0 ...
-	
+
 	file, err := parser.ParseFile(token.NewFileSet(), "", prog, 0)
 	if err != nil {
 		return false
@@ -286,10 +286,10 @@ func VerifyProgram1(prog string) bool {
 
 	f.WriteString(prog)
 	err = f.Close(); CheckError(err)
-	
+
 	err = exec.Command("/usr/local/go/bin/go", "build", "-o", tempDir + "/Out", f.Name()).Run()
 	defer os.Remove(tempDir + "/Out")
-	
+
 	return nil == err && FileExists(tempDir + "/Out")
 }
 
