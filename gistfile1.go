@@ -51,10 +51,13 @@ func handler(c *websocket.Conn) {
 	defer delete(statuses, ct)
 	defer println("End of handler #", len(statuses))
 
-	ch, errCh := LineReader(c)
+	ch := LineReader(c)
 	for {
 		select {
-		case b := <-ch:
+		case b, ok := <-ch:
+			if !ok {
+				return
+			}
 			statuses[ct] = string(b)
 			if len(statuses[ct]) > 160 {
 				return
@@ -63,8 +66,6 @@ func handler(c *websocket.Conn) {
 			//os.Stdout.Write(b)
 			update()
 			//fmt.Printf("%#v\n", statuses)
-		case <-errCh:
-			return
 		}
 	}
 }
