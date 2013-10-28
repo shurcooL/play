@@ -30,6 +30,7 @@ var vertices = [][2]gl.Float{
 	{300, 100},
 	{0, 100},
 }
+
 /*var vertices = [][2]gl.Float{
 	{-0.5, -0.5},
 	{0.5, -0.5},
@@ -108,7 +109,7 @@ func main() {
 		gl.Viewport(0, 0, gl.Sizei(width), gl.Sizei(height))
 
 		// Update the projection matrix
-		pMatrix = mathgl.Ortho2D(0, float64(windowWidth), float64(windowHeight), 0)
+		pMatrix = mathgl.Ortho2D(0, float32(windowWidth), float32(windowHeight), 0)
 
 		redraw = true
 	}
@@ -120,7 +121,7 @@ func main() {
 		redraw = true
 		//fmt.Println("MousePos:", x, y)
 
-		mvMatrix = mathgl.Translate3D(x, y, 0)
+		mvMatrix = mathgl.Translate3D(float32(x), float32(y), 0)
 	}
 	window.SetCursorPositionCallback(MousePos)
 
