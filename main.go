@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const Const = 1 + 1
+
 type Bar struct {
 	key   string
 	value int
@@ -15,12 +17,14 @@ type Bar struct {
 func foo() (int, string) { return 5, "hi" }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	_, _ = ioutil.ReadAll(r.Body)
+	b, err := ioutil.ReadAll(r.Body)
+	_ = b
+	_ = err
 }
 
 func main() {
 	foo()
-	fmt.Println("Booyah!!!!!!!!!!!!!!!!!!!!!!!!")
+	fmt.Println("Booyah!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 	for i := 1; i <= 10; i++ {
 		time.Sleep(100 * time.Millisecond)
 		fmt.Println(i)
