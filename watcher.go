@@ -9,9 +9,11 @@ import (
 	"os"
 	"os/exec"
 	//"strconv"
-	//"time"
-	"github.com/howeyc/fsnotify"
+	"time"
 	//"flag"
+
+	. "gist.github.com/5571468.git"
+	"github.com/howeyc/fsnotify"
 )
 
 func checkError(err error) {
@@ -23,12 +25,14 @@ func checkError(err error) {
 func main() {
 	if 2 != len(os.Args) {
 		fmt.Fprintln(os.Stderr, "usage: ./watcher file\n (where file.go is the source of another program)")
-		//return
 		os.Exit(1)
 	}
 
 	var path string = os.Args[1]
-	var process *os.Process = nil
+	var restart bool = true
+	var process *os.Process
+	var processState *os.ProcessState
+	var oldContent string = TryReadFile(path + ".go")
 
 	// Setup a watcher
 	{
@@ -51,12 +55,25 @@ func main() {
 					{
 						//log.Printf("Event: %v.\n", ev)
 
+						// Check if the file has been changed externally, and if so, override this widget
+						newContent := TryReadFile(path + ".go")
+						if newContent == oldContent {
+							continue
+						} else {
+							oldContent = newContent
+						}
+
+						restart = true
+
 						if nil != process {
-							//err := process.Kill()
-							err := process.Signal(os.Interrupt)
-							checkError(err)
-							//fmt.Printf("Killed process %v.\n", process.Pid)
+							if processState == nil || !processState.Exited() {
+								//err := process.Kill()
+								err := process.Signal(os.Interrupt)
+								checkError(err)
+								//fmt.Printf("Killed process %v.\n", process.Pid)
+							}
 							process = nil
+							processState = nil
 						}
 					}
 
@@ -77,11 +94,18 @@ func main() {
 
 	// Main loop
 	for {
+		for !restart {
+			time.Sleep(1 * time.Second)
+		}
+		restart = false
+
 		// Build the program, wait for completion
 		{
-			cmd := exec.Command("go", "build", path+".go")
+			cmd := exec.Command("go", "build", "-o", path, path+".go")
 			err := cmd.Run()
-			checkError(err)
+			if err != nil {
+				continue
+			}
 		}
 
 		// Run the program, wait for completion
@@ -104,6 +128,7 @@ func main() {
 			go io.Copy(os.Stderr, stderr)
 
 			cmd.Wait()
+			processState = cmd.ProcessState
 
 			fmt.Printf("\n")
 		}
