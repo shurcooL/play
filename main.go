@@ -117,6 +117,6 @@ func main() {
 
 	http.Handle("/status", websocket.Handler(handler))
 	http.HandleFunc("/list", list)
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":34600", nil)
 	CheckError(err)
 }
