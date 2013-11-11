@@ -33,6 +33,7 @@ func main() {
 	var process *os.Process
 	var processState *os.ProcessState
 	var oldContent string = TryReadFile(path + ".go")
+	var killed bool = false
 
 	// Setup a watcher
 	{
@@ -54,6 +55,7 @@ func main() {
 				case /*ev :=*/ <-watcher.Event:
 					{
 						//log.Printf("Event: %v.\n", ev)
+						//println("event (watcher)")
 
 						// Check if the file has been changed externally, and if so, override this widget
 						newContent := TryReadFile(path + ".go")
@@ -63,24 +65,29 @@ func main() {
 							oldContent = newContent
 						}
 
-						restart = true
-
 						if nil != process {
+							//fmt.Printf("I should be killing process, but processState is %p\n", processState)
+							//if processState != nil {
+							//	fmt.Printf("  and its status is %v\n", processState.Exited())
+							//}
 							if processState == nil || !processState.Exited() {
 								//err := process.Kill()
+								killed = true
 								err := process.Signal(os.Interrupt)
 								checkError(err)
 								//fmt.Printf("Killed process %v.\n", process.Pid)
 							}
 							process = nil
+							//println("Set process = nil")
 							processState = nil
 						}
+
+						restart = true
+						//println("actual change (watcher)")
 					}
 
 				case err := <-watcher.Error:
-					{
-						checkError(err)
-					}
+					checkError(err)
 				}
 			}
 		}()
@@ -95,22 +102,28 @@ func main() {
 	// Main loop
 	for {
 		for !restart {
-			time.Sleep(1 * time.Second)
+			time.Sleep(200 * time.Millisecond)
+			//fmt.Println("sleeping in main loop, process =", process)
 		}
 		restart = false
+		killed = false
+		time.Sleep(500 * time.Millisecond)
 
 		// Build the program, wait for completion
 		{
+			//println("building")
+
 			cmd := exec.Command("go", "build", "-o", path, path+".go")
-			err := cmd.Run()
+			out, err := cmd.CombinedOutput()
 			if err != nil {
+				fmt.Println("error: " + string(out))
 				continue
 			}
 		}
 
 		// Run the program, wait for completion
 		{
-			fmt.Printf("%s\n", path)
+			//fmt.Println("running")
 
 			cmd := exec.Command(path)
 
@@ -123,14 +136,19 @@ func main() {
 			checkError(err)
 
 			process = cmd.Process
+			//println("assigned process")
 
 			go io.Copy(os.Stdout, stdout)
 			go io.Copy(os.Stderr, stderr)
 
+			//println("main: starting to cmd.Wait()")
 			cmd.Wait()
-			processState = cmd.ProcessState
+			if !killed {
+				processState = cmd.ProcessState
+			}
+			//println("main: done with cmd.Wait()")
 
-			fmt.Printf("\n")
+			fmt.Println("---")
 		}
 	}
 }
