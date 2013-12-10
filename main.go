@@ -3,7 +3,6 @@ package main
 import (
 	"io"
 	//"net/http"
-	"log"
 	//"html"
 	"fmt"
 	"os"
@@ -12,15 +11,10 @@ import (
 	"time"
 	//"flag"
 
+	. "gist.github.com/5286084.git"
 	. "gist.github.com/5571468.git"
 	"github.com/howeyc/fsnotify"
 )
-
-func checkError(err error) {
-	if nil != err {
-		log.Fatal(err)
-	}
-}
 
 func main() {
 	if 2 != len(os.Args) {
@@ -43,7 +37,7 @@ func main() {
 		{
 			var err error
 			watcher, err = fsnotify.NewWatcher()
-			checkError(err)
+			CheckError(err)
 
 			defer watcher.Close()
 		}
@@ -74,7 +68,7 @@ func main() {
 								//err := process.Kill()
 								killed = true
 								err := process.Signal(os.Interrupt)
-								checkError(err)
+								CheckError(err)
 								//fmt.Printf("Killed process %v.\n", process.Pid)
 							}
 							process = nil
@@ -87,7 +81,7 @@ func main() {
 					}
 
 				case err := <-watcher.Error:
-					checkError(err)
+					CheckError(err)
 				}
 			}
 		}()
@@ -95,7 +89,7 @@ func main() {
 		// Start watching the source file
 		{
 			err := watcher.Watch(path + ".go")
-			checkError(err)
+			CheckError(err)
 		}
 	}
 
@@ -128,12 +122,12 @@ func main() {
 			cmd := exec.Command(path)
 
 			stdout, err := cmd.StdoutPipe()
-			checkError(err)
+			CheckError(err)
 			stderr, err := cmd.StderrPipe()
-			checkError(err)
+			CheckError(err)
 
 			err = cmd.Start()
-			checkError(err)
+			CheckError(err)
 
 			process = cmd.Process
 			//println("assigned process")
