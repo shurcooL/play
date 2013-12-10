@@ -6,49 +6,28 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 	"time"
 	//"github.com/davecgh/go-spew/spew"
-	"bufio"
-	"io"
-	"os"
+
+	. "gist.github.com/7651991.git"
 )
 
 var _ = fmt.Print
 var _ = time.Now
+
 //var _ = spew.Dump
 
-func TrimNewline(line *string) {
-	if len(*line) > 0 && (*line)[len(*line)-1] == '\n' {
-		*line = (*line)[:len(*line)-1]
-	}
-}
-
-func GetLinesFromFile(path string, exec func(string)) {
+func ProcessLinesFromFile(path string, exec func(string)) {
 	f, err := os.Open(path)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer f.Close()
-	GetLinesFromReader(f, exec)
-}
-
-func GetLinesFromReader(r0 io.Reader, exec func(string)) {
-	r := bufio.NewReader(r0)
-	line, err := r.ReadString('\n')
-	for err == nil {
-		TrimNewline(&line)
-		exec(line)
-		line, err = r.ReadString('\n')
-	}
-	TrimNewline(&line)
-	exec(line)
-	/*if err != io.EOF {
-		fmt.Println(err)
-		return
-	}*/
+	ProcessLinesFromReader(f, exec)
 }
 
 func train(training_data string) map[string]int {
@@ -64,7 +43,7 @@ func train(training_data string) map[string]int {
 	return NWORDS
 }
 
-func FindMatches(in string, model map[string]int) [][]string {
+func findMatches(in string, model map[string]int) [][]string {
 	var out [][]string
 
 	//for k, _ := range []rune(in) {
@@ -73,11 +52,11 @@ func FindMatches(in string, model map[string]int) [][]string {
 		prefix := string(in[:k])
 		suffix := string(in[k:])
 
-		if WordExists(prefix, model) {
+		if wordExists(prefix, model) {
 			if 0 == len(suffix) {
 				out = append(out, []string{prefix})
 			} else {
-				sV := FindMatches(suffix, model)
+				sV := findMatches(suffix, model)
 
 				if 0 != len(sV) {
 					for k, _ := range sV {
@@ -93,12 +72,12 @@ func FindMatches(in string, model map[string]int) [][]string {
 	return out
 }
 
-func WordExists(in string, model map[string]int) bool {
+func wordExists(in string, model map[string]int) bool {
 	return (0 < model[in])
 }
 
-func FilterMatches(in string, model map[string]int) string {
-	found := FindMatches(in, model)
+func filterMatches(in string, model map[string]int) string {
+	found := findMatches(in, model)
 	leastNumWords := len(in) + 1
 	bestOut := in
 	//spew.Dump(found)
@@ -126,14 +105,14 @@ func main() {
 	//"input.txt"
 	//fmt.Printf("Time : %v\n", float64(time.Now().UnixNano()-startTime)/float64(1e9))
 
-	//fmt.Printf("%s", FilterMatches("strangephrase", model))
+	//fmt.Printf("%s", filterMatches("strangephrase", model))
 	//path := "Work/input.txt"
-	//GetLinesFromFile(path,
-	GetLinesFromReader(os.Stdin,
+	//ProcessLinesFromFile(path,
+	ProcessLinesFromReader(os.Stdin,
 		func(in string) {
 			phrases := strings.Fields(in)
 			for i := range phrases {
-				phrases[i] = FilterMatches(phrases[i], model)
+				phrases[i] = filterMatches(phrases[i], model)
 			}
 			fmt.Println(strings.Join(phrases, " "))
 		})
