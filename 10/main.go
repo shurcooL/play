@@ -36,6 +36,9 @@ func findDotImports(pi *importer.PackageInfo) {
 }
 
 func main() {
+	importPath := "gist.github.com/7176504.git"
+	//importPath := "github.com/shurcooL/goe"
+
 	imp2 := importer2.New()
 	imp2.Config.UseGcFallback = true
 	cfg := types.Config{Import: imp2.Import}
@@ -46,8 +49,7 @@ func main() {
 		SourceImports: true,
 	})
 
-	//pi, err := imp.ImportPackage("gist.github.com/7176504.git")
-	pi, err := imp.ImportPackage("github.com/shurcooL/goe")
+	pi, err := imp.ImportPackage(importPath)
 	CheckError(err)
 	_ = pi
 
