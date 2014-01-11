@@ -1,6 +1,8 @@
+// Displays Go package source code with dot imports inlined.
 package main
 
 import (
+	"flag"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -35,9 +37,14 @@ func findDotImports(pi *importer.PackageInfo) {
 	}
 }
 
+//importPath := "gist.github.com/7176504.git"
+//importPath := "github.com/shurcooL/goe"
+var importPathFlag = flag.String("import-path", "github.com/shurcooL/play/11", "Import Path of Go package to display with dot imports inlined.")
+
 func main() {
-	importPath := "gist.github.com/7176504.git"
-	//importPath := "github.com/shurcooL/goe"
+	flag.Parse()
+
+	importPath := *importPathFlag
 
 	imp2 := importer2.New()
 	imp2.Config.UseGcFallback = true
