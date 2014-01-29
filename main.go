@@ -7,7 +7,6 @@ import (
 	"go/token"
 	"time"
 	"code.google.com/p/go.tools/go/types"
-	"code.google.com/p/go.tools/importer"
 	. "gist.github.com/5286084.git"
 	. "gist.github.com/5504644.git"
 	. "gist.github.com/5639599.git"
@@ -35,14 +34,16 @@ func main() {
 	spew.Config.ContinueOnMethod = true
 	spew.Config.MaxDepth = 3
 
+	// TODO: Consider using code.google.com/p/go.tools/go/loader
 	ImportPath := "github.com/shurcooL/Conception-go"
 
 	bpkg, err := BuildPackageFromImportPath(ImportPath)
 	//dpkg := GetDocPackage(BuildPackageFromImportPath(ImportPath)) // Shouldn't reuse bpkg because doc.Package "takes ownership of the *ast.Package and may edit or overwrite it"...
-	dpkg := GetDocPackage(bpkg, err)
+	dpkg, err := GetDocPackage(bpkg, err)
+	CheckError(err)
 
 	fset := token.NewFileSet()
-	files, err := importer.ParseFiles(fset, bpkg.Dir, append(bpkg.GoFiles, bpkg.CgoFiles...)...)
+	files, err := ParseFiles(fset, bpkg.Dir, append(bpkg.GoFiles, bpkg.CgoFiles...)...)
 	CheckError(err)
 
 	imp := importer2.New()
