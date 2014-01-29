@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 
@@ -10,12 +11,13 @@ import (
 func dumpRequestHandler(w http.ResponseWriter, r *http.Request) {
 	dump, err := httputil.DumpRequest(r, true)
 	CheckError(err)
-	println(string(dump))
+
+	fmt.Println(string(dump))
 }
 
 func main() {
-	println("Starting...")
+	fmt.Println("Starting http request dumper...")
 
-	err := http.ListenAndServe(":8080", http.HandlerFunc(dumpRequestHandler))
+	err := http.ListenAndServe(":3000", http.HandlerFunc(dumpRequestHandler))
 	CheckError(err)
 }
