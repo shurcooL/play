@@ -3,32 +3,44 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
+
 	. "gist.github.com/5286084.git"
+
 	"github.com/shurcooL/go-goon"
 )
 
 func main() {
-	var network bytes.Buffer            // Stand-in for a network connection
-	encoder := gob.NewEncoder(&network) // Will write to network
-	decoder := gob.NewDecoder(&network) // Will read from network
+	var network bytes.Buffer // Stand-in for a network connection
+
+	type P_named_struct struct {
+		X, Y, Z int
+		secret  string
+		Name    string
+		P       *P_named_struct
+	}
 
 	// Encode (send) the value.
 	{
-		err := encoder.Encode("Pythagoras")
+		encoder := gob.NewEncoder(&network) // Will write to network
+		err := encoder.Encode(P_named_struct{
+			X:      5,
+			Z:      43,
+			Name:   "Pythagoras",
+			secret: "so secret o.o",
+		})
 		CheckError(err)
-		encoder.Encode(43)
 	}
 
-	goon.Dump(network.Bytes())
+	//goon.Dump(network.Bytes())
+	goon.DumpExpr(len(network.Bytes()))
 	println()
 
 	// Decode (receive) the value.
 	{
-		var s string
-		err := decoder.Decode(&s)
+		decoder := gob.NewDecoder(&network) // Will read from network
+		var o P_named_struct
+		err := decoder.Decode(&o)
 		CheckError(err)
-		var i int
-		decoder.Decode(&i)
-		goon.Dump(s, i)
+		goon.Dump(o)
 	}
 }
