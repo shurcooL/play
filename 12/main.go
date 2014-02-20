@@ -3,7 +3,7 @@ package main
 import (
 	//"fmt"
 
-	"github.com/ajhager/webgl"
+	"github.com/gopherjs/webgl"
 	"github.com/neelance/gopherjs/js"
 )
 
