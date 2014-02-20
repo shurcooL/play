@@ -3,8 +3,8 @@ package main
 import (
 	//"fmt"
 
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/webgl"
-	"github.com/neelance/gopherjs/js"
 )
 
 func tick() {
