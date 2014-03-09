@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	. "gist.github.com/5286084.git"
 	"log"
 	"runtime"
 	"time"
 	"unsafe"
+
+	. "gist.github.com/5286084.git"
 
 	//"github.com/go-gl/gl"
 	gl "github.com/chsc/gogl/gl33"
@@ -139,6 +140,7 @@ func main() {
 		log.Println("trigger!")
 		updated = true
 		redraw = true
+		glfw.PostEmptyEvent()
 	}()
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
@@ -149,8 +151,7 @@ func main() {
 	ValidateProgram(programID)
 
 	for !window.ShouldClose() && glfw.Press != window.GetKey(glfw.KeyEscape) {
-		//glfw.WaitEvents()
-		glfw.PollEvents()
+		glfw.WaitEvents()
 
 		if redraw {
 			redraw = false
@@ -167,11 +168,9 @@ func main() {
 			window.SwapBuffers()
 			log.Println("swapped buffers")
 			CheckGLError()
-		} else {
-			time.Sleep(time.Millisecond)
 		}
 
-		//runtime.Gosched()
+		runtime.Gosched()
 	}
 }
 
