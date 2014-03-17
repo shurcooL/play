@@ -29,10 +29,13 @@ func main() {
 	foo()
 	fmt.Println(TrimFirstSpace("  Booyah!!!!!!!!!!!!!!"))
 	for i := 1; i <= 10 || false; i++ {
-		time.Sleep(100 * time.Millisecond)
-		fmt.Println(i)
+		time.Sleep(1000 * time.Millisecond)
+		if i%3 != 0 {
+			fmt.Println(i)
+		} else {
+			println(i, "stderr")
+		}
 	}
 	i := Bar{"i", 1236}
 	i.value++
 }
-// \ No newline at end of file
