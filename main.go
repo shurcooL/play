@@ -1,15 +1,16 @@
 package main
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"fmt"
-	. "gist.github.com/5286084.git"
-	. "gist.github.com/6096872.git"
 	"html"
 	"net/http"
 	"sort"
 	"sync"
 	"time"
+
+	"code.google.com/p/go.net/websocket"
+	. "gist.github.com/5286084.git"
+	. "gist.github.com/6096872.git"
 )
 
 var _ = fmt.Print
@@ -117,6 +118,8 @@ func main() {
 
 	http.Handle("/status", websocket.Handler(handler))
 	http.HandleFunc("/list", list)
+	http.HandleFunc("/live-status.html", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "./live-status.html") })
+	http.Handle("/favicon.ico", http.NotFoundHandler())
 	err := http.ListenAndServe(":34600", nil)
 	CheckError(err)
 }
