@@ -118,7 +118,7 @@ func main() {
 
 	http.Handle("/status", websocket.Handler(handler))
 	http.HandleFunc("/list", list)
-	http.HandleFunc("/live-status.html", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "./live-status.html") })
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "./live-status.html") })
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	err := http.ListenAndServe(":34600", nil)
 	CheckError(err)
