@@ -44,8 +44,8 @@ func CheckCoreProfile(window *glfw.Window) {
 
 func CheckGLError() {
 	errorCode := gl.GetError()
-	if 0 != errorCode {
-		log.Panic("GL Error: ", errorCode)
+	if errorCode != 0 {
+		log.Panicln("GL Error:", errorCode)
 	}
 }
 
