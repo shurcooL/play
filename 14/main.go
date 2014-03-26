@@ -1,31 +1,31 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	//. "gist.github.com/6096872.git"
 
-	"labix.org/v2/pipe"
+	"github.com/shurcooL/pipe"
 )
-
-var stop bool // Hacky global variable that stops ChanWriter writes...
 
 type ChanWriter chan []byte
 
 func (cw ChanWriter) Write(p []byte) (n int, err error) {
-	if !stop {
-		cw <- p
-		return len(p), nil
-	} else {
-		return 0, errors.New("stopped!")
-	}
+	cw <- p
+	return len(p), nil
 }
 
 func ChanCombinedOutput(outch ChanWriter, p pipe.Pipe) error {
 	s := pipe.NewState(outch, outch)
+
+	// Test interrupting the pipe after a few seconds.
+	go func() {
+		time.Sleep(5 * time.Second)
+		s.Kill()
+	}()
+
 	err := p(s)
 	if err == nil {
 		err = s.RunTasks()
@@ -45,11 +45,6 @@ func main() {
 		pipe.Exec("/Users/Dmitri/Desktop/pipe_bin"),
 		pipe.Println("Done."),
 	)
-
-	go func() {
-		time.Sleep(3 * time.Second)
-		stop = true
-	}()
 
 	go func() {
 		err := ChanCombinedOutput(outch, p)
