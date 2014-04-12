@@ -27,6 +27,11 @@ func main() {
 		panic(err)
 	}
 
+	// If the last byte is a newline, drop it.
+	if len(b) > 0 && b[len(b)-1] == '\n' {
+		b = b[:len(b)-1]
+	}
+
 	lines := bytes.Split(b, []byte("\n"))
 
 	line := rand.Intn(len(lines))
