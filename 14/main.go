@@ -1,3 +1,4 @@
+// Test for pipe's new Kill() API.
 package main
 
 import (
