@@ -9,7 +9,7 @@ import (
 	. "gist.github.com/6096872.git"
 
 	"github.com/bradfitz/iter"
-	"github.com/shurcooL/pipe"
+	"gopkg.in/pipe.v2"
 )
 
 func ChanCombinedOutput(outch ChanWriter, p pipe.Pipe) error {
