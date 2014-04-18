@@ -23,6 +23,11 @@ var _ = time.Second
 
 var tempDir string
 
+type stats struct {
+	Good  uint64
+	Tries uint64
+}
+
 func FileExists(name string) bool {
 	_, err := os.Stat(name)
 	return nil == err
@@ -260,11 +265,11 @@ var filenames = []string{ //"/Users/Dmitri/Dmitri/^Work/^GitHub/Conception/Gen/5
 var c *Chain
 
 func GenerateMainFunc3() string {
-	return c.Generate(100)
+	return c.Generate(50)
 }
 
 func GenerateProgram() string {
-	return "package main; func main() { " + GenerateMainFunc3() + " }"
+	return "package main; func main() {\n" + GenerateMainFunc3() + "\n}\n"
 }
 
 func VerifyProgram2(prog string) bool {
@@ -339,12 +344,12 @@ func main() {
 		err = f.Close(); CheckError(err)
 	}*/
 
-	var Good, Tries int
+	stats := stats{}
 	startTime := time.Now()
 	nextPrintTime := startTime.Add(10 * time.Second)
 
 	now := time.Now()
-	fmt.Printf("\n\n%v %v STARTED Stats: %v/%v good/tries\n", now.Unix(), now, Good, Tries)
+	fmt.Printf("\n\n%v %v STARTED Stats: %v/%v good/tries\n", now.Unix(), now, stats.Good, stats.Tries)
 	//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf("\n\n%v %v STARTED Stats: %v/%v good/tries\n", now.Unix(), now, Good, Tries))
 
 	//for i := 0; i < 5000; i++ {
@@ -352,10 +357,10 @@ func main() {
 		prog := GenerateProgram()
 
 		now = time.Now()
-		Tries = Tries + 1
+		stats.Tries++
 
 		if VerifyProgram2(prog) && VerifyProgram1(prog) {
-			Good = Good + 1
+			stats.Good++
 			fmt.Printf(" %v %v OMG SUCCESS: %s\n", now.Unix(), now, prog)
 			//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf(" %v %v OMG SUCCESS: %s\n", now.Unix(), now, prog))
 		} else {
@@ -364,15 +369,15 @@ func main() {
 
 		if now.After(nextPrintTime) {
 			nextPrintTime = now.Add(10 * time.Minute)
-			successRate := float64(Good) / float64(Tries) * 100
-			opsPerSec := float64(Tries) / time.Since(startTime).Seconds()
-			fmt.Printf("%v %v Stats: %v/%v (%v%%) good/tries, %v ops/sec\n", now.Unix(), now, Good, Tries, successRate, opsPerSec)
+			successRate := float64(stats.Good) / float64(stats.Tries) * 100
+			opsPerSec := float64(stats.Tries) / time.Since(startTime).Seconds()
+			fmt.Printf("%v %v Stats: %v/%v (%v%%) good/tries, %v ops/sec\n", now.Unix(), now, stats.Good, stats.Tries, successRate, opsPerSec)
 			//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf("%v %v Stats: %v/%v (%v%%) good/tries, %v ops/sec\n", now.Unix(), now, Good, Tries, successRate, opsPerSec))
 		}
 		//time.Sleep(time.Millisecond)
 	}
 
 	now = time.Now()
-	fmt.Printf("%v %v FINISHED Stats: %v/%v (%v%%) good/tries\n\n", now.Unix(), now, Good, Tries, float64(Good)/float64(Tries)*100)
+	fmt.Printf("%v %v FINISHED Stats: %v/%v (%v%%) good/tries\n\n", now.Unix(), now, stats.Good, stats.Tries, float64(stats.Good)/float64(stats.Tries)*100)
 	//AppendToFile(tempDir + "/Log.txt", fmt.Sprintf("%v %v FINISHED Stats: %v/%v (%v%%) good/tries\n\n", now.Unix(), now, Good, Tries, float64(Good) / float64(Tries) * 100))
 }
