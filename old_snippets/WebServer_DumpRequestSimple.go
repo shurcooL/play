@@ -18,6 +18,6 @@ func dumpRequestHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	fmt.Println("Starting http request dumper...")
 
-	err := http.ListenAndServe(":3000", http.HandlerFunc(dumpRequestHandler))
+	err := http.ListenAndServe(":8080", http.HandlerFunc(dumpRequestHandler))
 	CheckError(err)
 }
