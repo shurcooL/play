@@ -3,6 +3,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -21,6 +22,7 @@ func main() {
 	orgNameFlag = flag.String("org-name", "", "Name of GitHub organization to get closed issues for.")
 	flag.Parse()
 
+	fmt.Println("Enter a GitHub token:")
 	token, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		panic(err)
