@@ -19,8 +19,14 @@ import (
 )
 
 func main() {
-	orgNameFlag = flag.String("org-name", "", "Name of GitHub organization to get closed issues for.")
+	orgNameFlag := flag.String("org-name", "", "Name of GitHub organization to get closed issues for (required).")
 	flag.Parse()
+
+	// Check for required flag value.
+	if *orgNameFlag == "" {
+		flag.Usage()
+		os.Exit(2)
+	}
 
 	fmt.Println("Enter a GitHub token:")
 	token, err := ioutil.ReadAll(os.Stdin)
