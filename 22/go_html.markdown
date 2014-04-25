@@ -11,6 +11,8 @@
 		</div>
 		<div>
 			<h2 style="text-align: center;">No Updates Available</h2>
+			<a>Plain Anchor</a>
+			<a href="/home.html">Home Link</a>
 		</div>
 		<script>document.getElementById("checking_updates").style.display = "none";</script>
 	</body>
@@ -27,6 +29,10 @@ Html(
 	Body(
 		Div{Id: "checking_updates"}(
 			H2{Style: "text-align: center;"}("Checking for updates..."),
+		),
+		Div(
+			A("Plain Anchor"),
+			A{Href: "/home"}("Home Link"},
 		),
 	),
 	Script(func() { document.getElementById("checking_updates").style.display = "none" }),
