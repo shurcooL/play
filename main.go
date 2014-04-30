@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -63,7 +64,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var httpAddrFlag = flag.String("http", ":8080", "Listen for HTTP connections on this address.")
+
 func main() {
+	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	err := os.Setenv("GOPATH", "/root/GoAuto")
@@ -72,6 +76,6 @@ func main() {
 	http.HandleFunc("/debug", debugHandler)
 	http.HandleFunc("/gist.github.com/", handler)
 
-	err = http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(*httpAddrFlag, nil)
 	CheckError(err)
 }
