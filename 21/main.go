@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/shurcooL/blackfriday"
+	"github.com/russross/blackfriday"
 	"github.com/shurcooL/markdownfmt/markdown"
 	"github.com/shurcooL/markdownfmt/markdown/debug"
 )
@@ -34,8 +34,13 @@ func main() {
 	//extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
 
 	//output := blackfriday.MarkdownBasic(input)
-	//output := blackfriday.Markdown(input, blackfriday.HtmlRenderer(0, "", ""), 0)
-	output := blackfriday.Markdown(input, markdown.NewRenderer(), extensions)
+	output := blackfriday.Markdown(input, blackfriday.HtmlRenderer(0, "", ""), extensions)
+
+	os.Stdout.Write(output)
+
+	fmt.Println("-----")
+
+	output = blackfriday.Markdown(input, markdown.NewRenderer(), extensions)
 
 	os.Stdout.Write(output)
 
