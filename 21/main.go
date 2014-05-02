@@ -22,6 +22,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	
+	htmlFlags := 0
+	htmlFlags |= blackfriday.HTML_USE_XHTML
+	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
+	//htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
+	//htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
+	htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT
 
 	// GitHub Flavored Markdown-like extensions.
 	extensions := 0
@@ -33,10 +40,24 @@ func main() {
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
 	//extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
 
-	//output := blackfriday.MarkdownBasic(input)
-	output := blackfriday.Markdown(input, blackfriday.HtmlRenderer(0, "", ""), extensions)
+	fmt.Println("--- Custom ---")
+
+	output := blackfriday.Markdown(input, blackfriday.HtmlRenderer(htmlFlags, "", ""), extensions)
 
 	os.Stdout.Write(output)
+
+	fmt.Println("--- MarkdownBasic() ---")
+
+	output = blackfriday.MarkdownBasic(input)
+
+	os.Stdout.Write(output)
+
+	fmt.Println("--- MarkdownCommon() ---")
+
+	output = blackfriday.MarkdownCommon(input)
+
+	os.Stdout.Write(output)
+	//fmt.Printf("%q\n", string(output))
 
 	fmt.Println("-----")
 
