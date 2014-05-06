@@ -40,7 +40,7 @@ func local() {
 	for _ = range iter.N(times) {
 		err := arith.Multiply(args, &reply)
 		if err != nil {
-			log.Fatal("arith error:", err)
+			log.Fatalln("arith error:", err)
 		}
 	}
 	fmt.Printf("Arith: %d*%d=%d taken %v\n", args.A, args.B, reply, time.Since(started).String())
@@ -49,9 +49,9 @@ func local() {
 func remoteServe() {
 	rpc.Register(arith)
 	rpc.HandleHTTP()
-	l, e := net.Listen("tcp", laddr)
-	if e != nil {
-		log.Fatal("listen error:", e)
+	l, err := net.Listen("tcp", laddr)
+	if err != nil {
+		log.Fatalln("listen error:", err)
 	}
 	go http.Serve(l, nil)
 }
@@ -59,7 +59,7 @@ func remoteServe() {
 func remoteSync() {
 	client, err := rpc.DialHTTP("tcp", raddr)
 	if err != nil {
-		log.Fatal("dialing:", err)
+		log.Fatalln("dialing:", err)
 	}
 
 	started := time.Now()
@@ -68,7 +68,7 @@ func remoteSync() {
 	for _ = range iter.N(times) {
 		err = client.Call("Arith.Multiply", args, &reply)
 		if err != nil {
-			log.Fatal("arith error:", err)
+			log.Fatalln("arith error:", err)
 		}
 	}
 	fmt.Printf("Arith: %d*%d=%d taken %v\n", args.A, args.B, reply, time.Since(started).String())
@@ -79,7 +79,7 @@ func remoteSync() {
 func remoteAsync() {
 	client, err := rpc.DialHTTP("tcp", raddr)
 	if err != nil {
-		log.Fatal("dialing:", err)
+		log.Fatalln("dialing:", err)
 	}
 
 	calls := make(chan *rpc.Call, times)
