@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
 	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
@@ -43,31 +43,25 @@ func main() {
 	fmt.Println("--- Custom ---")
 
 	output := blackfriday.Markdown(input, blackfriday.HtmlRenderer(htmlFlags, "", ""), extensions)
-
 	os.Stdout.Write(output)
 
 	fmt.Println("--- MarkdownBasic() ---")
 
 	output = blackfriday.MarkdownBasic(input)
-
 	os.Stdout.Write(output)
 
 	fmt.Println("--- MarkdownCommon() ---")
 
 	output = blackfriday.MarkdownCommon(input)
-
 	os.Stdout.Write(output)
 	//fmt.Printf("%q\n", string(output))
 
 	fmt.Println("-----")
 
 	output = blackfriday.Markdown(input, markdown.NewRenderer(), extensions)
-
 	os.Stdout.Write(output)
 
 	fmt.Println("-----")
 
-	output = blackfriday.Markdown(input, debug.NewRenderer(), extensions)
-
-	os.Stdout.Write(output)
+	_ = blackfriday.Markdown(input, debug.NewRenderer(), extensions)
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/russross/blackfriday"
-	"github.com/shurcooL/go/markdown"
+	"github.com/shurcooL/markdownfmt/markdown"
 )
 
 func main() {
