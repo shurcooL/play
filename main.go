@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	. "gist.github.com/5892738.git"
@@ -16,7 +17,10 @@ type Bar struct {
 	value int
 }
 
-func foo() (int, string) { return 5, "hi" }
+// This is a comment for foo func.
+func foo(someN int, s1, s2 string) (int, string) {
+	return 5, "hi"
+}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
@@ -26,8 +30,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	foo()
-	fmt.Println(TrimFirstSpace("  Booyah!!!!!!!!!!!!!!"))
+	ii := 1335
+	xyz := "Go"
+	foo(ii, strings.Join([]string{"some", "text"}, "-"), xyz)
+	fmt.Println(TrimFirstSpace("  Booyah!!!!!!!!!!!!!!!!!!!!!!"))
 	for i := 1; i <= 10 || false; i++ {
 		time.Sleep(1000 * time.Millisecond)
 		if i%3 != 0 {
