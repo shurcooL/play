@@ -29,6 +29,7 @@ func main() {
 	//htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
 	//htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 	htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT
+	htmlFlags |= blackfriday.HTML_GITHUB_BLOCKCODE
 
 	// GitHub Flavored Markdown-like extensions.
 	extensions := 0
