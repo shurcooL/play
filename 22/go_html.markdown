@@ -48,7 +48,7 @@ Html(
 		<h2>Links Are Here</h2>
 		<div>
 			<span><b>bold:</b> not bold</span>
-			<a href="http://www.google.com/">google.com</a>
+			<a>Plain Anchor</a>
 			<a href="/home.html">Home Link</a>
 			<ul>
 				<li>Plain Item</li>
@@ -65,13 +65,18 @@ Html{
 		H2{"Links Are Here"},
 		Div{
 			Span{B{"bold:"}, " not bold"},
-			A(A_options{Href: "http://www.google.com/"}("google.com"),
+			A_options{Href: "http://www.google.com/"}("google.com"),
+
+			A{Href: "/home", "Home Link"},
+			A(A_options{Href: "/home"}, "Home Link"),
+
+			A{"Plain Anchor"},
+			A{Href: "/home"}{"Home Link"},
+
 			Ul{
 				Li{"Plain Item"},
 				Li{B{"bold:"}, " not bold, again"},
 			},
-			A{Href: "/home", "Home Link"},
-			A(A_options{Href: "/home"}, "Home Link"),
 		},
 	},
 }
