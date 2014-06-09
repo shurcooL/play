@@ -157,7 +157,11 @@ func (f *File) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.FuncDecl:
 		//fmt.Println("Visited:", n.Name.String())
-	case *ast.BlockStmt:
+		if n := n.Body; n != nil {
+			//n.List = f.addCounters(n.Lbrace, n.Rbrace+1, n.List, true)
+			n.List = append([]ast.Stmt{f.newCounter(n.Lbrace, n.Rbrace+1, 0)}, n.List...)
+		}
+	/*case *ast.BlockStmt:
 		// If it's a switch or select, the body is a list of case clauses; don't tag the block itself.
 		if len(n.List) > 0 {
 			switch n.List[0].(type) {
@@ -217,7 +221,7 @@ func (f *File) Visit(node ast.Node) ast.Visitor {
 		// Don't annotate an empty switch - creates a syntax error.
 		if n.Body == nil || len(n.Body.List) == 0 {
 			return nil
-		}
+		}*/
 	}
 	return f
 }
