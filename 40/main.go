@@ -40,7 +40,7 @@ index dc83bf7..5260a7d 100644
 
 func main() {
 	http.HandleFunc("/remote", func(w http.ResponseWriter, req *http.Request) {
-		u1.WriteMarkdownGfmAsHtmlPage(w, markdown)
+		u1.WriteGitHubFlavoredMarkdownViaGitHub(w, markdown)
 	})
 	http.HandleFunc("/local", func(w http.ResponseWriter, req *http.Request) {
 		u1.WriteGitHubFlavoredMarkdownViaLocal(w, markdown)
