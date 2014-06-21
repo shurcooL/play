@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -18,10 +17,16 @@ func main() {
 		os.Exit(1)
 	}()
 
-	input, err := ioutil.ReadAll(os.Stdin)
+	/*input, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		panic(err)
-	}
+	}*/
+	input := []byte(`| Tables        | Are           | Cool  |
+|---------------|:-------------:|------:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      |   centered!   |   $12 |
+| zebra stripes |   are neat    |    $1 |
+`)
 
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
@@ -34,7 +39,7 @@ func main() {
 	// GitHub Flavored Markdown-like extensions.
 	extensions := 0
 	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
-	//extensions |= blackfriday.EXTENSION_TABLES // TODO: Implement.
+	extensions |= blackfriday.EXTENSION_TABLES
 	extensions |= blackfriday.EXTENSION_FENCED_CODE
 	extensions |= blackfriday.EXTENSION_AUTOLINK
 	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
