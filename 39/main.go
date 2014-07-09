@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/shurcooL/go-goon"
+	"github.com/sourcegraph/annotate"
 	"github.com/sourcegraph/syntaxhighlight"
 )
 
@@ -25,5 +26,15 @@ function b() {
 
 	fmt.Println("---")
 
-	goon.Dump(syntaxhighlight.Annotate(src, syntaxhighlight.HTMLAnnotator(syntaxhighlight.DefaultHTMLConfig)))
+	anns, err := syntaxhighlight.Annotate(src, syntaxhighlight.HTMLAnnotator(syntaxhighlight.DefaultHTMLConfig))
+	if err != nil {
+		panic(err)
+	}
+	//goon.Dump(anns)
+
+	b, err := annotate.Annotate(src, anns, nil)
+	if err != nil {
+		panic(err)
+	}
+	os.Stdout.Write(b)
 }
