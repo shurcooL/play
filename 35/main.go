@@ -1,3 +1,4 @@
+// Walk the given filesystem path.
 package main
 
 import (

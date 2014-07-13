@@ -55,8 +55,6 @@ index 68ea505..9bbe53e 100644
  	case s.line[0] == '+':
  		kind = 1
 ` + "```" + `
-
-}
 `)
 
 	_ = http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
