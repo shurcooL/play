@@ -1,0 +1,34 @@
+<html>
+	<head>
+		<!--script type="text/go">
+		</script-->
+		<title></title>
+	</head>
+	<body>
+		<div style="margin-bottom: 20px;">Okay, cool, let's see what happens.</div>
+		<pre id="out"></pre>
+		<script type="text/go">
+package main
+
+import (
+	"github.com/gopherjs/gopherjs/js"
+
+	"net/url"
+	"strings"
+
+	"github.com/shurcooL/go-goon"
+)
+
+func main() {
+	//js.Global.Call("alert", `Hello from "text/go"!`)
+
+	search := js.Global.Get("location").Get("search").Str()
+
+	dump := goon.Sdump(url.ParseQuery(strings.TrimLeft(search, "?")))
+
+	out := js.Global.Get("document").Call("getElementById", "out")
+	out.Set("textContent", dump)
+}
+		</script>
+	</body>
+</html>
