@@ -1,8 +1,8 @@
 package main
 
 import (
-	. "gist.github.com/5286084.git"
-	. "gist.github.com/5639599.git"
+	. "github.com/shurcooL/go/gists/gist5286084"
+	. "github.com/shurcooL/go/gists/gist5639599"
 	"github.com/shurcooL/go-goon"
 	"go/ast"
 	"go/parser"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	. "gist.github.com/5707298.git"
+	. "github.com/shurcooL/go/gists/gist5707298"
 )
 
 var _ = goon.Dump

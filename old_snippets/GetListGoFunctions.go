@@ -5,8 +5,8 @@ import (
 	"go/parser"
 	"go/token"
 	"strings"
-	. "gist.github.com/5639599.git"
-	. "gist.github.com/5953185.git"
+	. "github.com/shurcooL/go/gists/gist5639599"
+	. "github.com/shurcooL/go/gists/gist5953185"
 	//"strings"
 	//"github.com/davecgh/go-spew/spew"
 )

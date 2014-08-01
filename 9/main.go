@@ -6,9 +6,9 @@ import (
 	"go/token"
 	"path/filepath"
 
-	. "gist.github.com/5286084.git"
-	. "gist.github.com/5504644.git"
-	. "gist.github.com/5639599.git"
+	. "github.com/shurcooL/go/gists/gist5286084"
+	. "github.com/shurcooL/go/gists/gist5504644"
+	. "github.com/shurcooL/go/gists/gist5639599"
 )
 
 const parserMode = parser.ParseComments

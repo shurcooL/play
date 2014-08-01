@@ -4,10 +4,10 @@ import (
 	"go/token"
 	"go/parser"
 	"go/ast"
-//	"strings"
+	//	"strings"
 	"reflect"
 	"github.com/davecgh/go-spew/spew"
-	. "gist.github.com/5639599.git"
+	. "github.com/shurcooL/go/gists/gist5639599"
 )
 
 func foo(x int) int { return x * 2 }
@@ -20,7 +20,7 @@ func main() {
 	file := "/Users/Dmitri/Dmitri/^Work/^GitHub/Conception/GoLand/src/Simple.go"
 	reflect.TypeOf(0)
 
-	fset := token.NewFileSet()	// Comment
+	fset := token.NewFileSet() // Comment
 	if file, err := parser.ParseFile(fset, file, nil, 1*parser.ParseComments); nil == err {
 		//PrintCode(fset, file)
 
@@ -34,9 +34,10 @@ func main() {
 				//PrintCode(fset, f)
 				for _, l := range f.Body.List {
 					//x := l
-					x := l//.(*ast.AssignStmt)
+					x := l //.(*ast.AssignStmt)
 					PrintlnAst(fset, x)
-					spew.Dump(x); println()
+					spew.Dump(x)
+					println()
 					/*if expr, ok := l.(*ast.ExprStmt); ok {
 						//PrintCode(fset, expr)
 						if call, ok := expr.X.(*ast.CallExpr); ok {

@@ -12,7 +12,7 @@ import (
 
 	"code.google.com/p/go.net/websocket"
 
-	. "gist.github.com/6096872.git"
+	. "github.com/shurcooL/go/gists/gist6096872"
 )
 
 // ffmpeg -s 640x480 -f video4linux2 -i /dev/video0 -f mpeg1video -b 800k -r 30 'http://10.0.0.22:8080/input?width=640&height=480'

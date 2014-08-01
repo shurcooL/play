@@ -8,7 +8,7 @@ import (
 	"strings"
 	"encoding/json"
 	"github.com/davecgh/go-spew/spew"
-	. "gist.github.com/5707298.git"
+	. "github.com/shurcooL/go/gists/gist5707298"
 )
 
 var _ = fmt.Printf

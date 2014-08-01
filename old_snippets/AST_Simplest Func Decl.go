@@ -5,11 +5,11 @@ import (
 	"go/token"
 	"go/parser"
 	"go/ast"
-//	"strings"
+	//	"strings"
 	"time"
 	"github.com/davecgh/go-spew/spew"
-	. "gist.github.com/5259939.git"
-	. "gist.github.com/5639599.git"
+	. "github.com/shurcooL/go/gists/gist5259939"
+	. "github.com/shurcooL/go/gists/gist5639599"
 )
 
 var _ = time.Sleep

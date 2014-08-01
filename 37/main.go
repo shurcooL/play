@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	. "gist.github.com/6418290.git"
+	. "github.com/shurcooL/go/gists/gist6418290"
 
 	"github.com/shurcooL/go-goon"
 )

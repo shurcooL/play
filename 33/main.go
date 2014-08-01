@@ -7,7 +7,7 @@ import (
 
 	"code.google.com/p/go.tools/astutil"
 
-	. "gist.github.com/5639599.git"
+	. "github.com/shurcooL/go/gists/gist5639599"
 )
 
 func main() {

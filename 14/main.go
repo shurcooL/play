@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	. "gist.github.com/6096872.git"
+	. "github.com/shurcooL/go/gists/gist6096872"
 
 	"github.com/bradfitz/iter"
 	"gopkg.in/pipe.v2"

@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 
-	. "gist.github.com/5286084.git"
+	. "github.com/shurcooL/go/gists/gist5286084"
 )
 
 func main() {

@@ -1,8 +1,8 @@
 package main
 
 import (
-	. "gist.github.com/5639599.git"
-	. "gist.github.com/5707298.git"
+	. "github.com/shurcooL/go/gists/gist5639599"
+	. "github.com/shurcooL/go/gists/gist5707298"
 	"go/ast"
 	"go/token"
 	"github.com/shurcooL/go-goon"
@@ -18,11 +18,11 @@ func main() {
 	case 0:
 		x := &ast.IfStmt{}
 		x.Cond = &ast.BinaryExpr{
-			X: &ast.Ident{Name: "xyz"},
+			X:  &ast.Ident{Name: "xyz"},
 			Op: (token.Token)(39),
 			Y: &ast.BasicLit{
-				Kind:     (token.Token)(5),
-				Value:    (string)("10"),
+				Kind:  (token.Token)(5),
+				Value: (string)("10"),
 			}}
 		x.Body = &ast.BlockStmt{}
 		PrintlnAstBare(x)

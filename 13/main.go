@@ -4,8 +4,8 @@ import (
 	"os"
 	"strings"
 
-	. "gist.github.com/5286084.git"
-	"gist.github.com/7651991.git"
+	. "github.com/shurcooL/go/gists/gist5286084"
+	"github.com/shurcooL/go/gists/gist7651991"
 	"github.com/shurcooL/go-goon"
 )
 

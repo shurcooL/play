@@ -22,7 +22,7 @@ import (
 
 	"code.google.com/p/go.tools/astutil"
 
-	"gist.github.com/5707298.git"
+	"github.com/shurcooL/go/gists/gist5707298"
 )
 
 const usageMessage = "" +
@@ -161,67 +161,67 @@ func (f *File) Visit(node ast.Node) ast.Visitor {
 			//n.List = f.addCounters(n.Lbrace, n.Rbrace+1, n.List, true)
 			n.List = append([]ast.Stmt{f.newCounter(n.Lbrace, n.Rbrace+1, 0)}, n.List...)
 		}
-	/*case *ast.BlockStmt:
-		// If it's a switch or select, the body is a list of case clauses; don't tag the block itself.
-		if len(n.List) > 0 {
-			switch n.List[0].(type) {
-			case *ast.CaseClause: // switch
-				for _, n := range n.List {
-					clause := n.(*ast.CaseClause)
-					clause.Body = f.addCounters(clause.Pos(), clause.End(), clause.Body, false)
+		/*case *ast.BlockStmt:
+			// If it's a switch or select, the body is a list of case clauses; don't tag the block itself.
+			if len(n.List) > 0 {
+				switch n.List[0].(type) {
+				case *ast.CaseClause: // switch
+					for _, n := range n.List {
+						clause := n.(*ast.CaseClause)
+						clause.Body = f.addCounters(clause.Pos(), clause.End(), clause.Body, false)
+					}
+					return f
+				case *ast.CommClause: // select
+					for _, n := range n.List {
+						clause := n.(*ast.CommClause)
+						clause.Body = f.addCounters(clause.Pos(), clause.End(), clause.Body, false)
+					}
+					return f
 				}
-				return f
-			case *ast.CommClause: // select
-				for _, n := range n.List {
-					clause := n.(*ast.CommClause)
-					clause.Body = f.addCounters(clause.Pos(), clause.End(), clause.Body, false)
-				}
-				return f
 			}
-		}
-		n.List = f.addCounters(n.Lbrace, n.Rbrace+1, n.List, true) // +1 to step past closing brace.
-	case *ast.IfStmt:
-		ast.Walk(f, n.Body)
-		if n.Else == nil {
-			return nil
-		}
-		// The elses are special, because if we have
-		//	if x {
-		//	} else if y {
-		//	}
-		// we want to cover the "if y". To do this, we need a place to drop the counter,
-		// so we add a hidden block:
-		//	if x {
-		//	} else {
-		//		if y {
-		//		}
-		//	}
-		const backupToElse = token.Pos(len("else ")) // The AST doesn't remember the else location. We can make an accurate guess.
-		switch stmt := n.Else.(type) {
+			n.List = f.addCounters(n.Lbrace, n.Rbrace+1, n.List, true) // +1 to step past closing brace.
 		case *ast.IfStmt:
-			block := &ast.BlockStmt{
-				Lbrace: stmt.If - backupToElse, // So the covered part looks like it starts at the "else".
-				List:   []ast.Stmt{stmt},
-				Rbrace: stmt.End(),
+			ast.Walk(f, n.Body)
+			if n.Else == nil {
+				return nil
 			}
-			n.Else = block
-		case *ast.BlockStmt:
-			stmt.Lbrace -= backupToElse // So the block looks like it starts at the "else".
-		default:
-			panic("unexpected node type in if")
-		}
-		ast.Walk(f, n.Else)
-		return nil
-	case *ast.SelectStmt:
-		// Don't annotate an empty select - creates a syntax error.
-		if n.Body == nil || len(n.Body.List) == 0 {
+			// The elses are special, because if we have
+			//	if x {
+			//	} else if y {
+			//	}
+			// we want to cover the "if y". To do this, we need a place to drop the counter,
+			// so we add a hidden block:
+			//	if x {
+			//	} else {
+			//		if y {
+			//		}
+			//	}
+			const backupToElse = token.Pos(len("else ")) // The AST doesn't remember the else location. We can make an accurate guess.
+			switch stmt := n.Else.(type) {
+			case *ast.IfStmt:
+				block := &ast.BlockStmt{
+					Lbrace: stmt.If - backupToElse, // So the covered part looks like it starts at the "else".
+					List:   []ast.Stmt{stmt},
+					Rbrace: stmt.End(),
+				}
+				n.Else = block
+			case *ast.BlockStmt:
+				stmt.Lbrace -= backupToElse // So the block looks like it starts at the "else".
+			default:
+				panic("unexpected node type in if")
+			}
+			ast.Walk(f, n.Else)
 			return nil
-		}
-	case *ast.SwitchStmt:
-		// Don't annotate an empty switch - creates a syntax error.
-		if n.Body == nil || len(n.Body.List) == 0 {
-			return nil
-		}*/
+		case *ast.SelectStmt:
+			// Don't annotate an empty select - creates a syntax error.
+			if n.Body == nil || len(n.Body.List) == 0 {
+				return nil
+			}
+		case *ast.SwitchStmt:
+			// Don't annotate an empty switch - creates a syntax error.
+			if n.Body == nil || len(n.Body.List) == 0 {
+				return nil
+			}*/
 	}
 	return f
 }
