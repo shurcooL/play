@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "gist.github.com/5423254.git"
+	. "github.com/shurcooL/go/gists/gist5423254"
 
 	"fmt"
 
