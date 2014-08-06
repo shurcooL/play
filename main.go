@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 
-	. "gist.github.com/5286084.git"
+	. "github.com/shurcooL/go/gists/gist5286084"
 
 	"github.com/shurcooL/go-goon"
 )
