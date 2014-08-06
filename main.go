@@ -12,7 +12,7 @@ import (
 	"time"
 	//"github.com/davecgh/go-spew/spew"
 
-	. "gist.github.com/7651991.git"
+	. "github.com/shurcooL/go/gists/gist7651991"
 )
 
 var _ = fmt.Print
