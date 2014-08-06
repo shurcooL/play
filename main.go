@@ -11,9 +11,9 @@ import (
 	"time"
 	//"flag"
 
-	. "gist.github.com/5286084.git"
-	. "gist.github.com/5571468.git"
 	"github.com/howeyc/fsnotify"
+	. "github.com/shurcooL/go/gists/gist5286084"
+	. "github.com/shurcooL/go/gists/gist5571468"
 )
 
 func main() {
