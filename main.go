@@ -6,17 +6,19 @@ import (
 	"go/format"
 	"go/token"
 	"time"
+
 	"code.google.com/p/go.tools/go/types"
-	. "gist.github.com/5286084.git"
-	. "gist.github.com/5504644.git"
-	. "gist.github.com/5639599.git"
-	. "gist.github.com/7576804.git"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/shurcooL/go-goon"
+	. "github.com/shurcooL/go/gists/gist5286084"
+	. "github.com/shurcooL/go/gists/gist5504644"
+	. "github.com/shurcooL/go/gists/gist5639599"
+	. "github.com/shurcooL/go/gists/gist7576804"
 
 	//. "github.com/shurcooL/Conception-go"
 
 	"go/ast"
+
 	"code.google.com/p/go.tools/go/exact"
 
 	importer2 "honnef.co/go/importer"
