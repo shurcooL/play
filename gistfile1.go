@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	. "gist.github.com/5092053.git"
 	"io/ioutil"
 	"strconv"
 	"strings"
+
 	"github.com/davecgh/go-spew/spew"
-	. "gist.github.com/5286084.git"
-	. "gist.github.com/5259939.git"
+	. "github.com/shurcooL/go/gists/gist5092053"
+	. "github.com/shurcooL/go/gists/gist5259939"
+	. "github.com/shurcooL/go/gists/gist5286084"
 )
 
 var _ = strings.Fields
@@ -33,7 +34,12 @@ func Process(filepath string) {
 		// Prints frequencies of individual words
 
 		//w := strings.Fields(strings.ToLower(string(b)))
-		w := strings.FieldsFunc(strings.ToLower(string(b)), func(r rune) bool { if r >= 'a' && r <= 'z' { return false }; return true })
+		w := strings.FieldsFunc(strings.ToLower(string(b)), func(r rune) bool {
+			if r >= 'a' && r <= 'z' {
+				return false
+			}
+			return true
+		})
 		fmt.Printf("Total words: %v\n", len(w))
 		m := map[string]int{}
 		for _, v := range w {
