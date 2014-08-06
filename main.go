@@ -7,12 +7,12 @@ import (
 	"time"
 	"unsafe"
 
-	. "gist.github.com/5286084.git"
+	. "github.com/shurcooL/go/gists/gist5286084"
 
 	//"github.com/go-gl/gl"
 	//gl "github.com/chsc/gogl/gl33"
 	//gl "github.com/err/gl33"
-	"github.com/errcw/glow/gl-core/4.1/gl"
+	"github.com/go-gl/glow/gl-core/4.1/gl"
 	glfw "github.com/shurcooL/glfw3"
 
 	"github.com/shurcooL/go-goon"
