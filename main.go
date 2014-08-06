@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"code.google.com/p/go.net/websocket"
-	. "gist.github.com/5286084.git"
-	. "gist.github.com/6096872.git"
+	. "github.com/shurcooL/go/gists/gist5286084"
+	. "github.com/shurcooL/go/gists/gist6096872"
 )
 
 var _ = fmt.Print
