@@ -10,9 +10,9 @@ import (
 	"runtime"
 	"strings"
 
-	. "gist.github.com/4737109.git"
-	. "gist.github.com/5286084.git"
 	"github.com/shurcooL/go-goon"
+	. "github.com/shurcooL/go/gists/gist4737109"
+	. "github.com/shurcooL/go/gists/gist5286084"
 )
 
 // ---
