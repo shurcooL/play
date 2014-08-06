@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	. "gist.github.com/5892738.git"
+	. "github.com/shurcooL/go/gists/gist5892738"
 )
 
 const Const = 1 + 1
