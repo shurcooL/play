@@ -1,0 +1,19 @@
+<html>
+	<head></head>
+	<body>
+		<input></input>
+		<span id="foo" style="border: 1px solid gray; position: absolute; left: 400px;">foo</span>
+		<script>
+			var foo = document.getElementById("foo");
+			setTimeout(function () {
+				foo.style.left = '500px';
+
+				var node=document.createElement("div");
+				//var textnode=document.createTextNode("New Element!");
+				//node.appendChild(textnode);
+				node.innerHTML = "New <u>Ele</u>ment!";
+				document.body.appendChild(node);
+			}, 5000);
+		</script>
+	</body>
+</html>
