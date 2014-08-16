@@ -23,7 +23,7 @@ func main() {
 
 		data := RepoCc{
 			Repo: Repo{
-				rootPath: "github.com/shurcooL/go/github_flavored_markdown",
+				rootPath: "/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/go",
 				goPackages: []*gist7480523.GoPackage{
 					&gist7480523.GoPackage{
 						Bpkg: &build.Package{
