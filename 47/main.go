@@ -10,9 +10,9 @@ import (
 )
 
 func main() {
-	x := vcs.GitRepositoryCmd{Dir: "/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/go"}
+	gitRepo := vcs.GitRepositoryCmd{Dir: "/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/go"}
 
-	fs, err := x.FileSystem("master@{50}")
+	fs, err := gitRepo.FileSystem("master@{50}")
 	if err != nil {
 		panic(err)
 	}
@@ -22,7 +22,7 @@ func main() {
 	case 0:
 		fs2 = vcsFsToHttpFs{fs}
 	case 1:
-		fs2 = http.Dir("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/go")
+		fs2 = http.Dir(gitRepo.Dir)
 	}
 
 	fs2 = debugFileSystem{fs2}
