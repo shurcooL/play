@@ -31,7 +31,11 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintln(w, bpkg.Dir)
 	fmt.Fprintln(w, bpkg.GoFiles)
 
-	gitRepo := vcs.GitRepositoryCmd{Dir: bpkg.Dir}
+	gitRepo, err := vcs.OpenGitRepository(bpkg.Dir)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
 	fs, err := gitRepo.FileSystem(vcs.CommitID(req.URL.Query().Get("rev")))
 	if err != nil {
