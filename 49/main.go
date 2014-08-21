@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/doc"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/shurcooL/go/gists/gist5504644"
@@ -23,6 +24,8 @@ var t = template.Must(template.New("repo").Parse(`package whatever
 
 import (
 	"fmt"
+
+	"{{.ImportPath}}"
 )
 
 type debug{{.InterfaceName}} struct {
@@ -31,7 +34,7 @@ type debug{{.InterfaceName}} struct {
 {{range .Methods}}
 func (this *debug{{$.InterfaceName}}) {{.Name}}{{.Something}} {
 	fmt.Println("{{$.InterfaceName}}.{{.Name}}")
-	this.real.{{.Name}}()
+	this.real.{{.Name}}({{.Something2}})
 	return
 }
 {{end}}`))
@@ -73,14 +76,15 @@ func newGen(importPath, interfaceName string) (*gen, error) {
 	return &gen{
 		dpkg:          dpkg,
 		methods:       methods,
+		ImportPath:    importPath,
 		InterfaceName: interfaceName,
 	}, nil
 }
 
 type gen struct {
-	dpkg    *doc.Package
-	methods *ast.FieldList
-
+	dpkg          *doc.Package
+	methods       *ast.FieldList
+	ImportPath    string
 	InterfaceName string
 }
 
@@ -88,7 +92,11 @@ func (this *gen) Methods() <-chan Method {
 	out := make(chan Method)
 	go func() {
 		for _, m := range this.methods.List {
-			out <- Method{m.Names[0].Name, gist5639599.SprintAstBare(m.Type)}
+			out <- Method{
+				m.Names[0].Name,
+				gist5639599.SprintAstBare(m.Type),
+				m.Type,
+			}
 		}
 		close(out)
 	}()
@@ -96,10 +104,21 @@ func (this *gen) Methods() <-chan Method {
 }
 
 type Method struct {
-	Name      string
-	something string
+	Name       string
+	something  string
+	something2 ast.Expr
 }
 
 func (this Method) Something() string {
 	return this.something[4:]
+}
+
+func (this Method) Something2() string {
+	f := this.something2.(*ast.FuncType)
+	//fmt.Printf("expr type %T\n", )
+	var params []string
+	for _, field := range f.Params.List {
+		params = append(params, field.Names[0].Name)
+	}
+	return strings.Join(params, ", ")
 }
