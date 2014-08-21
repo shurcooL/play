@@ -4,17 +4,17 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/shurcooL/go/exp/13"
+	"github.com/golang/oauth2"
 )
 
 func main() {
-	thirdParty := exp13.VcsLocal{
-		Status: "some-string", // A string.
+	thirdParty := oauth2.Options{
+		ClientID: "some-string", // A string.
 	}
 	stdLib := url.URL{
 		Path: "some-string", // A string.
 	}
 
-	log.Printf("Hello, %d.\n", thirdParty.Status) // go vet does _not_ catch this.
-	log.Printf("Hello, %d.\n", stdLib.Path)       // But it catches this.
+	log.Printf("Hello, %d.\n", thirdParty.ClientID) // go vet does _not_ catch this.
+	log.Printf("Hello, %d.\n", stdLib.Path)         // But it catches this.
 }
