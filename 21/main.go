@@ -21,11 +21,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}*/
-	input := []byte(`| Tables        | Are           | Cool  |
-|---------------|:-------------:|------:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      |   centered!   |   $12 |
-| zebra stripes |   are neat    |    $1 |
+	input := []byte(`Some text with two trailing spaces for linebreak.  ` + `
+More      spaced      **text**      *immediately*      after      that.          ` + `
+Done.
+`)
+	_ = []byte(`- list1
+
+> This a normal quote
+
+- list2
+
+	> This a quote within a list
 `)
 
 	htmlFlags := 0
@@ -33,7 +39,7 @@ func main() {
 	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
 	//htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
 	//htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
-	htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT
+	//htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT
 	htmlFlags |= blackfriday.HTML_GITHUB_BLOCKCODE
 
 	// GitHub Flavored Markdown-like extensions.
@@ -69,5 +75,9 @@ func main() {
 
 	fmt.Println("-----")
 
-	_ = blackfriday.Markdown(input, debug.NewRenderer(), extensions)
+	_ = blackfriday.Markdown(input, debug.NewRenderer(blackfriday.HtmlRenderer(htmlFlags, "", "")), extensions)
+
+	fmt.Println("-----")
+
+	_ = blackfriday.Markdown(input, debug.NewRenderer(markdown.NewRenderer()), extensions)
 }
