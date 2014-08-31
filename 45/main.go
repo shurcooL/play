@@ -5,6 +5,7 @@ import "fmt"
 // TRY:
 // github.com/pmezard/go-difflib/difflib
 // maybe http://godoc.org/github.com/kylelemons/godebug/diff
+// as well as https://github.com/sourcegraph/go-diff
 
 func main() {
 }
