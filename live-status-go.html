@@ -4,27 +4,18 @@
 			var site_name = "Live Status";
 			document.write("<title>" + site_name + "</title>");
 
-			function removeTags(html) {
-				return html.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
-			}
-
-			function getUrlParam(name) {
-				if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(window.location.search))
-					return decodeURIComponent(name[1]);
-			}
-
-			var prev_value = "";
+			/*var previousValue = "";
 			function liveUpdateTest(e) {
 				//document.getElementById("myLiveOut").textContent = e.value.toUpperCase();
 				try {
-					if (e.value != prev_value) {
+					if (e.value != previousValue) {
 						sock.send(e.value + "\n");		// HACK: Should make sure that sock.onopen has happened before calling send...
 						prev_value = e.value;
 					}
 				} catch (exc) {
 					document.getElementById("myLiveOut").textContent = "Error: " + exc;
 				}
-			}
+			}*/
 		</script>
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<style type="text/css">
@@ -56,19 +47,10 @@
 			document.write("<br><br>");
 		</script>
 
-		<input id="inputField" onInput="liveUpdateTest(this);" maxlength=160 placeholder="type something..." size=160 autofocus></input>
+		<!--input id="inputField" onInput="liveUpdateTest(this);" maxlength=160 placeholder="type something..." size=160 autofocus></input-->
+		<input id="inputField" maxlength=160 placeholder="type something..." size=160 autofocus></input>
 		<br><br>
 		<div id="myLiveOut">Connecting...</div>
-
-		<!--script type="text/javascript">
-			var server = "ws://";
-			if (null == getUrlParam("server")) {
-				server += "shurserv.no-ip.org:34600";
-			} else {
-				server += getUrlParam("server");
-			}
-			server += "/status";
-		</script-->
 
 		<script type="text/go">
 package main
@@ -85,6 +67,19 @@ import (
 
 var document = dom.GetWindow().Document()
 
+var sock *websocket.WebSocket
+var previousValue = ""
+
+func liveUpdateTest(inputField *dom.HTMLInputElement) {
+	if value := inputField.Value; value != previousValue {
+		err := sock.Send(value + "\n")
+		if err != nil {
+			document.GetElementByID("myLiveOut").SetTextContent("Error: " + err.Error())
+		}
+		previousValue = value
+	}
+}
+
 func main() {
 	search := js.Global.Get("location").Get("search").Str()
 	query, err := url.ParseQuery(strings.TrimLeft(search, "?"))
@@ -100,16 +95,30 @@ func main() {
 	}
 	server += "/status";
 
-	sock := websocket.New(server)
+	sock = websocket.New(server)
 
-	js.Global.Set("sock", sock.Object)
+	//testExceptions()
+	err = sock.Send("too soon")
+	if err != nil {
+		print("Error sending \"too soon\": " + err.Error())
+	}
+
+	//js.Global.Set("sock", sock.Object)
+	//js.Global.Set("liveUpdateTest", liveUpdateTest)
 
 	sock.OnOpen(func(event js.Object) {
 		//js.Global.Get("document").Call("getElementById", "inputField").Set("value", "Just joined.")
 		document.GetElementByID("inputField").(*dom.HTMLInputElement).Value = "Just joined."
-		//document.GetElementByID("inputField").(*dom.HTMLTextAreaElement).Select()
-		js.Global.Get("liveUpdateTest").Invoke(document.GetElementByID("inputField").Underlying())
+		document.GetElementByID("inputField").(*dom.HTMLInputElement).Select()
+		//js.Global.Get("liveUpdateTest").Invoke(document.GetElementByID("inputField").Underlying())
+		liveUpdateTest(document.GetElementByID("inputField").(*dom.HTMLInputElement))
 		//js.Global.Call("liveUpdateTest", js.Global.Get("document").Call("getElementById", "inputField"))
+
+		//document.GetElementByID("inputField").SetAttribute("onInput", "liveUpdateTest(this);")
+		document.GetElementByID("inputField").AddEventListener("input", false, func(_ dom.Event) {
+				liveUpdateTest(document.GetElementByID("inputField").(*dom.HTMLInputElement))
+			})
+
 		println("onopen")
 	})
 	sock.OnClose(func(event js.Object) {
