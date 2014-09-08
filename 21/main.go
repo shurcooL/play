@@ -21,18 +21,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}*/
-	input := []byte(`Some text with two trailing spaces for linebreak.  ` + `
-More      spaced      **text**      *immediately*      after      that.          ` + `
-Done.
-`)
-	_ = []byte(`- list1
+	input := []byte(`- list1
 
 > This a normal quote
 
 - list2
 
 	> This a quote within a list
+
+	This is text
 `)
+	input = []byte("This is some \\<code\\> that's \\`okay\\`.\n")
 
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
@@ -40,7 +39,6 @@ Done.
 	//htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
 	//htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 	//htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT
-	htmlFlags |= blackfriday.HTML_GITHUB_BLOCKCODE
 
 	// GitHub Flavored Markdown-like extensions.
 	extensions := 0
