@@ -26,7 +26,7 @@ import (
 	"strings"
 
 	"honnef.co/go/js/dom"
-	"github.com/shurcooL/go/js/websocket"
+	"github.com/gopherjs/websocket"
 )
 
 var document = dom.GetWindow().Document()
@@ -71,8 +71,8 @@ func main() {
 	sock.OnClose(func(event js.Object) {
 		document.GetElementByID("myLiveOut").SetTextContent("Disconnected.")
 	})
-	sock.OnMessage(func(event js.Object) {
-		document.GetElementByID("myLiveOut").SetInnerHTML(event.Get("data").Str())
+	sock.OnMessage(func(messageEvent *dom.MessageEvent) {
+		document.GetElementByID("myLiveOut").SetInnerHTML(messageEvent.Data.Str())
 	})
 }
 		</script>
