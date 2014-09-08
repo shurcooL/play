@@ -35,6 +35,7 @@ func main() {
 	panic(http.ListenAndServe(":8080", http.FileServer(fs2)))
 }
 
+// DEPRECATED: Use code.google.com/p/go.tools/godoc/vfs/httpfs instead.
 type vcsFsToHttpFs struct {
 	vcs.FileSystem
 }
