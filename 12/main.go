@@ -1,3 +1,5 @@
+// +build js
+
 // Play with WebGL using GopherJS.
 package main
 
