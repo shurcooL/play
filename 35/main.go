@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,7 +12,11 @@ import (
 func main() {
 	//root := "/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/play/"
 	root := "/Users/Dmitri/Dropbox/"
-	err := filepath.Walk(root, func(path string, fi os.FileInfo, _ error) error {
+	err := filepath.Walk(root, func(path string, fi os.FileInfo, err error) error {
+		if err != nil {
+			log.Printf("can't stat file %s: %v\n", path, err)
+			return nil
+		}
 		/*if fi.IsDir() && strings.HasPrefix(fi.Name(), ".") {
 			return filepath.SkipDir
 		}*/
