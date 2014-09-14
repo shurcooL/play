@@ -56,16 +56,30 @@
 			document.write("<br><br>");
 		</script>
 
-		<input id="inputField" onInput="liveUpdateTest(this);" maxlength=160 placeholder="type something..." size=160 autofocus></input>
+		<input id="inputField" maxlength=160 placeholder="type something..." size=160 autofocus></input>
 		<br><br>
 		<div id="myLiveOut">Connecting...</div>
 
 		<script type="text/javascript">
 			var sock = new WebSocket("ws://" + (null == getUrlParam("server") ? "shurserv.no-ip.org:34600" : getUrlParam("server")) + "/status");
 			//sock.addEventListener('open', function(e2) { sock.send( ... ) });
-			sock.onopen = function(evt) { document.getElementById("inputField").value = "Just joined."; document.getElementById("inputField").select(); liveUpdateTest(document.getElementById("inputField")); console.log("Open: ", evt); };
-			sock.onclose = function(evt) { document.getElementById("myLiveOut").textContent = "Disconnected."; console.log("Close: ", evt); };
-			sock.onmessage = function(evt) { document.getElementById("myLiveOut").innerHTML = evt.data; /*console.log("Message: ", evt.data);*/ };
+			sock.onopen = function(evt) {
+				document.getElementById("inputField").value = "Just joined.";
+				document.getElementById("inputField").select();
+				liveUpdateTest(document.getElementById("inputField"));
+				document.getElementById("inputField").oninput = function() {
+					liveUpdateTest(document.getElementById("inputField"));
+				}
+				console.log("Open: ", evt);
+			};
+			sock.onclose = function(evt) {
+				document.getElementById("myLiveOut").textContent = "Disconnected.";
+				console.log("Close: ", evt);
+			};
+			sock.onmessage = function(evt) {
+				document.getElementById("myLiveOut").innerHTML = evt.data;
+				/*console.log("Message: ", evt.data);*/
+			};
 			//sock.onerror = function(evt) { document.getElementById("myLiveOut").textContent += " Error: " + evt; console.log("Error: ", evt); };
 		</script>
 	</body>

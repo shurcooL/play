@@ -11,6 +11,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 	. "github.com/shurcooL/go/gists/gist5286084"
 	. "github.com/shurcooL/go/gists/gist6096872"
+	"github.com/shurcooL/go/gopherjs_http"
 )
 
 var _ = fmt.Print
@@ -118,7 +119,8 @@ func main() {
 
 	http.Handle("/status", websocket.Handler(handler))
 	http.HandleFunc("/list", list)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "./live-status.html") })
+	http.Handle("/", gopherjs_http.StaticHtmlFile("./live-status-go.html"))
+	http.HandleFunc("/live-status-js.html", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "./live-status-js.html") })
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	err := http.ListenAndServe(":34600", nil)
 	CheckError(err)
