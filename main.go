@@ -29,7 +29,7 @@ var pMatrixUniform, mvMatrixUniform int32
 
 var vertices = [][2]float32{
 	{0, 0},
-	{300, 0},
+	//{300, 0},
 	{300, 100},
 	{0, 100},
 }
@@ -41,11 +41,11 @@ var vertices = [][2]float32{
 }*/
 
 func CheckCoreProfile(window *glfw.Window) {
-	openglProfile, err := window.GetAttribute(glfw.OpenglProfile)
+	openGlProfile, err := window.GetAttribute(glfw.OpenGLProfile)
 	if err != nil {
 		log.Panicln(err)
 	}
-	fmt.Println("glfw.OpenGLCoreProfile:", glfw.OpenglCoreProfile == openglProfile)
+	fmt.Println("glfw.OpenGLCoreProfile:", glfw.OpenGLCoreProfile == openGlProfile)
 }
 
 func CheckGLError() {
@@ -95,8 +95,8 @@ func main() {
 	//glfw.OpenWindowHint(glfw.FsaaSamples, 32)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 2)
-	glfw.WindowHint(glfw.OpenglForwardCompatible, gl.TRUE)
-	glfw.WindowHint(glfw.OpenglProfile, glfw.OpenglCoreProfile)
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, gl.TRUE)
+	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	window, err := glfw.CreateWindow(400, 400, "", nil, nil)
 	CheckError(err)
 	window.MakeContextCurrent()
@@ -107,7 +107,17 @@ func main() {
 	}
 	fmt.Println(gl.GoStr(gl.GetString(gl.VENDOR)), gl.GoStr(gl.GetString(gl.RENDERER)), gl.GoStr(gl.GetString(gl.VERSION)))
 
-	if gl.ARB_debug_output {
+	// Query the extensions to determine if we can enable the debug callback
+	var numExtensions int32
+	gl.GetIntegerv(gl.NUM_EXTENSIONS, &numExtensions)
+
+	extensions := make(map[string]bool)
+	for i := int32(0); i < numExtensions; i++ {
+		extension := gl.GoStr(gl.GetStringi(gl.EXTENSIONS, uint32(i)))
+		extensions[extension] = true
+	}
+
+	if _, ok := extensions["GL_ARB_debug_output"]; ok {
 		gl.Enable(gl.DEBUG_OUTPUT_SYNCHRONOUS_ARB)
 		gl.DebugMessageCallbackARB(gl.DebugProc(glDebugCallback), gl.Ptr(nil))
 		// Trigger an error to demonstrate debug output
@@ -186,7 +196,7 @@ func main() {
 			gl.BindVertexArray(0)
 
 			window.SwapBuffers()
-			log.Println("swapped buffers")
+			//log.Println("swapped buffers")
 			CheckGLError()
 		}
 
