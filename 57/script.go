@@ -1,7 +1,12 @@
+// +build js
+
 package main
 
 import (
 	"errors"
+	"fmt"
+
+	"honnef.co/go/js/dom"
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/gopherjs/gopherjs/js"
@@ -92,22 +97,31 @@ func initBuffers() {
 	numItems = 3
 }
 
-var viewportWidth = 400
-var viewportHeight = 400
+const viewportWidth = 400
+const viewportHeight = 400
 
 func main() {
-	document := js.Global.Get("document")
-	canvas := document.Call("createElement", "canvas")
-	canvas.Set("width", viewportWidth)
-	canvas.Set("height", viewportHeight)
-	document.Get("body").Call("appendChild", canvas)
+	var document = dom.GetWindow().Document().(dom.HTMLDocument)
+	canvas := document.CreateElement("canvas").(*dom.HTMLCanvasElement)
+	devicePixelRatio := js.Global.Get("devicePixelRatio").Float()
+	canvas.Width = int(viewportWidth*devicePixelRatio + 0.5)   // Nearest int.
+	canvas.Height = int(viewportHeight*devicePixelRatio + 0.5) // Nearest int.
+	canvas.Style().SetProperty("width", fmt.Sprintf("%vpx", viewportWidth), "")
+	canvas.Style().SetProperty("height", fmt.Sprintf("%vpx", viewportHeight), "")
+	document.Body().AppendChild(canvas)
+	text := document.CreateElement("div")
+	textContent := fmt.Sprintf("%v %v (%v) @%v", dom.GetWindow().InnerWidth(), canvas.Width, viewportWidth*devicePixelRatio, devicePixelRatio)
+	text.SetTextContent(textContent)
+	document.Body().AppendChild(text)
+
+	document.Body().Style().SetProperty("margin", "0px", "")
 
 	attrs := webgl.DefaultAttributes()
 	attrs.Alpha = false
 	attrs.Antialias = false
 
 	var err error
-	gl, err = webgl.NewContext(canvas, attrs)
+	gl, err = webgl.NewContext(canvas.Underlying(), attrs)
 	if err != nil {
 		js.Global.Call("alert", "Error: "+err.Error())
 	}
