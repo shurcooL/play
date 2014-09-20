@@ -84,7 +84,7 @@ func initShaders() error {
 	return nil
 }
 
-func initBuffers() {
+func createVbo() {
 	triangleVertexPositionBuffer = gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
 	vertices := []float32{
@@ -130,7 +130,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	initBuffers()
+	createVbo()
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
