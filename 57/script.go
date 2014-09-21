@@ -97,6 +97,22 @@ func createVbo() {
 const viewportWidth = 400
 const viewportHeight = 400
 
+func animate() {
+	js.Global.Call("requestAnimationFrame", animate)
+
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+
+	pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
+
+	mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
+
+	gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
+	gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
+	gl.DrawArrays(gl.TRIANGLES, 0, numItems)
+}
+
+var mouseX, mouseY int = 50, 100
+
 func main() {
 	var document = dom.GetWindow().Document().(dom.HTMLDocument)
 	canvas := document.CreateElement("canvas").(*dom.HTMLCanvasElement)
@@ -112,6 +128,11 @@ func main() {
 	document.Body().AppendChild(text)
 
 	document.Body().Style().SetProperty("margin", "0px", "")
+
+	document.AddEventListener("mousemove", false, func(event dom.Event) {
+		mouseX = event.(*dom.MouseEvent).ClientX
+		mouseY = event.(*dom.MouseEvent).ClientY
+	})
 
 	attrs := webgl.DefaultAttributes()
 	attrs.Alpha = false
@@ -129,19 +150,10 @@ func main() {
 	}
 	createVbo()
 
+	gl.Viewport(0, 0, canvas.Width, canvas.Height)
+
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
-	gl.Clear(gl.COLOR_BUFFER_BIT)
 
 	// Draw scene.
-	{
-		gl.Viewport(0, 0, viewportWidth, viewportHeight)
-
-		pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
-
-		mvMatrix = mgl32.Translate3D(50, 100, 0)
-
-		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
-		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
-		gl.DrawArrays(gl.TRIANGLES, 0, numItems)
-	}
+	animate()
 }
