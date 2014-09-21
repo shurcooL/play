@@ -37,14 +37,12 @@ void main(void) {
 
 var program js.Object
 
-var vertexPositionAttribute int
 var pMatrixUniform js.Object
 var mvMatrixUniform js.Object
 
 var mvMatrix mgl32.Mat4
 var pMatrix mgl32.Mat4
 
-var triangleVertexPositionBuffer js.Object
 var itemSize int
 var numItems int
 
@@ -75,9 +73,6 @@ func initShaders() error {
 
 	gl.UseProgram(program)
 
-	vertexPositionAttribute = gl.GetAttribLocation(program, "aVertexPosition")
-	gl.EnableVertexAttribArray(vertexPositionAttribute)
-
 	pMatrixUniform = gl.GetUniformLocation(program, "uPMatrix")
 	mvMatrixUniform = gl.GetUniformLocation(program, "uMVMatrix")
 
@@ -85,7 +80,7 @@ func initShaders() error {
 }
 
 func createVbo() {
-	triangleVertexPositionBuffer = gl.CreateBuffer()
+	triangleVertexPositionBuffer := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
 	vertices := []float32{
 		0, 0, 0,
@@ -95,6 +90,10 @@ func createVbo() {
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 	itemSize = 3
 	numItems = 3
+
+	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
+	gl.EnableVertexAttribArray(vertexPositionAttribute)
+	gl.VertexAttribPointer(vertexPositionAttribute, itemSize, gl.FLOAT, false, 0, 0)
 }
 
 const viewportWidth = 400
@@ -143,8 +142,6 @@ func main() {
 
 		mvMatrix = mgl32.Translate3D(50, 100, 0)
 
-		gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
-		gl.VertexAttribPointer(vertexPositionAttribute, itemSize, gl.FLOAT, false, 0, 0)
 		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
 		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
 		gl.DrawArrays(gl.TRIANGLES, 0, numItems)
