@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"runtime"
-	"time"
+	"strings"
 	"unsafe"
 
 	. "github.com/shurcooL/go/gists/gist5286084"
@@ -34,6 +34,8 @@ var vertices = [][2]float32{
 	{0, 100},
 }
 
+var programID uint32
+
 /*var vertices = [][2]gl.Float{
 	{-0.5, -0.5},
 	{0.5, -0.5},
@@ -62,15 +64,16 @@ func ValidateProgram(programID uint32) {
 	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)
 	if validationErr == gl.FALSE {
 		log.Print("Shader program failed validation!")
-	}
 
-	/*var infoLogLength int32
-	gl.GetProgramiv(programID, gl.INFO_LOG_LENGTH, &infoLogLength)
-	if infoLogLength > 0 {
-		programErrorMsg := gl.GLStringAlloc(int32(infoLogLength))
-		gl.GetProgramInfoLog(programID, int32(infoLogLength), nil, programErrorMsg)
-		fmt.Printf("Program Info: %s\n", gl.GoString(programErrorMsg))
-	}*/
+		var infoLogLength int32
+		gl.GetProgramiv(programID, gl.INFO_LOG_LENGTH, &infoLogLength)
+		if infoLogLength > 0 {
+			programErrorMsg := strings.Repeat("\x00", int(infoLogLength+1))
+
+			gl.GetProgramInfoLog(programID, int32(infoLogLength), nil, gl.Str(programErrorMsg))
+			fmt.Printf("Program Info: %s\n", programErrorMsg)
+		}
+	}
 }
 
 func glDebugCallback(
@@ -93,8 +96,8 @@ func main() {
 	defer glfw.Terminate()
 
 	//glfw.OpenWindowHint(glfw.FsaaSamples, 32)
-	glfw.WindowHint(glfw.ContextVersionMajor, 3)
-	glfw.WindowHint(glfw.ContextVersionMinor, 2)
+	glfw.WindowHint(glfw.ContextVersionMajor, 4)
+	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, gl.TRUE)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	window, err := glfw.CreateWindow(400, 400, "", nil, nil)
@@ -120,8 +123,6 @@ func main() {
 	if _, ok := extensions["GL_ARB_debug_output"]; ok {
 		gl.Enable(gl.DEBUG_OUTPUT_SYNCHRONOUS_ARB)
 		gl.DebugMessageCallbackARB(gl.DebugProc(glDebugCallback), gl.Ptr(nil))
-		// Trigger an error to demonstrate debug output
-		gl.Enable(gl.CONTEXT_FLAGS)
 	}
 
 	//window.SetPosition(1600, 600)
@@ -157,28 +158,23 @@ func main() {
 	window.SetCursorPositionCallback(MousePos)
 
 	// Load Shaders
-	var programID uint32 = CreateShaderProgram([]string{
+	programID = CreateShaderProgram([]string{
 		"simple_vertex_shader.vert",
 		"simple_fragment_shader.frag",
 	})
 
+	ValidateProgram(programID)
+
+	gl.UseProgram(programID)
+
 	pMatrixUniform = gl.GetUniformLocation(programID, gl.Str("uPMatrix\x00"))
 	mvMatrixUniform = gl.GetUniformLocation(programID, gl.Str("uMVMatrix\x00"))
 
-	go func() {
-		<-time.After(10 * time.Second)
-		log.Println("trigger!")
-		updated = true
-		redraw = true
-		glfw.PostEmptyEvent()
-	}()
+	vao := createObject(vertices)
+	_ = vao
+	//gl.BindVertexArray(vao)
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
-
-	vao := createObject(vertices)
-	gl.BindVertexArray(vao)
-
-	ValidateProgram(programID)
 
 	for !window.ShouldClose() && glfw.Press != window.GetKey(glfw.KeyEscape) {
 		glfw.WaitEvents()
@@ -188,12 +184,12 @@ func main() {
 
 			gl.Clear(gl.COLOR_BUFFER_BIT)
 
-			gl.UseProgram(programID)
+			gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 			gl.UniformMatrix4fv(pMatrixUniform, 1, false, (*float32)(&pMatrix[0]))
 			gl.UniformMatrix4fv(mvMatrixUniform, 1, false, (*float32)(&mvMatrix[0]))
-			gl.BindVertexArray(vao)
+			//gl.BindVertexArray(vao)
 			gl.DrawArrays(gl.TRIANGLE_FAN, 0, int32(len(vertices)))
-			gl.BindVertexArray(0)
+			//gl.BindVertexArray(0)
 
 			window.SwapBuffers()
 			//log.Println("swapped buffers")
@@ -204,21 +200,23 @@ func main() {
 	}
 }
 
+var vbo uint32
+
 func createObject(vertices [][2]float32) uint32 {
 	var vao uint32
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
-	defer gl.BindVertexArray(0)
+	//defer gl.BindVertexArray(0)
 
-	var vbo uint32
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	//defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
 	gl.BufferData(gl.ARRAY_BUFFER, int(unsafe.Sizeof([2]float32{}))*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 0, nil)
-	gl.EnableVertexAttribArray(0)
+	vertexPositionAttribute := uint32(gl.GetAttribLocation(programID, gl.Str("aVertexPosition\x00")))
+	gl.EnableVertexAttribArray(vertexPositionAttribute)
+	gl.VertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, nil)
 
 	return vao
 }
