@@ -1,4 +1,7 @@
 .entry {
-	color: gray;
+	color: lightgray;
 	background: black;
+}
+.highlighted {
+	background: gray;
 }
