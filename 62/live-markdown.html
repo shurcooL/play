@@ -1,0 +1,23 @@
+<html>
+	<head>
+		<style type="text/css">
+body {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+* {
+	tab-size: 4;
+}
+
+textarea, pre {
+	font-family: "Menlo", monospace;
+	font-size: 12px;
+}
+		</style>
+	</head>
+	<body>
+		<h1>Live Markdown (with markdownfmt)</h1>
+		<textarea id="input" style="vertical-align: top;" cols=60 rows=30 autofocus>Loading...</textarea>
+		<iframe id="outputIframe" width="500px" style="width: 600px; height: 800px; display: inline-block;" srcdoc='<html><head><meta charset="utf-8"><style>code, div.highlight { tab-size: 4; }</style><link href="https://assets-cdn.github.com/assets/github-aac267329edcf91101f8b8afc0575e8e882615cc.css" media="all" rel="stylesheet" type="text/css" /><link href="//cdnjs.cloudflare.com/ajax/libs/octicons/2.1.2/octicons.css" media="all" rel="stylesheet" type="text/css" /></head><body><article id="output" class="markdown-body entry-content" style="width: 600px; padding: 30px;"></article></body></html>'></iframe>
+		<script type="text/go" src="markdown.go"></script>
+	</body>
+</html>
