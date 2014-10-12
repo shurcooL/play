@@ -21,17 +21,39 @@ func main() {
 	if err != nil {
 		panic(err)
 	}*/
-	input := []byte(`- list1
-
-> This a normal quote
-
-- list2
-
-	> This a quote within a list
-
-	This is text
+	var input []byte
+	switch 2 {
+	case 0:
+		input = []byte(`1.	Item 1
+2.	Item 2
+	1.	Blah.
+	2.	Blah.
+3.	Item 3
+	-	Item 3a
+	-	Item 3b
 `)
-	input = []byte("This is some \\<code\\> that's \\`okay\\`.\n")
+	case 1:
+		input = []byte(`1.	Item 1
+
+2.	Item 2
+
+	1.	Blah.
+
+	2.	Blah.
+
+3.	Item 3
+
+	-	Item 3a
+
+	-	Item 3b
+`)
+	case 2:
+		input = []byte(`1.	Item 1.
+	1.	Inner 1.
+
+		Hello.
+`)
+	}
 
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
