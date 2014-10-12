@@ -17,14 +17,13 @@ import (
 	"github.com/daviddengcn/go-diff/cmd"
 	"github.com/shurcooL/go/exp/11"
 	"github.com/shurcooL/go/gists/gist5504644"
+	"github.com/shurcooL/go/markdown_http"
 	"github.com/sourcegraph/go-vcs/vcs"
-
-	conception "github.com/shurcooL/Conception-go"
 )
 
 func main() {
-	http.Handle("/inline/", http.StripPrefix("/inline", conception.MarkdownHandlerFunc(handler)))
-	http.Handle("/diff/", http.StripPrefix("/diff", conception.MarkdownHandlerFunc(diffHandler)))
+	http.Handle("/inline/", http.StripPrefix("/inline", markdown_http.MarkdownHandlerFunc(inlineHandler)))
+	http.Handle("/diff/", http.StripPrefix("/diff", markdown_http.MarkdownHandlerFunc(diffHandler)))
 	panic(http.ListenAndServe(":8080", nil))
 }
 
@@ -47,7 +46,7 @@ func a(w io.Writer, req *http.Request) (vcs.Repository, error) {
 	return gitRepo, err
 }
 
-func handler(req *http.Request) ([]byte, error) {
+func inlineHandler(req *http.Request) ([]byte, error) {
 	var w = new(bytes.Buffer)
 
 	repo, err := a(w, req)
@@ -70,6 +69,7 @@ func handler(req *http.Request) ([]byte, error) {
 	fmt.Fprintln(w, "```Go")
 	exp11.WriteMergedPackage(w, fset, merged)
 	fmt.Fprintln(w, "```")
+
 	return w.Bytes(), nil
 }
 
@@ -109,15 +109,19 @@ func diffHandler(req *http.Request) ([]byte, error) {
 }
 
 func y(repo vcs.Repository, commit vcs.CommitID) (*build.Package, *token.FileSet, *ast.File, error) {
+	return Ysubdir(repo, commit, ".")
+}
+
+func Ysubdir(repo vcs.Repository, commit vcs.CommitID, subdir string) (*build.Package, *token.FileSet, *ast.File, error) {
 	fs, err := repo.FileSystem(commit)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	return x(fs)
+	return x(fs, subdir)
 }
 
-func x(fs vcs.FileSystem) (*build.Package, *token.FileSet, *ast.File, error) {
+func x(fs vcs.FileSystem, subdir string) (*build.Package, *token.FileSet, *ast.File, error) {
 	var context build.Context = build.Default
 	//context.GOROOT = ""
 	context.GOPATH = "/"
@@ -139,7 +143,7 @@ func x(fs vcs.FileSystem) (*build.Package, *token.FileSet, *ast.File, error) {
 		return fs.Open(path)
 	}
 
-	bpkg, err := context.ImportDir(".", 0)
+	bpkg, err := context.ImportDir(subdir, 0) // TODO: Fix. Use real import path.
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -152,7 +156,7 @@ func x(fs vcs.FileSystem) (*build.Package, *token.FileSet, *ast.File, error) {
 		filenames := append(bpkg.GoFiles, bpkg.CgoFiles...)
 		files := make(map[string]*ast.File, len(filenames))
 		for _, filename := range filenames {
-			file, err := fs.Open("./" + filename)
+			file, err := fs.Open(subdir + "/" + filename) // TODO: Fix.
 			if err != nil {
 				return nil, nil, nil, err
 			}
