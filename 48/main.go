@@ -103,7 +103,7 @@ func diffHandler(req *http.Request) ([]byte, error) {
 	fmt.Fprintln(w)
 
 	fmt.Fprintln(w, "```diff")
-	godiff.Exec2(w, fset0, merged0, fset1, merged1)
+	godiff.ExecWriter(w, fset0, merged0, fset1, merged1, godiff.Options{NoColor: true})
 	fmt.Fprintln(w, "```")
 	return w.Bytes(), nil
 }
