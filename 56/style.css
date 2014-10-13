@@ -1,7 +1,33 @@
+#overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	margin-left: auto;
+	margin-right: auto;
+	width: 600px;
+	display: none;
+	z-index: 1000;
+	opacity: 0.9;
+
+	font-family: Menlo, monospace;
+	font-size: 12px;
+}
+
+#command {
+	width: 600px;
+}
+
+#results {
+	overflow: scroll;
+	max-height: 500px;
+	border: 1px solid black;
+}
+
 .entry {
-	color: lightgray;
-	background: black;
+	background: white;
 }
 .highlighted {
-	background: gray;
+	color: white;
+	background: rgb(21%, 45%, 84%);
 }

@@ -19,20 +19,11 @@ var baseX, baseY int
 
 func main() {
 	element := document.CreateElement("div")
-	element.(dom.HTMLElement).Style().SetProperty("position", "fixed", "")
-	element.(dom.HTMLElement).Style().SetProperty("top", "0", "")
-	element.(dom.HTMLElement).Style().SetProperty("left", "0", "")
-	element.(dom.HTMLElement).Style().SetProperty("right", "0", "")
-	element.(dom.HTMLElement).Style().SetProperty("margin-left", "auto", "")
-	element.(dom.HTMLElement).Style().SetProperty("margin-right", "auto", "")
-	element.(dom.HTMLElement).Style().SetProperty("width", "600px", "")
-	element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
-	element.(dom.HTMLElement).Style().SetProperty("z-index", "1000", "")
-	element.(dom.HTMLElement).Style().SetProperty("opacity", "0.9", "")
+	element.SetID("overlay")
 
 	element2 := document.CreateElement("div")
 	element.AppendChild(element2)
-	element2.Underlying().Set("outerHTML", `<div style="text-align: center;"><input id="command"></input><div id="results" style="overflow: scroll; height: 600px;"></div></div>`)
+	element2.Underlying().Set("outerHTML", `<div><input id="command"></input><div id="results"></div></div>`)
 
 	document.(dom.HTMLDocument).Body().AppendChild(element)
 
@@ -43,19 +34,23 @@ func main() {
 	element.AddEventListener("keydown", false, func(event dom.Event) {
 		switch ke := event.(*dom.KeyboardEvent); {
 		case ke.KeyIdentifier == "U+001B": // Escape.
-			element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 			ke.PreventDefault()
+
+			element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 
 			dom.GetWindow().Location().Hash = baseHash
 			dom.GetWindow().ScrollTo(baseX, baseY)
 		case ke.KeyIdentifier == "Enter":
-			element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 			ke.PreventDefault()
+
+			element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 		case ke.KeyIdentifier == "Down":
 			selected++
 			updateResults()
 		case ke.KeyIdentifier == "Up":
-			selected--
+			if selected > 0 {
+				selected--
+			}
 			updateResults()
 		}
 	})
@@ -63,6 +58,7 @@ func main() {
 	document.(dom.HTMLDocument).Body().AddEventListener("keydown", false, func(event dom.Event) {
 		switch ke := event.(*dom.KeyboardEvent); {
 		case ke.KeyIdentifier == "U+0052" && ke.MetaKey: // Cmd+R.
+			ke.PreventDefault()
 
 			{
 				headers = document.(dom.HTMLDocument).Body().GetElementsByTagName("h3")
@@ -75,12 +71,12 @@ func main() {
 				updateResults()
 			}
 
-			element.(dom.HTMLElement).Style().SetProperty("display", "", "")
+			element.(dom.HTMLElement).Style().SetProperty("display", "initial", "")
 			document.GetElementByID("command").(*dom.HTMLInputElement).Select()
-			ke.PreventDefault()
 		case ke.KeyIdentifier == "U+001B": // Escape.
-			element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 			ke.PreventDefault()
+
+			element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 		}
 	})
 }
