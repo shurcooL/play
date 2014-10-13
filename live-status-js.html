@@ -61,7 +61,7 @@
 		<div id="myLiveOut">Connecting...</div>
 
 		<script type="text/javascript">
-			var sock = new WebSocket("ws://" + (null == getUrlParam("server") ? "shurserv.no-ip.org:34600" : getUrlParam("server")) + "/status");
+			var sock = new WebSocket("ws://" + (null == getUrlParam("server") ? "dmitri.shuralyov.com:34600" : getUrlParam("server")) + "/status");
 			//sock.addEventListener('open', function(e2) { sock.send( ... ) });
 			sock.onopen = function(evt) {
 				document.getElementById("inputField").value = "Just joined.";
