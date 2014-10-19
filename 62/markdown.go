@@ -29,6 +29,14 @@ Markdown | Less | Pretty
 --- | --- | ---
 *Still* | ` + "`renders`" + ` | **nicely**
 1 | 2 | 3
+
+` + "```Go" + `
+func main  () {
+	// Comment!
+	/*block comment*/
+	go fmt.Println("some string", 1.336)
+}
+` + "```" + `
 `
 
 func run(event dom.Event) {
@@ -59,6 +67,9 @@ func main() {
 			start, end := input.SelectionStart, input.SelectionEnd
 			input.Value = string(output)
 			input.SelectionStart, input.SelectionEnd = start, end
+
+			// Render the output just in case (to see if it changed, etc.).
+			run(nil)
 		}
 	})
 }
