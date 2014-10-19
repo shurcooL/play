@@ -18,32 +18,32 @@ var baseHash string
 var baseX, baseY int
 
 func main() {
-	element := document.CreateElement("div")
-	element.SetID("overlay")
+	overlay := document.CreateElement("div")
+	overlay.SetID("overlay")
 
 	element2 := document.CreateElement("div")
-	element.AppendChild(element2)
+	overlay.AppendChild(element2)
 	element2.Underlying().Set("outerHTML", `<div><input id="command"></input><div id="results"></div></div>`)
 
-	document.(dom.HTMLDocument).Body().AppendChild(element)
+	document.(dom.HTMLDocument).Body().AppendChild(overlay)
 
 	document.GetElementByID("command").AddEventListener("input", false, func(event dom.Event) {
 		updateResults()
 	})
 
-	element.AddEventListener("keydown", false, func(event dom.Event) {
+	overlay.AddEventListener("keydown", false, func(event dom.Event) {
 		switch ke := event.(*dom.KeyboardEvent); {
 		case ke.KeyIdentifier == "U+001B": // Escape.
 			ke.PreventDefault()
 
-			element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
+			overlay.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 
 			dom.GetWindow().Location().Hash = baseHash
 			dom.GetWindow().ScrollTo(baseX, baseY)
 		case ke.KeyIdentifier == "Enter":
 			ke.PreventDefault()
 
-			element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
+			overlay.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 		case ke.KeyIdentifier == "Down":
 			selected++
 			updateResults()
@@ -71,12 +71,12 @@ func main() {
 				updateResults()
 			}
 
-			element.(dom.HTMLElement).Style().SetProperty("display", "initial", "")
+			overlay.(dom.HTMLElement).Style().SetProperty("display", "initial", "")
 			document.GetElementByID("command").(*dom.HTMLInputElement).Select()
 		case ke.KeyIdentifier == "U+001B": // Escape.
 			ke.PreventDefault()
 
-			element.(dom.HTMLElement).Style().SetProperty("display", "none", "")
+			overlay.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 		}
 	})
 }
