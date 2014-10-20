@@ -16,6 +16,9 @@
 
 #command {
 	width: 600px;
+
+	font-family: inherit;
+	font-size: inherit;
 }
 
 #results {
