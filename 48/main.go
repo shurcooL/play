@@ -14,10 +14,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"code.google.com/p/go.tools/godoc/vfs"
+
 	"github.com/daviddengcn/go-diff/cmd"
 	"github.com/shurcooL/go/exp/11"
 	"github.com/shurcooL/go/gists/gist5504644"
 	"github.com/shurcooL/go/markdown_http"
+	vcs2 "github.com/shurcooL/go/vcs"
 	"github.com/sourcegraph/go-vcs/vcs"
 )
 
@@ -47,14 +50,31 @@ func a(w io.Writer, req *http.Request) (vcs.Repository, error) {
 }
 
 func inlineHandler(req *http.Request) ([]byte, error) {
+	rev := req.URL.Query().Get("rev")
+
 	var w = new(bytes.Buffer)
+
+	vcsRepo := vcs2.NewFromType(vcs2.Git)
 
 	repo, err := a(w, req)
 	if err != nil {
 		return nil, err
 	}
 
-	bpkg, fset, merged, err := y(repo, vcs.CommitID(req.URL.Query().Get("rev")))
+	var commitId vcs.CommitID
+	if rev != "" {
+		commitId, err = repo.ResolveRevision(rev)
+	} else {
+		commitId, err = repo.ResolveBranch(vcsRepo.GetDefaultBranch())
+	}
+
+	fmt.Fprintln(w, "```")
+	fmt.Fprintln(w, "rev:", rev)
+	fmt.Fprintln(w, "commitId:", commitId)
+	fmt.Fprintln(w, "```")
+	fmt.Fprintln(w)
+
+	bpkg, fset, merged, err := y(repo, commitId)
 	if err != nil {
 		return nil, err
 	}
@@ -105,15 +125,16 @@ func diffHandler(req *http.Request) ([]byte, error) {
 	fmt.Fprintln(w, "```diff")
 	godiff.ExecWriter(w, fset0, merged0, fset1, merged1, godiff.Options{NoColor: true})
 	fmt.Fprintln(w, "```")
+
 	return w.Bytes(), nil
 }
 
-func y(repo vcs.Repository, commit vcs.CommitID) (*build.Package, *token.FileSet, *ast.File, error) {
-	return Ysubdir(repo, commit, ".")
+func y(repo vcs.Repository, commitId vcs.CommitID) (*build.Package, *token.FileSet, *ast.File, error) {
+	return Ysubdir(repo, commitId, ".")
 }
 
-func Ysubdir(repo vcs.Repository, commit vcs.CommitID, subdir string) (*build.Package, *token.FileSet, *ast.File, error) {
-	fs, err := repo.FileSystem(commit)
+func Ysubdir(repo vcs.Repository, commitId vcs.CommitID, subdir string) (*build.Package, *token.FileSet, *ast.File, error) {
+	fs, err := repo.FileSystem(commitId)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -121,24 +142,24 @@ func Ysubdir(repo vcs.Repository, commit vcs.CommitID, subdir string) (*build.Pa
 	return x(fs, subdir)
 }
 
-func x(fs vcs.FileSystem, subdir string) (*build.Package, *token.FileSet, *ast.File, error) {
+func x(fs vfs.FileSystem, subdir string) (*build.Package, *token.FileSet, *ast.File, error) {
 	var context build.Context = build.Default
 	//context.GOROOT = ""
 	context.GOPATH = "/"
 	context.JoinPath = path.Join
 	context.IsAbsPath = path.IsAbs
 	context.SplitPathList = func(list string) []string { return strings.Split(list, ":") }
-	context.IsDir = func(path string) bool { fmt.Printf("context.IsDir %s\n", path); return false }
+	context.IsDir = func(path string) bool { fmt.Printf("context.IsDir %q\n", path); return false }
 	context.HasSubdir = func(root, dir string) (rel string, ok bool) {
-		fmt.Printf("context.HasSubdir %s %s\n", root, dir)
+		fmt.Printf("context.HasSubdir %q %q\n", root, dir)
 		return "", false
 	}
 	context.ReadDir = func(dir string) (fi []os.FileInfo, err error) {
-		fmt.Printf("context.ReadDir %s\n", dir)
+		fmt.Printf("context.ReadDir %q\n", dir)
 		return fs.ReadDir(dir)
 	}
 	context.OpenFile = func(path string) (r io.ReadCloser, err error) {
-		fmt.Printf("context.OpenFile %s\n", path)
+		fmt.Printf("context.OpenFile %q\n", path)
 		path = "./" + path
 		return fs.Open(path)
 	}
