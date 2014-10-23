@@ -264,7 +264,7 @@ func try(req *http.Request) (*build.Package, vfs.FileSystem, error) {
 		return bpkg, fs, nil
 	}
 
-	repo, commitId, err := repoFromRequest(req)
+	repo, repoImportPath, commitId, err := repoFromRequest(req)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -274,8 +274,11 @@ func try(req *http.Request) (*build.Package, vfs.FileSystem, error) {
 		return nil, nil, err
 	}
 
+	fs = vfs_util.NewPrefixFS(fs, "/virtual-go-workspace/src/"+repoImportPath)
+
 	context = buildContextUsingFS(fs)
-	bpkg, err1 := context.ImportDir("plot", 0) // TODO.
+	context.GOPATH = "/virtual-go-workspace"
+	bpkg, err1 := context.Import(importPath, "", 0)
 	if err1 == nil {
 		return bpkg, fs, nil
 	}
@@ -309,66 +312,67 @@ func merge(bpkg *build.Package, fs vfs.FileSystem) (*token.FileSet, *ast.File, e
 	return fset, merged, nil
 }
 
-func importPathToRepoGuess(importPath string) (cloneUrl *url.URL, vcsRepo vcs2.Vcs, err error) {
+func importPathToRepoGuess(importPath string) (repoImportPath string, cloneUrl *url.URL, vcsRepo vcs2.Vcs, err error) {
 	switch {
 	case strings.HasPrefix(importPath, "github.com/"):
 		importPathElements := strings.Split(importPath, "/")
 		if len(importPathElements) < 3 {
-			return nil, nil, err
+			return "", nil, nil, err
 		}
 
-		cloneUrl, err = url.Parse("https://" + path.Join(importPathElements[:3]...))
+		repoImportPath = path.Join(importPathElements[:3]...)
+
+		cloneUrl, err = url.Parse("https://" + repoImportPath)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, nil, err
 		}
 
-		// subdir = path.Join(importPathElements[3:]...)
-		return cloneUrl, vcs2.NewFromType(vcs2.Git), nil
+		return repoImportPath, cloneUrl, vcs2.NewFromType(vcs2.Git), nil
 	case strings.HasPrefix(importPath, "code.google.com/p/"):
 		importPathElements := strings.Split(importPath, "/")
 		if len(importPathElements) < 3 {
-			return nil, nil, err
+			return "", nil, nil, err
 		}
 
-		cloneUrl, err = url.Parse("https://" + path.Join(importPathElements[:3]...))
+		repoImportPath = path.Join(importPathElements[:3]...)
+
+		cloneUrl, err = url.Parse("https://" + repoImportPath)
 		if err != nil {
-			return nil, nil, err
+			return "", nil, nil, err
 		}
 
-		// subdir = "./" + path.Join(importPathElements[3:]...)
-		return cloneUrl, vcs2.NewFromType(vcs2.Hg), nil
+		return repoImportPath, cloneUrl, vcs2.NewFromType(vcs2.Hg), nil
 	default:
-		return nil, nil, err
+		return "", nil, nil, err
 	}
 }
 
-func repoFromRequest(req *http.Request) (vcs.Repository, vcs.CommitID, error) {
+func repoFromRequest(req *http.Request) (repo vcs.Repository, repoImportPath string, commitId vcs.CommitID, err error) {
 	importPath := req.URL.Path[1:]
 	rev := req.URL.Query().Get("rev")
 
-	cloneUrl, vcsRepo, err := importPathToRepoGuess(importPath)
+	repoImportPath, cloneUrl, vcsRepo, err := importPathToRepoGuess(importPath)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	goon.DumpExpr(cloneUrl, vcsRepo, err)
 
-	repo, err := sg.Repository(vcsRepo.Type().VcsType(), cloneUrl)
+	repo, err = sg.Repository(vcsRepo.Type().VcsType(), cloneUrl)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
-	var commitId vcs.CommitID
 	if rev != "" {
 		commitId, err = repo.ResolveRevision(rev)
 	} else {
 		commitId, err = repo.ResolveBranch(vcsRepo.GetDefaultBranch())
 	}
 	if err != nil {
-		err1 := repo.(vcsclient.RepositoryRemoteCloner).CloneRemote()
-		fmt.Println("repoFromRequest: CloneRemote:", err1)
+		err1 := repo.(vcsclient.RepositoryCloneUpdater).CloneOrUpdate(vcs.RemoteOpts{})
+		fmt.Println("repoFromRequest: CloneOrUpdate:", err1)
 		if err1 != nil {
-			return nil, "", MultiError{err, err1}
+			return nil, "", "", MultiError{err, err1}
 		}
 
 		if rev != "" {
@@ -377,13 +381,14 @@ func repoFromRequest(req *http.Request) (vcs.Repository, vcs.CommitID, error) {
 			commitId, err1 = repo.ResolveBranch(vcsRepo.GetDefaultBranch())
 		}
 		if err1 != nil {
-			return nil, "", MultiError{err, err1}
+			return nil, "", "", MultiError{err, err1}
 		}
+		fmt.Println("repoFromRequest: worked on SECOND try")
 	} else {
 		fmt.Println("repoFromRequest: worked on first try")
 	}
 
-	return repo, commitId, nil
+	return repo, repoImportPath, commitId, nil
 }
 
 func buildContextUsingFS(fs vfs.FileSystem) build.Context {

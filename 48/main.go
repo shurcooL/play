@@ -22,6 +22,7 @@ import (
 	"github.com/shurcooL/go/markdown_http"
 	vcs2 "github.com/shurcooL/go/vcs"
 	"github.com/sourcegraph/go-vcs/vcs"
+	_ "github.com/sourcegraph/go-vcs/vcs/gitcmd"
 )
 
 func main() {
@@ -30,12 +31,12 @@ func main() {
 	panic(http.ListenAndServe(":8080", nil))
 }
 
-func a(w io.Writer, req *http.Request) (vcs.Repository, error) {
+func a(w io.Writer, req *http.Request) (vcs.Repository, vcs2.Vcs, error) {
 	importPath := req.URL.Path[1:]
 
 	bpkg, err := gist5504644.BuildPackageFromImportPath(importPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	fmt.Fprintln(w, "```")
@@ -45,8 +46,11 @@ func a(w io.Writer, req *http.Request) (vcs.Repository, error) {
 	fmt.Fprintln(w, "```")
 	fmt.Fprintln(w)
 
-	gitRepo, err := vcs.OpenGitRepository(bpkg.Dir)
-	return gitRepo, err
+	// HACK: Assume git.
+	vcsRepo := vcs2.NewFromType(vcs2.Git)
+
+	gitRepo, err := vcs.Open(vcsRepo.Type().VcsType(), bpkg.Dir)
+	return gitRepo, vcsRepo, err
 }
 
 func inlineHandler(req *http.Request) ([]byte, error) {
@@ -54,9 +58,7 @@ func inlineHandler(req *http.Request) ([]byte, error) {
 
 	var w = new(bytes.Buffer)
 
-	vcsRepo := vcs2.NewFromType(vcs2.Git)
-
-	repo, err := a(w, req)
+	repo, vcsRepo, err := a(w, req)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +98,7 @@ func inlineHandler(req *http.Request) ([]byte, error) {
 func diffHandler(req *http.Request) ([]byte, error) {
 	var w = new(bytes.Buffer)
 
-	repo, err := a(w, req)
+	repo, _, err := a(w, req)
 	if err != nil {
 		return nil, err
 	}
