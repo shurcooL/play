@@ -162,6 +162,7 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 	<body>
 		<div style="width: 100%; background-color: hsl(209, 51%, 92%); border-bottom: 1px solid hsl(209, 51%, 88%);">
 			<span style="margin-left: 30px; background-color: hsl(209, 51%, 88%); padding: 15px; display: inline-block;">Go Code</span>
+			<span style="padding: 15px; display: inline-block;"><strong>Cmd+R</strong>: Go To Symbol... (WIP)</span>
 		</div>
 		<article class="markdown-body entry-content" style="padding: 30px;">`)
 
