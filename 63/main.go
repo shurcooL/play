@@ -26,7 +26,7 @@ import (
 	"github.com/shurcooL/go-goon"
 	"github.com/shurcooL/go/exp/11"
 	"github.com/shurcooL/go/gists/gist5639599"
-	"github.com/shurcooL/go/github_flavored_markdown"
+	"github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name"
 	"github.com/shurcooL/go/gopherjs_http"
 	"github.com/shurcooL/go/markdown_http"
 	"github.com/shurcooL/go/raw_file_server"
@@ -225,7 +225,7 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 			panic(err)
 		}
 
-		fmt.Fprintf(w, "<h2 id=\"%s\">%s</h2>", github_flavored_markdown.HeaderLink(goFile)[1:], html.EscapeString(goFile))
+		fmt.Fprintf(w, "<h2 id=\"%s\">%s</h2>", sanitized_anchor_name.Create(goFile), html.EscapeString(goFile))
 		io.WriteString(w, `<div class="highlight highlight-Go"><pre>`)
 		w.Write(b)
 		io.WriteString(w, `</pre></div>`)

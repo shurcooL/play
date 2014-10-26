@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/shurcooL/go/github_flavored_markdown"
+	"github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name"
 	"honnef.co/go/js/dom"
 )
 
@@ -27,7 +27,7 @@ func main() {
 		element := document.CreateElement("a").(*dom.HTMLAnchorElement)
 		element.Class().Add("toc-entry")
 		element.SetTextContent(header.TextContent())
-		element.Href = github_flavored_markdown.HeaderLink(header.TextContent())
+		element.Href = "#" + sanitized_anchor_name.Create(header.TextContent())
 
 		results.AppendChild(element)
 	}
