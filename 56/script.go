@@ -60,6 +60,8 @@ func main() {
 		case ke.KeyIdentifier == "U+0052" && ke.MetaKey: // Cmd+R.
 			ke.PreventDefault()
 
+			document.GetElementByID("command").(*dom.HTMLInputElement).Value = ""
+
 			{
 				headers = document.(dom.HTMLDocument).Body().GetElementsByTagName("h3")
 
