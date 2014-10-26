@@ -4,19 +4,21 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"html"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
 	"go/ast"
 	"go/build"
 	"go/parser"
-	"go/printer"
 	"go/token"
 
 	"code.google.com/p/go.tools/godoc/vfs"
@@ -33,6 +35,7 @@ import (
 	"github.com/sourcegraph/apiproxy/service/github"
 	"github.com/sourcegraph/go-vcs/vcs"
 	"github.com/sourcegraph/httpcache"
+	"github.com/sourcegraph/syntaxhighlight"
 	"github.com/sourcegraph/vcsstore/vcsclient"
 )
 
@@ -62,6 +65,8 @@ func main() {
 	http.Handle("/bpkg/", http.StripPrefix("/bpkg", markdown_http.MarkdownHandlerFunc(bpkgHandler))) // DEBUG.
 	http.Handle("/command-r.go.js", gopherjs_http.GoFiles("../56/script.go"))
 	http.HandleFunc("/command-r.css", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "../56/style.css") })
+	http.Handle("/table-of-contents.go.js", gopherjs_http.GoFiles("../74/script.go"))
+	http.HandleFunc("/table-of-contents.css", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "../74/style.css") })
 	panic(http.ListenAndServe(*httpFlag, nil))
 }
 
@@ -105,6 +110,22 @@ func bpkgHandler(req *http.Request) ([]byte, error) {
 	return w.Bytes(), nil
 }
 
+// TODO: Dedup.
+var gfmHtmlConfig = syntaxhighlight.HTMLConfig{
+	String:        "s",
+	Keyword:       "k",
+	Comment:       "c",
+	Type:          "n",
+	Literal:       "lit",
+	Punctuation:   "p",
+	Plaintext:     "n",
+	Tag:           "tag",
+	HTMLTag:       "htm",
+	HTMLAttrName:  "atn",
+	HTMLAttrValue: "atv",
+	Decimal:       "m",
+}
+
 func parserHandler(w http.ResponseWriter, req *http.Request) {
 	importPath := req.URL.Path[1:]
 	rev := req.URL.Query().Get("rev")
@@ -121,10 +142,13 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}*/
 
-	io.WriteString(w, `<html>
+	fmt.Fprintf(w, `<html>
 	<head>
-		<link href="https://assets-cdn.github.com/assets/github-043670bf5d45762c99c890603216d8776470fa11262837b5ba8ca37f4175d357.css" media="all" rel="stylesheet" type="text/css" />
+		<title>%s - Go Code</title>`, html.EscapeString(importPath))
+	io.WriteString(w, `
+		<link href="https://dl.dropboxusercontent.com/u/8554242/temp/github-flavored-markdown.css" media="all" rel="stylesheet" type="text/css" />
 		<link href="/command-r.css" media="all" rel="stylesheet" type="text/css" />
+		<link href="/table-of-contents.css" media="all" rel="stylesheet" type="text/css" />
 		<style>
 			.highlight h3 {
 				display: inline;
@@ -136,15 +160,12 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 		</style>
 	</head>
 	<body>
+		<div style="width: 100%; background-color: hsl(209, 51%, 92%); border-bottom: 1px solid hsl(209, 51%, 88%);">
+			<span style="margin-left: 30px; background-color: hsl(209, 51%, 88%); padding: 15px; display: inline-block;">Go Code</span>
+		</div>
 		<article class="markdown-body entry-content" style="padding: 30px;">`)
 
-	fmt.Fprintln(w, "<pre><code>")
-	fmt.Fprintln(w, "# "+importPath)
-	fmt.Fprintln(w)
-	for _, goFile := range append(bpkg.GoFiles, bpkg.CgoFiles...) {
-		fmt.Fprintln(w, "-\t"+goFile)
-	}
-	fmt.Fprintln(w, `</code></pre>`)
+	fmt.Fprintf(w, "<h1>%s</h1>", html.EscapeString(importPath))
 
 	for _, goFile := range append(bpkg.GoFiles, bpkg.CgoFiles...) {
 		fset := token.NewFileSet()
@@ -152,13 +173,22 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		merged, err := parser.ParseFile(fset, filepath.Join(bpkg.Dir, goFile), file, parser.ParseComments)
+		src, err := ioutil.ReadAll(file)
+		if err != nil {
+			panic(err)
+		}
+		err = file.Close()
+		if err != nil {
+			panic(err)
+		}
+		fileAst, err := parser.ParseFile(fset, filepath.Join(bpkg.Dir, goFile), src, parser.ParseComments)
 		if err != nil {
 			panic(err)
 		}
 
-		var anns annotate.Annotations
-		for _, decl := range merged.Decls {
+		anns, err := syntaxhighlight.Annotate(src, syntaxhighlight.HTMLAnnotator(gfmHtmlConfig))
+
+		for _, decl := range fileAst.Decls {
 			switch d := decl.(type) {
 			case *ast.FuncDecl:
 				pos := fset.File(d.Pos()).Offset(d.Pos())
@@ -179,17 +209,20 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		var buf bytes.Buffer
-		err = (&printer.Config{Mode: printer.UseSpaces | printer.TabIndent, Tabwidth: 8}).Fprint(&buf, fset, merged)
+		/*var buf bytes.Buffer
+		err = (&printer.Config{Mode: printer.UseSpaces | printer.TabIndent, Tabwidth: 8}).Fprint(&buf, fset, fileAst)
+		if err != nil {
+			panic(err)
+		}*/
+
+		sort.Sort(anns)
+
+		b, err := annotate.Annotate(src, anns, nil)
 		if err != nil {
 			panic(err)
 		}
 
-		b, err := annotate.Annotate(buf.Bytes(), anns, nil)
-		if err != nil {
-			panic(err)
-		}
-
+		fmt.Fprintf(w, "<h2>%s</h2>", html.EscapeString(goFile))
 		io.WriteString(w, `<div class="highlight highlight-Go"><pre>`)
 		w.Write(b)
 		io.WriteString(w, `</pre></div>`)
@@ -197,6 +230,7 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 
 	io.WriteString(w, `</article>`)
 	io.WriteString(w, `<script type="text/javascript" src="/command-r.go.js"></script>`)
+	io.WriteString(w, `<script type="text/javascript" src="/table-of-contents.go.js"></script>`)
 	io.WriteString(w, `</body></html>`)
 }
 
