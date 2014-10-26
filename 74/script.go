@@ -2,7 +2,10 @@
 
 package main
 
-import "honnef.co/go/js/dom"
+import (
+	"github.com/shurcooL/go/github_flavored_markdown"
+	"honnef.co/go/js/dom"
+)
 
 var document = dom.GetWindow().Document().(dom.HTMLDocument)
 
@@ -21,9 +24,10 @@ func main() {
 	results = document.CreateElement("div").(*dom.HTMLDivElement)
 
 	for _, header := range headers {
-		element := document.CreateElement("div")
+		element := document.CreateElement("a").(*dom.HTMLAnchorElement)
 		element.Class().Add("toc-entry")
 		element.SetTextContent(header.TextContent())
+		element.Href = github_flavored_markdown.HeaderLink(header.TextContent())
 
 		results.AppendChild(element)
 	}

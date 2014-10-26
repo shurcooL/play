@@ -10,10 +10,19 @@
 	font-size: 14px;
 }
 
+a.toc-entry {
+	display: block;
+	text-decoration: none;
+}
+
 .toc-entry {
+	color: inherit;
 	background: white;
 }
-.toc-highlighted {
+.toc-entry:hover {
+	background: rgb(92.5%, 92.5%, 92.5%);
+}
+.toc-highlighted, .toc-highlighted:hover, a.toc-highlighted:hover {
 	color: white;
 	background: rgb(21%, 45%, 84%);
 }
