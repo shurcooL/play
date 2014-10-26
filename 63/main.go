@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"html"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -218,7 +219,7 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 
 		sort.Sort(anns)
 
-		b, err := annotate.Annotate(src, anns, nil)
+		b, err := annotate.Annotate(src, anns, func(w io.Writer, b []byte) { template.HTMLEscape(w, b) })
 		if err != nil {
 			panic(err)
 		}
