@@ -1,0 +1,19 @@
+#toc-overlay {
+	position: fixed;
+	top: 15;
+	right: 15;
+	z-index: 1000;
+	opacity: 0.9;
+	border: 1px solid lightgray;
+
+	font-family: Menlo, monospace;
+	font-size: 14px;
+}
+
+.toc-entry {
+	background: white;
+}
+.toc-highlighted {
+	color: white;
+	background: rgb(21%, 45%, 84%);
+}
