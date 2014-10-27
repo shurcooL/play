@@ -30,7 +30,10 @@
 .entry {
 	background: white;
 }
-.highlighted {
+.entry:hover {
+	background: rgb(92.5%, 92.5%, 92.5%);
+}
+.highlighted, .highlighted:hover {
 	color: white;
 	background: rgb(21%, 45%, 84%);
 }
