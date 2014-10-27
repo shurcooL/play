@@ -29,17 +29,37 @@ func main() {
 		return nil
 	}
 
-	fs := vfs.OS("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/Go-Package-Store/assets/")
+	out = ""
+	{
+		fs := vfs.OS("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/Go-Package-Store/assets/")
 
-	fs = vfs_util.NewPrefixFS(fs, "/home/prefix/foo/bar/gzz")
+		fs = vfs_util.NewPrefixFS(fs, "/home/prefix/foo/bar/gzz")
 
-	fs = vfs_util.NewDebugFS(fs)
+		fs = vfs_util.NewDebugFS(fs)
 
-	err := vfs_util.Walk(fs, "/", walkFn)
-	if err != nil {
-		panic(err)
+		err := vfs_util.Walk(fs, "/", walkFn)
+		if err != nil {
+			panic(err)
+		}
 	}
+	fmt.Print("---\n" + out)
 
+	fmt.Println("=====")
+
+	out = ""
+	{
+		fs := vfs.OS("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/Go-Package-Store/assets/")
+
+		ns := vfs.NameSpace{}
+		ns.Bind("/home/prefix/foo/bar/gzz", fs, "/", vfs.BindReplace)
+
+		fs = vfs_util.NewDebugFS(ns)
+
+		err := vfs_util.Walk(fs, "/home/prefix/foo/bar/gzz", walkFn)
+		if err != nil {
+			panic(err)
+		}
+	}
 	fmt.Print("---\n" + out)
 
 	//panic(http.ListenAndServe(":8080", raw_file_server.New(fs)))
