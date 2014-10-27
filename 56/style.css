@@ -28,6 +28,7 @@
 }
 
 .entry {
+	cursor: default;
 	background: white;
 }
 .entry:hover {

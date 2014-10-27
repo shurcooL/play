@@ -3,7 +3,6 @@
 package main
 
 import (
-	"fmt"
 	"html"
 	"strings"
 
@@ -19,6 +18,9 @@ var selected int
 var baseHash string
 var baseX, baseY int
 
+var entryHeight float64
+var entries []dom.Node
+
 func main() {
 	overlay := document.CreateElement("div")
 	overlay.SetID("overlay")
@@ -29,17 +31,19 @@ func main() {
 
 	document.(dom.HTMLDocument).Body().AppendChild(overlay)
 
-	document.GetElementByID("command").AddEventListener("input", false, func(event dom.Event) {
+	command := document.GetElementByID("command").(*dom.HTMLInputElement)
+	results := document.GetElementByID("results").(*dom.HTMLDivElement)
+
+	command.AddEventListener("input", false, func(event dom.Event) {
 		updateResults()
 	})
 
-	document.GetElementByID("results").AddEventListener("click", false, func(event dom.Event) {
-		document.GetElementByID("command").(dom.HTMLElement).Focus()
+	results.AddEventListener("click", false, func(event dom.Event) {
+		command.Focus()
 
 		me := event.(*dom.MouseEvent)
-		y := (me.ClientY - document.GetElementByID("results").GetBoundingClientRect().Top) + document.GetElementByID("results").Underlying().Get("scrollTop").Int()
-		height := document.GetElementByID("results").FirstChild().(dom.Element).GetBoundingClientRect().Object.Get("height").Float()
-		selected = int(float64(y) / height)
+		y := (me.ClientY - results.GetBoundingClientRect().Top) + results.Underlying().Get("scrollTop").Int()
+		selected = int(float64(y) / entryHeight)
 		updateResultSelection()
 	})
 
@@ -50,7 +54,7 @@ func main() {
 
 			overlay.(dom.HTMLElement).Style().SetProperty("display", "none", "")
 
-			if document.ActiveElement().Underlying() == document.GetElementByID("command").Underlying() {
+			if document.ActiveElement().Underlying() == command.Underlying() {
 				dom.GetWindow().Location().Hash = baseHash
 				dom.GetWindow().ScrollTo(baseX, baseY)
 			}
@@ -61,12 +65,28 @@ func main() {
 		case ke.KeyIdentifier == "Down":
 			ke.PreventDefault()
 
-			selected++
+			switch {
+			case !ke.CtrlKey && !ke.AltKey && ke.MetaKey:
+				selected = len(entries) - 1
+			case ke.CtrlKey && ke.AltKey && !ke.MetaKey:
+				results.Underlying().Set("scrollTop", results.Underlying().Get("scrollTop").Float()+entryHeight)
+				return
+			case !ke.CtrlKey && !ke.AltKey && !ke.MetaKey:
+				selected++
+			}
 			updateResultSelection()
 		case ke.KeyIdentifier == "Up":
 			ke.PreventDefault()
 
-			selected--
+			switch {
+			case !ke.CtrlKey && !ke.AltKey && ke.MetaKey:
+				selected = 0
+			case ke.CtrlKey && ke.AltKey && !ke.MetaKey:
+				results.Underlying().Set("scrollTop", results.Underlying().Get("scrollTop").Float()-entryHeight)
+				return
+			case !ke.CtrlKey && !ke.AltKey && !ke.MetaKey:
+				selected--
+			}
 			updateResultSelection()
 		}
 	})
@@ -77,11 +97,11 @@ func main() {
 			ke.PreventDefault()
 
 			if display := overlay.(dom.HTMLElement).Style().GetPropertyValue("display"); display != "none" && display != "null" {
-				document.GetElementByID("command").(*dom.HTMLInputElement).Select()
+				command.Select()
 				break
 			}
 
-			document.GetElementByID("command").(*dom.HTMLInputElement).Value = ""
+			command.Value = ""
 
 			{
 				headers = document.(dom.HTMLDocument).Body().GetElementsByTagName("h3")
@@ -93,8 +113,10 @@ func main() {
 			}
 
 			overlay.(dom.HTMLElement).Style().SetProperty("display", "initial", "")
-			document.GetElementByID("results").Underlying().Set("scrollTop", 0) // TODO: Properly bring selected item into view.
-			document.GetElementByID("command").(*dom.HTMLInputElement).Select()
+			results.Underlying().Set("scrollTop", 0) // TODO: Properly bring selected item into view.
+			command.Select()
+
+			entryHeight = results.FirstChild().(dom.Element).GetBoundingClientRect().Object.Get("height").Float()
 		case ke.KeyIdentifier == "U+001B": // Escape.
 			ke.PreventDefault()
 
@@ -103,41 +125,48 @@ func main() {
 	})
 }
 
+var previouslySelected int
+
 func updateResultSelection() {
 	results := document.GetElementByID("results").(*dom.HTMLDivElement)
+	_ = results
 
 	if selected < 0 {
 		selected = 0
-	} else if selected > len(results.ChildNodes())-1 {
-		selected = len(results.ChildNodes()) - 1
+	} else if selected > len(entries)-1 {
+		selected = len(entries) - 1
 	}
 
-	for i, node := range results.ChildNodes() {
-		element := node.(dom.Element)
-		element.Class().Remove("highlighted")
+	if selected == previouslySelected {
+		return
+	}
 
-		if i == selected {
-			element.Class().Add("highlighted")
-			dom.GetWindow().Location().Hash = "#" + element.GetAttribute("data-id")
+	entries[previouslySelected].(dom.Element).Class().Remove("highlighted")
 
-			if element.GetBoundingClientRect().Top <= results.GetBoundingClientRect().Top {
-				node.Underlying().Call("scrollIntoView", true)
-			} else if element.GetBoundingClientRect().Bottom >= results.GetBoundingClientRect().Bottom {
-				node.Underlying().Call("scrollIntoView", false)
-			}
+	{
+		element := entries[selected].(dom.Element)
+
+		if element.GetBoundingClientRect().Top <= results.GetBoundingClientRect().Top {
+			element.Underlying().Call("scrollIntoView", true)
+		} else if element.GetBoundingClientRect().Bottom >= results.GetBoundingClientRect().Bottom {
+			element.Underlying().Call("scrollIntoView", false)
 		}
+
+		element.Class().Add("highlighted")
+		dom.GetWindow().Location().Hash = "#" + element.GetAttribute("data-id")
 	}
+
+	previouslySelected = selected
 }
 
 func updateResults() {
-	fmt.Println("updateResults")
-
 	filter := document.GetElementByID("command").(*dom.HTMLInputElement).Value
 
 	results := document.GetElementByID("results").(*dom.HTMLDivElement)
 
 	// TODO: Preserve correctly.
 	selected = 0
+	previouslySelected = 0
 
 	results.SetInnerHTML("")
 	var visibleIndex int
@@ -163,4 +192,6 @@ func updateResults() {
 
 		visibleIndex++
 	}
+
+	entries = results.ChildNodes()
 }
