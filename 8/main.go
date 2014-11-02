@@ -45,11 +45,15 @@ const (
 	flagMethodShift      = flagKindShift + flagKindWidth
 )
 
+// Go 1.4.
+const flagROgo14 flag = 1 << 5
+
 func bypass(v reflect.Value) reflect.Value {
 	if !v.IsValid() || v.CanInterface() {
 		return v
 	}
 	flagp := (*flag)(unsafe.Pointer(uintptr(unsafe.Pointer(&v)) + flagValOffset))
-	*flagp &^= flagRO
+	//*flagp &^= flagRO
+	*flagp &^= flagROgo14
 	return v
 }
