@@ -13,6 +13,7 @@ import (
 
 func main() {
 	var out string
+
 	walkFn := func(path string, fi os.FileInfo, err error) error {
 		if err != nil {
 			log.Printf("can't stat file %s: %v\n", path, err)
