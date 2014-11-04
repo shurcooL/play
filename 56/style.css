@@ -30,6 +30,10 @@
 .entry {
 	cursor: default;
 	background: white;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .entry:hover {
 	background: rgb(92.5%, 92.5%, 92.5%);
