@@ -78,6 +78,11 @@ func main() {
 		selected = int(float64(y) / entryHeight)
 		updateResultSelection()
 	})
+	results.AddEventListener("dblclick", false, func(event dom.Event) {
+		event.PreventDefault()
+
+		overlay.Style().SetProperty("display", "none", "")
+	})
 
 	overlay.AddEventListener("keydown", false, func(event dom.Event) {
 		switch ke := event.(*dom.KeyboardEvent); {
@@ -192,7 +197,8 @@ func updateResultSelection() {
 		//dom.GetWindow().Location().Hash = "#" + element.GetAttribute("data-id")
 		//dom.GetWindow().History().ReplaceState(nil, nil, "#"+element.GetAttribute("data-id"))
 		js.Global.Get("window").Get("history").Call("replaceState", nil, nil, "#"+element.GetAttribute("data-id"))
-		dom.GetWindow().ScrollTo(dom.GetWindow().ScrollX(), int(document.GetElementByID(element.GetAttribute("data-id")).(dom.HTMLElement).OffsetTop())-windowHalfHeight)
+		target := document.GetElementByID(element.GetAttribute("data-id")).(dom.HTMLElement)
+		dom.GetWindow().ScrollTo(dom.GetWindow().ScrollX(), int(target.OffsetTop()+target.OffsetHeight())-windowHalfHeight)
 
 		manuallyPicked = element.GetAttribute("data-id")
 	}
@@ -291,6 +297,7 @@ func updateResults(init bool, overlay dom.HTMLElement) {
 		//dom.GetWindow().Location().Hash = "#" + element.GetAttribute("data-id")
 		//dom.GetWindow().History().ReplaceState(nil, nil, "#"+element.GetAttribute("data-id"))
 		js.Global.Get("window").Get("history").Call("replaceState", nil, nil, "#"+element.GetAttribute("data-id"))
-		dom.GetWindow().ScrollTo(dom.GetWindow().ScrollX(), int(document.GetElementByID(element.GetAttribute("data-id")).(dom.HTMLElement).OffsetTop())-windowHalfHeight)
+		target := document.GetElementByID(element.GetAttribute("data-id")).(dom.HTMLElement)
+		dom.GetWindow().ScrollTo(dom.GetWindow().ScrollX(), int(target.OffsetTop()+target.OffsetHeight())-windowHalfHeight)
 	}
 }
