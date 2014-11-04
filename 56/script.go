@@ -26,16 +26,16 @@ var manuallyPicked string
 
 func main() {
 	overlay := document.CreateElement("div").(*dom.HTMLDivElement)
-	overlay.SetID("overlay")
+	overlay.SetID("gts-overlay")
 
 	container := document.CreateElement("div")
 	overlay.AppendChild(container)
-	container.Underlying().Set("outerHTML", `<div><input id="command"></input><div id="results"></div></div>`)
+	container.Underlying().Set("outerHTML", `<div><input id="gts-command"></input><div id="gts-results"></div></div>`)
 
 	document.Body().AppendChild(overlay)
 
-	command := document.GetElementByID("command").(*dom.HTMLInputElement)
-	results := document.GetElementByID("results").(*dom.HTMLDivElement)
+	command := document.GetElementByID("gts-command").(*dom.HTMLInputElement)
+	results := document.GetElementByID("gts-results").(*dom.HTMLDivElement)
 
 	command.AddEventListener("input", false, func(event dom.Event) {
 		updateResults(false, nil)
@@ -81,7 +81,7 @@ func main() {
 	results.AddEventListener("dblclick", false, func(event dom.Event) {
 		event.PreventDefault()
 
-		overlay.Style().SetProperty("display", "none", "")
+		hideOverlay(overlay)
 	})
 
 	overlay.AddEventListener("keydown", false, func(event dom.Event) {
@@ -89,7 +89,7 @@ func main() {
 		case ke.KeyIdentifier == "U+001B": // Escape.
 			ke.PreventDefault()
 
-			overlay.Style().SetProperty("display", "none", "")
+			hideOverlay(overlay)
 
 			if document.ActiveElement().Underlying() == command.Underlying() {
 				//dom.GetWindow().Location().Hash = baseHash
@@ -99,7 +99,7 @@ func main() {
 		case ke.KeyIdentifier == "Enter":
 			ke.PreventDefault()
 
-			overlay.Style().SetProperty("display", "none", "")
+			hideOverlay(overlay)
 		case ke.KeyIdentifier == "Down":
 			ke.PreventDefault()
 
@@ -161,16 +161,26 @@ func main() {
 		case ke.KeyIdentifier == "U+001B": // Escape.
 			ke.PreventDefault()
 
-			overlay.Style().SetProperty("display", "none", "")
+			hideOverlay(overlay)
 		}
 	})
+}
+
+var previouslyHighlightedHeader dom.HTMLElement
+
+func hideOverlay(overlay dom.HTMLElement) {
+	overlay.Style().SetProperty("display", "none", "")
+
+	if previouslyHighlightedHeader != nil {
+		previouslyHighlightedHeader.Class().Remove("highlighted")
+	}
 }
 
 var previouslySelected int
 
 func updateResultSelection() {
 	windowHalfHeight := dom.GetWindow().InnerHeight() * 2 / 5
-	results := document.GetElementByID("results").(*dom.HTMLDivElement)
+	results := document.GetElementByID("gts-results").(*dom.HTMLDivElement)
 
 	if selected < 0 {
 		selected = 0
@@ -182,7 +192,10 @@ func updateResultSelection() {
 		return
 	}
 
-	entries[previouslySelected].(dom.Element).Class().Remove("highlighted")
+	entries[previouslySelected].(dom.Element).Class().Remove("gts-highlighted")
+	if previouslyHighlightedHeader != nil {
+		previouslyHighlightedHeader.Class().Remove("highlighted")
+	}
 
 	{
 		element := entries[selected].(dom.Element)
@@ -193,11 +206,13 @@ func updateResultSelection() {
 			element.Underlying().Call("scrollIntoView", false)
 		}
 
-		element.Class().Add("highlighted")
+		element.Class().Add("gts-highlighted")
 		//dom.GetWindow().Location().Hash = "#" + element.GetAttribute("data-id")
 		//dom.GetWindow().History().ReplaceState(nil, nil, "#"+element.GetAttribute("data-id"))
 		js.Global.Get("window").Get("history").Call("replaceState", nil, nil, "#"+element.GetAttribute("data-id"))
 		target := document.GetElementByID(element.GetAttribute("data-id")).(dom.HTMLElement)
+		target.Class().Add("highlighted")
+		previouslyHighlightedHeader = target
 		dom.GetWindow().ScrollTo(dom.GetWindow().ScrollX(), int(target.OffsetTop()+target.OffsetHeight())-windowHalfHeight)
 
 		manuallyPicked = element.GetAttribute("data-id")
@@ -210,9 +225,9 @@ var initialSelected int
 
 func updateResults(init bool, overlay dom.HTMLElement) {
 	windowHalfHeight := dom.GetWindow().InnerHeight() * 2 / 5
-	filter := document.GetElementByID("command").(*dom.HTMLInputElement).Value
+	filter := document.GetElementByID("gts-command").(*dom.HTMLInputElement).Value
 
-	results := document.GetElementByID("results").(*dom.HTMLDivElement)
+	results := document.GetElementByID("gts-results").(*dom.HTMLDivElement)
 
 	var selectionPreserved = false
 
@@ -224,7 +239,7 @@ func updateResults(init bool, overlay dom.HTMLElement) {
 		}
 
 		element := document.CreateElement("div")
-		element.Class().Add("entry")
+		element.Class().Add("gts-entry")
 		element.SetAttribute("data-id", header.ID())
 		{
 			entry := header.TextContent()
@@ -293,11 +308,13 @@ func updateResults(init bool, overlay dom.HTMLElement) {
 			}
 		}
 
-		element.Class().Add("highlighted")
+		element.Class().Add("gts-highlighted")
 		//dom.GetWindow().Location().Hash = "#" + element.GetAttribute("data-id")
 		//dom.GetWindow().History().ReplaceState(nil, nil, "#"+element.GetAttribute("data-id"))
 		js.Global.Get("window").Get("history").Call("replaceState", nil, nil, "#"+element.GetAttribute("data-id"))
 		target := document.GetElementByID(element.GetAttribute("data-id")).(dom.HTMLElement)
+		target.Class().Add("highlighted")
+		previouslyHighlightedHeader = target
 		dom.GetWindow().ScrollTo(dom.GetWindow().ScrollX(), int(target.OffsetTop()+target.OffsetHeight())-windowHalfHeight)
 	}
 }

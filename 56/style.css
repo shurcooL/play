@@ -1,4 +1,4 @@
-#overlay {
+#gts-overlay {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -14,20 +14,20 @@
 	font-size: 12px;
 }
 
-#command {
+#gts-command {
 	width: 600px;
 
 	font-family: inherit;
 	font-size: inherit;
 }
 
-#results {
+#gts-results {
 	overflow: scroll;
 	max-height: 500px;
 	border: 1px solid black;
 }
 
-.entry {
+.gts-entry {
 	cursor: default;
 	background: white;
 
@@ -35,10 +35,10 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-.entry:hover {
+.gts-entry:hover {
 	background: rgb(92.5%, 92.5%, 92.5%);
 }
-.highlighted, .highlighted:hover {
+.gts-highlighted, .gts-highlighted:hover {
 	color: white;
 	background: rgb(21%, 45%, 84%);
 }
