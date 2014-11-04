@@ -3,6 +3,7 @@
 package main
 
 import (
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/go/github_flavored_markdown/sanitized_anchor_name"
 	"honnef.co/go/js/dom"
 )
@@ -24,10 +25,18 @@ func main() {
 	results = document.CreateElement("div").(*dom.HTMLDivElement)
 
 	for _, header := range headers {
-		element := document.CreateElement("a").(*dom.HTMLAnchorElement)
+		element := document.CreateElement("div").(*dom.HTMLDivElement)
 		element.Class().Add("toc-entry")
 		element.SetTextContent(header.TextContent())
-		element.Href = "#" + sanitized_anchor_name.Create(header.TextContent())
+
+		href := "#" + sanitized_anchor_name.Create(header.TextContent())
+		target := header.(dom.HTMLElement)
+		element.AddEventListener("click", false, func(event dom.Event) {
+			windowHalfHeight := dom.GetWindow().InnerHeight() * 2 / 5
+			//dom.GetWindow().History().ReplaceState(nil, nil, href)
+			js.Global.Get("window").Get("history").Call("replaceState", nil, nil, href)
+			dom.GetWindow().ScrollTo(dom.GetWindow().ScrollX(), int(target.OffsetTop()+target.OffsetHeight())-windowHalfHeight)
+		})
 
 		results.AppendChild(element)
 	}
@@ -49,7 +58,7 @@ func updateToc() {
 	}
 
 	// Highlight one entry.
-	windowHalfHeight := dom.GetWindow().InnerHeight() / 2
+	windowHalfHeight := dom.GetWindow().InnerHeight() * 2 / 5
 	for i := len(headers) - 1; i >= 0; i-- {
 		header := headers[i]
 		if header.GetBoundingClientRect().Top <= windowHalfHeight || i == 0 {
