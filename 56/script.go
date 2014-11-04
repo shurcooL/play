@@ -173,6 +173,7 @@ func hideOverlay(overlay dom.HTMLElement) {
 
 	if previouslyHighlightedHeader != nil {
 		previouslyHighlightedHeader.Class().Remove("highlighted")
+		previouslyHighlightedHeader.Class().Add("highlighted-fade")
 	}
 }
 
@@ -290,6 +291,10 @@ func updateResults(init bool, overlay dom.HTMLElement) {
 	}
 
 	if init {
+		if previouslyHighlightedHeader != nil {
+			previouslyHighlightedHeader.Class().Remove("highlighted-fade")
+		}
+
 		overlay.Style().SetProperty("display", "initial", "")
 		entryHeight = results.FirstChild().(dom.Element).GetBoundingClientRect().Object.Get("height").Float()
 	}
