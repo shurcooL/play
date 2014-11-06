@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -159,6 +160,13 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 				margin-bottom: 0;
 				font-weight: normal;
 			}
+			.highlight h3.highlighted {
+				background: rgb(243, 136, 73);
+			}
+			.highlight h3.highlighted-fade {
+				background: rgba(243, 136, 73, 0.0);
+				transition: background 0.5s ease-in-out;
+			}
 		</style>
 	</head>
 	<body>
@@ -209,6 +217,27 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 					Right: []byte(`</h3>`),
 				}
 				anns = append(anns, ann)
+			case *ast.GenDecl:
+				if d.Tok != token.IMPORT {
+					continue
+				}
+				for _, imp := range d.Specs {
+					path := imp.(*ast.ImportSpec).Path
+					pos := fset.File(path.Pos()).Offset(path.Pos())
+					end := fset.File(path.End()).Offset(path.End())
+					pathValue, err := strconv.Unquote(path.Value)
+					if err != nil {
+						continue
+					}
+					ann := &annotate.Annotation{
+						Start: pos + 1, // Don't include quote characters.
+						End:   end - 1,
+
+						Left:  []byte(fmt.Sprintf(`<a href="%s" target="_blank">`, "/"+pathValue)),
+						Right: []byte(`</a>`),
+					}
+					anns = append(anns, ann)
+				}
 			}
 		}
 
