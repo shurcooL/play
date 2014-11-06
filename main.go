@@ -12,7 +12,6 @@ import (
 
 	"github.com/shurcooL/go-goon"
 	. "github.com/shurcooL/go/gists/gist4737109"
-	. "github.com/shurcooL/go/gists/gist5286084"
 )
 
 // ---
@@ -29,19 +28,15 @@ func (fw *FlushWriter) Write(p []byte) (n int, err error) {
 
 // ---
 
-func debugHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hi.")
-}
-
 func handler(w http.ResponseWriter, r *http.Request) {
-	requestPath := strings.Split(r.URL.Path, "/")
+	elements := strings.Split(r.URL.Path, "/")
 
 	const gistIdSuffix = ".git"
-	if len(requestPath) == 3 && strings.HasSuffix(requestPath[2], gistIdSuffix) {
+	if len(elements) == 3 && strings.HasSuffix(elements[2], gistIdSuffix) {
 		w.Header().Set("Content-Type", "text/plain; charset=us-ascii")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 
-		gistId := requestPath[2][:len(requestPath[2])-len(gistIdSuffix)]
+		gistId := elements[2][:len(elements[2])-len(gistIdSuffix)]
 
 		if username, err := GistIdToUsername(gistId); err == nil && username == "shurcooL" {
 			cmd := exec.Command("go", "get", "-u", "gist.github.com/"+gistId+gistIdSuffix)
@@ -56,7 +51,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			cmd.Stdout = &FlushWriter{w: w, f: w.(http.Flusher)}
 			cmd.Stderr = cmd.Stdout
 			err = cmd.Run()
-			CheckError(err)
+			if err != nil {
+				panic(err)
+			}
 		} else {
 			fmt.Fprintln(w, "Untrusted user.")
 			fmt.Fprint(w, goon.SdumpExpr(username, err))
@@ -64,18 +61,21 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var httpAddrFlag = flag.String("http", ":8080", "Listen for HTTP connections on this address.")
+var httpFlag = flag.String("http", ":8080", "Listen for HTTP connections on this address.")
 
 func main() {
 	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	err := os.Setenv("GOPATH", "/root/GoAuto")
-	CheckError(err)
+	if err != nil {
+		panic(err)
+	}
 
-	http.HandleFunc("/debug", debugHandler)
 	http.HandleFunc("/gist.github.com/", handler)
 
-	err = http.ListenAndServe(*httpAddrFlag, nil)
-	CheckError(err)
+	err = http.ListenAndServe(*httpFlag, nil)
+	if err != nil {
+		panic(err)
+	}
 }
