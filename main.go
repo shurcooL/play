@@ -121,7 +121,7 @@ func main() {
 	http.HandleFunc("/list", list)
 	http.Handle("/", gopherjs_http.StaticHtmlFile("./live-status-go.html"))
 	http.HandleFunc("/live-status-js.html", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "./live-status-js.html") })
-	http.Handle("/favicon.ico", http.NotFoundHandler())
+	http.Handle("/favicon.ico/", http.NotFoundHandler())
 	err := http.ListenAndServe(":34600", nil)
 	CheckError(err)
 }
