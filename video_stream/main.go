@@ -108,7 +108,7 @@ func main() {
 	http.HandleFunc("/input", input)
 	http.HandleFunc("/list", list)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "./live-status.html") })
-	http.Handle("/favicon.ico", http.NotFoundHandler())
+	http.Handle("/favicon.ico/", http.NotFoundHandler())
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic(err)
