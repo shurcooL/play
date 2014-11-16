@@ -19,7 +19,7 @@ func (s *stringer) String() string {
 }
 
 func main() {
-	var s = &stringer{
+	var s = stringer{
 		a: 5,
 	}
 
