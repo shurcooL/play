@@ -51,7 +51,7 @@ func main() {
 
 	encodeUsingMafsa := func(w io.Writer) {
 		fmt.Println("using mafsa")
-		data, err := bt.MarshalBinary()
+		data, err := new(mafsa.Encoder).Encode(bt)
 		if err != nil {
 			panic(err)
 		}
