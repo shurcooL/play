@@ -13,8 +13,11 @@ func main() {
 	unexportedFuncStruct := struct {
 		unexportedFunc func() string
 	}{func() string { return "This is the source of an unexported struct field." }}
+	//unexportedFuncStruct := lib.Foo()
 
 	var v reflect.Value = reflect.ValueOf(unexportedFuncStruct)
+
+	//v = bypass_prev.UnsafeReflectValue(v)
 
 	if v.Kind() != reflect.Struct {
 		panic("v.Kind() != reflect.Struct")
@@ -34,6 +37,7 @@ func main() {
 		panic("v.CanInterface() != false")
 	}
 
+	fmt.Println("pointer value with no code:                           ", v.Pointer())
 	fmt.Println("pointer value with previous (1.3 only) code:          ", bypass_prev.UnsafeReflectValue(v).Pointer())
 	fmt.Println("pointer value with alternative (modify in-place) code:", bypass_alt.UnsafeReflectValue(v).Pointer())
 	fmt.Println("pointer value with new code:                          ", bypass_new.UnsafeReflectValue(v).Pointer())
