@@ -49,29 +49,29 @@ func main() {
 		panic(err)
 	}*/
 
-	encodeUsingMafsa := func(w io.Writer) {
+	encodeUsingMafsa := func(w io.Writer) error {
 		fmt.Println("using mafsa")
 		data, err := new(mafsa.Encoder).Encode(bt)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		w.Write(data)
+		_, err = w.Write(data)
+		return err
 	}
-	encodeUsingGob := func(w io.Writer) {
+	encodeUsingGob := func(w io.Writer) error {
 		fmt.Println("using encoding/gob")
-		enc := gob.NewEncoder(w)
-		err = enc.Encode(ss)
+		return gob.NewEncoder(w).Encode(ss)
+	}
+
+	printUncompressedAndCompressedSizes := func(encoder func(w io.Writer) error) {
+		var buf1 bytes.Buffer
+
+		err := encoder(&buf1)
 		if err != nil {
 			panic(err)
 		}
-	}
 
-	printUncompressedAndCompressedSizes := func(encoder func(w io.Writer)) {
-		var buf1 bytes.Buffer
-
-		encoder(&buf1)
-
-		fmt.Println(humanize.Bytes(uint64(buf1.Len())))
+		fmt.Println("uncompressed:", humanize.Bytes(uint64(buf1.Len())))
 
 		var buf2 bytes.Buffer
 		gw := gzip.NewWriter(&buf2)
@@ -83,7 +83,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(humanize.Bytes(uint64(buf2.Len())))
+		fmt.Println("gzip:", humanize.Bytes(uint64(buf2.Len())))
 		fmt.Println()
 	}
 
