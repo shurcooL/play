@@ -1,0 +1,1 @@
+package main; import ("fmt"; "os"); func init() { fmt.Println("2014-11-27 12:16:10.571362209 -0800 PST"); os.Exit(0) }
