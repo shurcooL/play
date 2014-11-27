@@ -89,36 +89,24 @@ func a(s string, href template.URL) *html.Node {
 }
 
 func approach2(repoImportPath, importPath string) string {
-	data := struct {
-		ImportPathElements [][2]string // Element name, and full path to element.
-	}{}
-
-	{
-		elements := strings.Split(importPath, "/")
-		elements = elements[len(strings.Split(repoImportPath, "/")):]
-
-		data.ImportPathElements = [][2]string{
-			[2]string{repoImportPath, repoImportPath},
-		}
-		for i, e := range elements {
-			data.ImportPathElements = append(data.ImportPathElements,
-				[2]string{e, repoImportPath + "/" + path.Join(elements[:i+1]...)},
-			)
-		}
-		// Don't link the last element, since it's the current page.
-		data.ImportPathElements[len(data.ImportPathElements)-1][1] = ""
-	}
+	// Elements of importPath, first element being repoImportPath.
+	// E.g., {"github.com/user/repo", "subpath", "package"}.
+	elements := []string{repoImportPath}
+	elements = append(elements, strings.Split(importPath[len(repoImportPath):], "/")[1:]...)
 
 	var ns []*html.Node
-	for i, v := range data.ImportPathElements {
+	for i, element := range elements {
 		if i != 0 {
 			ns = append(ns, text("/"))
 		}
-		if v[1] != "" {
-			//ns = append(ns, a(v[0], template.URL((&url.URL{Path: "/" + v[1]}).String())))
-			ns = append(ns, a(v[0], template.URL("/"+v[1])))
+
+		path := path.Join(elements[:i+1]...)
+
+		// Don't link last importPath element, since it's the current page.
+		if path != importPath {
+			ns = append(ns, a(element, template.URL("/"+path)))
 		} else {
-			ns = append(ns, text(v[0]))
+			ns = append(ns, text(element))
 		}
 	}
 
