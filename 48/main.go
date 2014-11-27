@@ -21,8 +21,8 @@ import (
 	"github.com/shurcooL/go/gists/gist5504644"
 	"github.com/shurcooL/go/markdown_http"
 	vcs2 "github.com/shurcooL/go/vcs"
-	"github.com/sourcegraph/go-vcs/vcs"
-	_ "github.com/sourcegraph/go-vcs/vcs/gitcmd"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
+	_ "sourcegraph.com/sourcegraph/go-vcs/vcs/gitcmd"
 )
 
 func main() {

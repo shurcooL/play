@@ -36,10 +36,10 @@ import (
 	"github.com/sourcegraph/annotate"
 	"github.com/sourcegraph/apiproxy"
 	"github.com/sourcegraph/apiproxy/service/github"
-	"github.com/sourcegraph/go-vcs/vcs"
 	"github.com/sourcegraph/httpcache"
 	"github.com/sourcegraph/syntaxhighlight"
-	"github.com/sourcegraph/vcsstore/vcsclient"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
+	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 )
 
 var httpFlag = flag.String("http", ":8080", "Listen for HTTP connections on this address.")

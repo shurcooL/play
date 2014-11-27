@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/shurcooL/go-goon"
-	"github.com/sourcegraph/vcsstore/vcsclient"
+	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	repo, err := sg.Repository("git", u)
 	if err != nil {
 		panic(err)

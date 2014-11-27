@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/shurcooL/go/vfs_util"
-	"github.com/sourcegraph/go-vcs/vcs"
-	_ "github.com/sourcegraph/go-vcs/vcs/gitcmd"
-	_ "github.com/sourcegraph/go-vcs/vcs/hgcmd"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
+	_ "sourcegraph.com/sourcegraph/go-vcs/vcs/gitcmd"
+	_ "sourcegraph.com/sourcegraph/go-vcs/vcs/hgcmd"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func foo() (interface{}, interface{}, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	
+
 	fmt.Println(commitId)
 
 	fs, err := repo.FileSystem(commitId)

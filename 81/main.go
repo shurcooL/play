@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/shurcooL/go-goon"
-	"github.com/sourcegraph/go-vcs/vcs"
-	_ "github.com/sourcegraph/go-vcs/vcs/gitcmd"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
+	_ "sourcegraph.com/sourcegraph/go-vcs/vcs/gitcmd"
 )
 
 func main() {
