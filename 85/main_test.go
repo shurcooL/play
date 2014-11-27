@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"net/url"
 	"path"
 	"strings"
 
@@ -81,10 +80,10 @@ func text(s string) *html.Node {
 	}
 }
 
-func a(s string, href url.URL) *html.Node {
+func a(s string, href template.URL) *html.Node {
 	return &html.Node{
 		Type: html.ElementNode, Data: "a",
-		Attr:       []html.Attribute{{Key: "href", Val: href.String()}},
+		Attr:       []html.Attribute{{Key: "href", Val: string(href)}},
 		FirstChild: text(s),
 	}
 }
@@ -116,7 +115,8 @@ func approach2(repoImportPath, importPath string) string {
 			ns = append(ns, text("/"))
 		}
 		if v[1] != "" {
-			ns = append(ns, a(v[0], url.URL{Path: "/" + v[1]}))
+			//ns = append(ns, a(v[0], template.URL((&url.URL{Path: "/" + v[1]}).String())))
+			ns = append(ns, a(v[0], template.URL("/"+v[1])))
 		} else {
 			ns = append(ns, text(v[0]))
 		}
