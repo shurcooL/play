@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"code.google.com/p/go.tools/godoc/vfs"
+	"golang.org/x/tools/godoc/vfs"
 
 	"github.com/daviddengcn/go-diff/cmd"
 	"github.com/shurcooL/go/exp/11"
