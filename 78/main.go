@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	const path = "/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/Conception-go/data/all-Go-packages.json"
+	const path = "/Users/Dmitri/Dropbox/Work/2013/Data Sets/all-Go-packages.json"
 
 	f, err := os.Open(path)
 	if err != nil {
