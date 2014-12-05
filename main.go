@@ -8,13 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/go.net/websocket"
-	. "github.com/shurcooL/go/gists/gist5286084"
 	. "github.com/shurcooL/go/gists/gist6096872"
 	"github.com/shurcooL/go/gopherjs_http"
+	"golang.org/x/net/websocket"
 )
-
-var _ = fmt.Print
 
 type ConnectionTime struct {
 	c *websocket.Conn
@@ -123,5 +120,7 @@ func main() {
 	http.HandleFunc("/live-status-js.html", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "./live-status-js.html") })
 	http.Handle("/favicon.ico/", http.NotFoundHandler())
 	err := http.ListenAndServe(":34600", nil)
-	CheckError(err)
+	if err != nil {
+		panic(err)
+	}
 }
