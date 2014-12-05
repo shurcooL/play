@@ -45,10 +45,8 @@ func liveUpdateTest(inputField *dom.HTMLInputElement) {
 }
 
 func main() {
-	query, err := url.ParseQuery(strings.TrimLeft(js.Global.Get("location").Get("search").Str(), "?"))
-	if err != nil {
-		panic(err)
-	}
+	rawQuery := strings.TrimPrefix(dom.GetWindow().Location().Search, "?")
+	query, _ := url.ParseQuery(rawQuery)
 
 	var server = "ws://";
 	if query.Get("server") != "" {
