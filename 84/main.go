@@ -4,7 +4,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shurcooL/go-goon"
 	"golang.org/x/net/html"
 )
 
@@ -37,18 +36,23 @@ func foo1() (*html.Node, error) {
 }
 
 func foo2() (*html.Node, error) {
-	ns := parseNodes(`<a href="google.com">Hi.</a>`)
+	ns := parseNodes(`<select name="select">
+  <option value="value1">Value 1</option> 
+  <option value="value2" selected>Value 2</option>
+  <option value="value3">Value 3</option>
+</select>`)
 
-	goon.DumpExpr(ns[0])
+	//goon.DumpExpr(ns[0])
 
 	return ns[0], nil
 }
 
 func main() {
-	n, err := foo1()
+	n, err := foo2()
 	if err != nil {
 		panic(err)
 	}
+	//return
 
 	err = html.Render(os.Stdout, n)
 	if err != nil {
