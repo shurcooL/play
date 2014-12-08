@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"compress/zlib"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"sort"
 
+	"github.com/dgryski/go-trigram"
 	"github.com/dustin/go-humanize"
 	"github.com/shurcooL/go/u/u5"
 	"github.com/smartystreets/mafsa"
@@ -58,9 +60,24 @@ func main() {
 		_, err = w.Write(data)
 		return err
 	}
+	encodeUsingJson := func(w io.Writer) error {
+		fmt.Println("using encoding/json")
+		return json.NewEncoder(w).Encode(ss)
+	}
+	encodeUsingNewlines := func(w io.Writer) error {
+		fmt.Println("using newlines")
+		for _, s := range ss {
+			fmt.Fprintln(w, s)
+		}
+		return nil
+	}
 	encodeUsingGob := func(w io.Writer) error {
 		fmt.Println("using encoding/gob")
 		return gob.NewEncoder(w).Encode(ss)
+	}
+	encodeTrigramUsingGob := func(w io.Writer) error {
+		fmt.Println("trigram using encoding/gob")
+		return gob.NewEncoder(w).Encode(trigram.NewIndex(ss))
 	}
 
 	printUncompressedAndCompressedSizes := func(encoder func(w io.Writer) error) {
@@ -74,19 +91,34 @@ func main() {
 		fmt.Println("uncompressed:", humanize.Bytes(uint64(buf1.Len())))
 
 		var buf2 bytes.Buffer
-		gw := gzip.NewWriter(&buf2)
-		_, err = io.Copy(gw, &buf1)
+		var wc io.WriteCloser
+		switch 1 {
+		case 0:
+			wc, err = gzip.NewWriterLevel(&buf2, gzip.BestCompression)
+			if err != nil {
+				panic(err)
+			}
+		case 1:
+			wc, err = zlib.NewWriterLevel(&buf2, zlib.BestCompression)
+			if err != nil {
+				panic(err)
+			}
+		}
+		_, err = io.Copy(wc, &buf1)
 		if err != nil {
 			panic(err)
 		}
-		err = gw.Close()
+		err = wc.Close()
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("gzip:", humanize.Bytes(uint64(buf2.Len())))
+		fmt.Println("compressed:", humanize.Bytes(uint64(buf2.Len())))
 		fmt.Println()
 	}
 
 	printUncompressedAndCompressedSizes(encodeUsingMafsa)
+	printUncompressedAndCompressedSizes(encodeUsingJson)
+	printUncompressedAndCompressedSizes(encodeUsingNewlines)
 	printUncompressedAndCompressedSizes(encodeUsingGob)
+	printUncompressedAndCompressedSizes(encodeTrigramUsingGob)
 }
