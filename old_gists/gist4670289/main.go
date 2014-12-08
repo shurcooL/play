@@ -1,12 +1,14 @@
-// Package gist4670289 returns a list of Go keywords.
-package gist4670289
+package main
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strings"
-	//"fmt"
-	. "github.com/shurcooL/go/gists/gist4668739"
+	//. "github.com/shurcooL/go/gists/gist4668739"
 )
 
+// GoKeywords returns a list of Go keywords.
 func GoKeywords() []string {
 	//var go_spec = "/usr/local/go/doc/go_spec.html"
 	//go_spec string
@@ -32,4 +34,26 @@ func GoKeywords() []string {
 	//fmt.Printf("%v\n", o)
 	//fmt.Printf("%v", strings.Join(o, ", "))
 	return o
+}
+
+func main() {
+	fmt.Println(GoKeywords())
+}
+
+// Vendor gist4668739 package so this can compile after that package is removed.
+
+func HttpGet(url string) string {
+	return string(HttpGetB(url))
+}
+func HttpGetB(url string) []byte {
+	r, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+	defer r.Body.Close()
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
