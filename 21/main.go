@@ -22,7 +22,7 @@ func main() {
 		panic(err)
 	}*/
 	var input []byte
-	switch 2 {
+	switch 6 {
 	case 0:
 		input = []byte(`1.	Item 1
 2.	Item 2
@@ -53,6 +53,14 @@ func main() {
 
 		Hello.
 `)
+	case 3:
+		input = []byte(`1986\. What a great season. Was it *not*.`)
+	case 4:
+		input = []byte(`1986\. What a great season\. Was it *not*\.`)
+	case 5:
+		input = []byte(`Overall, it's possible to escape \\, \` + "`" + `, *, _, {, }, [, ], (, ), #, +, -, ., !, and \<, \>.`)
+	case 6:
+		input = []byte(`Overall, it's possible to escape \\, \` + "`" + `, \*, \_, \{, \}, \[, \], \(, \), \#, \+, \-, \., \!, and \<, \>.`)
 	}
 
 	htmlFlags := 0
