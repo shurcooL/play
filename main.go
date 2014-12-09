@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/shurcooL/go/gists/gist5892738"
+	"github.com/shurcooL/go/trim"
 )
 
 const Const = 1 + 1
@@ -33,7 +33,7 @@ func main() {
 	ii := 1335
 	xyz := "Go"
 	foo(ii, strings.Join([]string{"some", "text"}, "-"), xyz)
-	fmt.Println(TrimFirstSpace("  Booyah!!!!!!!!!!!!!!!!!!!!!!"))
+	fmt.Println(trim.FirstSpace("  Booyah!!!!!!!!!!!!!!!!!!!!!!"))
 	for i := 1; i <= 10 || false; i++ {
 		time.Sleep(1000 * time.Millisecond)
 		if i%3 != 0 {
