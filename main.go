@@ -42,6 +42,6 @@ func main() {
 			println(i, "stderr")
 		}
 	}
-	i := Bar{"i", 1235}
+	i := Bar{"i", 1234}
 	i.value++
 }
