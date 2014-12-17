@@ -1,4 +1,4 @@
-package main
+package main // import "rsc.io/pdf"
 
 import (
 	"fmt"
