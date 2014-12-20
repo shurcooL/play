@@ -1,16 +1,10 @@
 package main
 
 import (
-	"github.com/shurcooL/go-goon"
-	"github.com/davecgh/go-spew/spew"
 	"time"
-	"fmt"
-)
 
-var _= fmt.Printf
-var _ = time.Now
-var _ = goon.Dump
-var _ = spew.Dump
+	"github.com/shurcooL/go-goon"
+)
 
 func main() {
 	//tu := int64(1365281459)
