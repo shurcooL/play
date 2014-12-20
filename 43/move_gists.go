@@ -35,6 +35,7 @@ cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/{{.GistId}}.git
 git remote set-url origin https://gist.github.com/{{.GistId}}.git
 rm ./*
 goe --quiet 'template.Must(template.ParseFiles("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/play/43/moved_notice.md")).Execute(os.Stdout, struct{ GistId string }{"{{.GistId}}"})' > README.md
+git add README.md
 git commit -a -m 'Package moved to new import path.'
 `))
 
