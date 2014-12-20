@@ -1,3 +1,4 @@
+// Count the total and unique number of words in a text, prints their frequencies.
 package main
 
 import (

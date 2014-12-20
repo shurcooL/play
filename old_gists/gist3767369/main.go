@@ -1,3 +1,4 @@
+// Runs another Go program (specified via first argument) and recompiles/restarts it whenever its source code file is modified.
 package main
 
 import (

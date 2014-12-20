@@ -1,3 +1,4 @@
+// More playing with "encoding/gob".
 package main
 
 import (

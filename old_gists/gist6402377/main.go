@@ -1,3 +1,4 @@
+// Tries to generate Go programs that compile.
 package main
 
 import (

@@ -1,3 +1,4 @@
+// WebSocket server test.
 package main
 
 import (

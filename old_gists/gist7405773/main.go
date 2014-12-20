@@ -1,3 +1,4 @@
+// Experiment in running gist commands and streaming output via HTTP.
 package main
 
 import (

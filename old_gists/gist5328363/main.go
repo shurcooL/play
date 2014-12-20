@@ -1,3 +1,4 @@
+// Playing with displaying a timestamp in various ways.
 package main
 
 import (

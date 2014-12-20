@@ -1,3 +1,4 @@
+// Play with go/types package, list all types in Conception-go that implement Widgeter interface.
 package main
 
 import (

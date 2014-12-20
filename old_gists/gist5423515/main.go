@@ -1,3 +1,4 @@
+// Tests for gist5423254.
 package main
 
 import (

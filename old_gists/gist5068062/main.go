@@ -1,3 +1,4 @@
+// Looking at dependencies in typical sequential code.
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Encode a gob and try to decode it without having original struct.
 package main
 
 import (

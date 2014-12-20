@@ -1,3 +1,4 @@
+// Play with OpenGL 4.1.
 package main
 
 import (

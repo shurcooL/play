@@ -1,3 +1,4 @@
+// Splits phraseswithoutspaces (e.g. hashtags) into phrases with spaces.
 package main
 
 // first argument - Dictionary.txt file
