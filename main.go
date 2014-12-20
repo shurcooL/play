@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/shurcooL/go/gists/gist6096872"
+	"github.com/shurcooL/go/gists/gist6096872"
 	"github.com/shurcooL/go/gopherjs_http"
 	"golang.org/x/net/websocket"
 )
@@ -47,7 +47,7 @@ func handler(c *websocket.Conn) {
 		state.Unlock()
 	}()
 
-	ch := LineReader(c)
+	ch := gist6096872.LineReader(c)
 	for {
 		select {
 		case b, ok := <-ch:
@@ -116,7 +116,9 @@ func main() {
 
 	http.Handle("/status", websocket.Handler(handler))
 	http.HandleFunc("/list", list)
-	http.Handle("/", gopherjs_http.StaticHtmlFile("./live-status-go.html"))
+	//http.Handle("/", gopherjs_http.StaticHtmlFile("./live-status-go.html"))
+	http.Handle("/", gopherjs_http.HtmlFile("./live-status-go.html"))
+	http.Handle("/conn-api.html", gopherjs_http.HtmlFile("./live-status-go-conn-api.html"))
 	http.HandleFunc("/live-status-js.html", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "./live-status-js.html") })
 	http.Handle("/favicon.ico/", http.NotFoundHandler())
 	err := http.ListenAndServe(":34600", nil)
