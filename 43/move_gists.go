@@ -44,47 +44,22 @@ func doOne(gistId string) {
 }
 
 /*
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/4668739.git && git push && cd ../ && rm -rf ./4668739.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/4670289.git && git push && cd ../ && rm -rf ./4670289.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/4727543.git && git push && cd ../ && rm -rf ./4727543.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/4737109.git && git push && cd ../ && rm -rf ./4737109.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5022726.git && git push && cd ../ && rm -rf ./5022726.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5092053.git && git push && cd ../ && rm -rf ./5092053.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5210270.git && git push && cd ../ && rm -rf ./5210270.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5258650.git && git push && cd ../ && rm -rf ./5258650.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5259939.git && git push && cd ../ && rm -rf ./5259939.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5286084.git && git push && cd ../ && rm -rf ./5286084.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5408736.git && git push && cd ../ && rm -rf ./5408736.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5408860.git && git push && cd ../ && rm -rf ./5408860.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5423254.git && git push && cd ../ && rm -rf ./5423254.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5439318.git && git push && cd ../ && rm -rf ./5439318.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5498057.git && git push && cd ../ && rm -rf ./5498057.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5504644.git && git push && cd ../ && rm -rf ./5504644.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5571468.git && git push && cd ../ && rm -rf ./5571468.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5639599.git && git push && cd ../ && rm -rf ./5639599.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5645828.git && git push && cd ../ && rm -rf ./5645828.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5707298.git && git push && cd ../ && rm -rf ./5707298.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5892738.git && git push && cd ../ && rm -rf ./5892738.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5953185.git && git push && cd ../ && rm -rf ./5953185.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6003701.git && git push && cd ../ && rm -rf ./6003701.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6096872.git && git push && cd ../ && rm -rf ./6096872.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6197035.git && git push && cd ../ && rm -rf ./6197035.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6244612.git && git push && cd ../ && rm -rf ./6244612.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6418290.git && git push && cd ../ && rm -rf ./6418290.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6418462.git && git push && cd ../ && rm -rf ./6418462.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6433744.git && git push && cd ../ && rm -rf ./6433744.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6445065.git && git push && cd ../ && rm -rf ./6445065.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6545684.git && git push && cd ../ && rm -rf ./6545684.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6724654.git && git push && cd ../ && rm -rf ./6724654.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7390843.git && git push && cd ../ && rm -rf ./7390843.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7480523.git && git push && cd ../ && rm -rf ./7480523.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7519227.git && git push && cd ../ && rm -rf ./7519227.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7576154.git && git push && cd ../ && rm -rf ./7576154.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7576804.git && git push && cd ../ && rm -rf ./7576804.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7651991.git && git push && cd ../ && rm -rf ./7651991.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7728088.git && git push && cd ../ && rm -rf ./7728088.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7729255.git && git push && cd ../ && rm -rf ./7729255.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7802150.git && git push && cd ../ && rm -rf ./7802150.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/8018045.git && git push && cd ../ && rm -rf ./8018045.git
-cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/8065433.git && git push && cd ../ && rm -rf ./8065433.git
+# Push move notice on old gists upstream.
+
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/3767369.git && git push origin master && cd ../ && rm -rf ./3767369.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5068062.git && git push origin master && cd ../ && rm -rf ./5068062.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5086673.git && git push origin master && cd ../ && rm -rf ./5086673.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5155308.git && git push origin master && cd ../ && rm -rf ./5155308.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5157525.git && git push origin master && cd ../ && rm -rf ./5157525.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5190982.git && git push origin master && cd ../ && rm -rf ./5190982.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5328363.git && git push origin master && cd ../ && rm -rf ./5328363.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5423515.git && git push origin master && cd ../ && rm -rf ./5423515.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5562461.git && git push origin master && cd ../ && rm -rf ./5562461.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5602368.git && git push origin master && cd ../ && rm -rf ./5602368.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/5816852.git && git push origin master && cd ../ && rm -rf ./5816852.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/6402377.git && git push origin master && cd ../ && rm -rf ./6402377.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7176504.git && git push origin master && cd ../ && rm -rf ./7176504.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/7405773.git && git push origin master && cd ../ && rm -rf ./7405773.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/8090509.git && git push origin master && cd ../ && rm -rf ./8090509.git
+cd /Users/Dmitri/Dropbox/Work/2013/GoLand/src/gist.github.com/8310340.git && git push origin master && cd ../ && rm -rf ./8310340.git
 */
