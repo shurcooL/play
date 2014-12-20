@@ -8,19 +8,16 @@ import (
 	"go/token"
 	"time"
 
-	"code.google.com/p/go.tools/go/types"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/shurcooL/go-goon"
-	. "github.com/shurcooL/go/gists/gist5286084"
 	. "github.com/shurcooL/go/gists/gist5504644"
 	. "github.com/shurcooL/go/gists/gist5639599"
 	. "github.com/shurcooL/go/gists/gist7576804"
+	"golang.org/x/tools/go/types"
 
 	//. "github.com/shurcooL/Conception-go"
 
 	"go/ast"
-
-	"code.google.com/p/go.tools/go/exact"
 
 	importer2 "honnef.co/go/importer"
 )
@@ -43,11 +40,15 @@ func main() {
 	bpkg, err := BuildPackageFromImportPath(ImportPath)
 	//dpkg := GetDocPackage(BuildPackageFromImportPath(ImportPath)) // Shouldn't reuse bpkg because doc.Package "takes ownership of the *ast.Package and may edit or overwrite it"...
 	dpkg, err := GetDocPackage(bpkg, err)
-	CheckError(err)
+	if err != nil {
+		panic(err)
+	}
 
 	fset := token.NewFileSet()
 	files, err := ParseFiles(fset, bpkg.Dir, append(bpkg.GoFiles, bpkg.CgoFiles...)...)
-	CheckError(err)
+	if err != nil {
+		panic(err)
+	}
 
 	imp := importer2.New()
 	imp.Config.UseGcFallback = true
@@ -58,20 +59,22 @@ func main() {
 	}
 	started := time.Now()
 	info := &types.Info{
-		Types:      make(map[ast.Expr]types.Type),
-		Values:     make(map[ast.Expr]exact.Value),
-		Objects:    make(map[*ast.Ident]types.Object),
+		Types:      make(map[ast.Expr]types.TypeAndValue),
+		Defs:       make(map[*ast.Ident]types.Object),
+		Uses:       make(map[*ast.Ident]types.Object),
 		Implicits:  make(map[ast.Node]types.Object),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 		Scopes:     make(map[ast.Node]*types.Scope),
 	}
 	tpkg, err := cfg.Check(ImportPath, fset, files, info)
-	CheckError(err)
+	if err != nil {
+		panic(err)
+	}
 	goon.DumpExpr(time.Since(started).Seconds())
 
 	goon.DumpExpr(len(info.Types))
-	goon.DumpExpr(len(info.Values))
-	goon.DumpExpr(len(info.Objects))
+	goon.DumpExpr(len(info.Defs))
+	goon.DumpExpr(len(info.Uses))
 	goon.DumpExpr(len(info.Implicits))
 	goon.DumpExpr(len(info.Selections))
 	goon.DumpExpr(len(info.Scopes))
@@ -93,7 +96,9 @@ func main() {
 	{
 		println()
 		typ, val, err := types.Eval("Shunpo", tpkg, tpkg.Scope())
-		CheckError(err)
+		if err != nil {
+			panic(err)
+		}
 		fmt.Println(typ, val)
 	}
 
@@ -112,7 +117,7 @@ func main() {
 	for _, t := range dpkg.Types {
 		_ = t
 		//PrintlnAstBare(t.Decl)
-		if types.Implements(types.NewPointer(tpkg.Scope().Lookup(t.Name).Type()), widgeterInterface, false) {
+		if types.Implements(types.NewPointer(tpkg.Scope().Lookup(t.Name).Type()), widgeterInterface) {
 			fmt.Println("> *" + t.Name)
 		} else {
 			fmt.Println("  *" + t.Name)
