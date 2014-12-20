@@ -1,0 +1,86 @@
+<html>
+	<head>
+		<script type="text/javascript">
+			var site_name = "Live Status";
+			document.write("<title>" + site_name + "</title>");
+
+			function removeTags(html) {
+				return html.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+			}
+
+			function getUrlParam(name) {
+				if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(window.location.search))
+					return decodeURIComponent(name[1]);
+			}
+
+			var prev_value = "";
+			function liveUpdateTest(e) {
+				//document.getElementById("myLiveOut").textContent = e.value.toUpperCase();
+				try {
+					if (e.value != prev_value) {
+						sock.send(e.value + "\n");		// HACK: Should make sure that sock.onopen has happened before calling send...
+						prev_value = e.value;
+					}
+				} catch (exc) {
+					document.getElementById("myLiveOut").textContent = "Error: " + exc;
+				}
+			}
+		</script>
+		<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+		<style type="text/css">
+			body, input, textarea, select, button, * {
+				font-family: 'Open Sans', sans-serif;
+				font-size: 12px;
+			}
+			td {
+				padding: 0px;
+				vertical-align: top;
+			}
+			table {
+				border-collapse: collapse;
+				border-spacing: 0;
+			}
+			.smaller {
+				color: #999;
+				font-size: 10px;
+			}
+			img {
+				border-radius: 3px;
+			}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+			document.write(site_name);
+			document.write("<span class=smaller> - what are you working on right now?</span>")
+			document.write("<br><br>");
+		</script>
+
+		<input id="inputField" maxlength=160 placeholder="type something..." size=160 autofocus></input>
+		<br><br>
+		<div id="myLiveOut">Connecting...</div>
+
+		<script type="text/javascript">
+			var sock = new WebSocket("ws://" + (null == getUrlParam("server") ? "dmitri.shuralyov.com:34600" : getUrlParam("server")) + "/status");
+			//sock.addEventListener('open', function(e2) { sock.send( ... ) });
+			sock.onopen = function(evt) {
+				document.getElementById("inputField").value = "Just joined.";
+				document.getElementById("inputField").select();
+				liveUpdateTest(document.getElementById("inputField"));
+				document.getElementById("inputField").oninput = function() {
+					liveUpdateTest(document.getElementById("inputField"));
+				}
+				console.log("Open: ", evt);
+			};
+			sock.onclose = function(evt) {
+				document.getElementById("myLiveOut").textContent = "Disconnected.";
+				console.log("Close: ", evt);
+			};
+			sock.onmessage = function(evt) {
+				document.getElementById("myLiveOut").innerHTML = evt.data;
+				/*console.log("Message: ", evt.data);*/
+			};
+			//sock.onerror = function(evt) { document.getElementById("myLiveOut").textContent += " Error: " + evt; console.log("Error: ", evt); };
+		</script>
+	</body>
+</html>

@@ -1,0 +1,116 @@
+<html>
+	<head>
+		<title>Live Status</title>
+		<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+		<style type="text/css">
+			body, input, textarea, select, button, * {
+				font-family: 'Open Sans', sans-serif;
+				font-size: 12px;
+			}
+		</style>
+	</head>
+	<body>
+		Live Status<span class=smaller> - what are you working on right now?</span><br><br>
+
+		<input id="inputField" maxlength=160 placeholder="type something..." size=160 autofocus></input>
+		<br><br>
+		<div id="myLiveOut">Connecting...</div>
+
+		<script type="text/go">
+package main
+
+import (
+	"github.com/gopherjs/gopherjs/js"
+
+	"net/url"
+	"strings"
+
+	"honnef.co/go/js/dom"
+	"github.com/gopherjs/websocket"
+	//"github.com/shurcooL/go/gists/gist6096872"
+)
+
+var document = dom.GetWindow().Document()
+var _ js.Object
+
+var sock *websocket.Conn
+var previousValue = ""
+
+func liveUpdateTest(inputField *dom.HTMLInputElement) {
+	if value := inputField.Value; value != previousValue {
+		_, err := sock.WriteString(value + "\n")
+		if err != nil {
+			document.GetElementByID("myLiveOut").SetTextContent("Error: " + err.Error())
+		}
+		previousValue = value
+	}
+}
+
+func main() {
+	rawQuery := strings.TrimPrefix(dom.GetWindow().Location().Search, "?")
+	query, _ := url.ParseQuery(rawQuery)
+
+	var server = "ws://";
+	if query.Get("server") != "" {
+		server += query.Get("server");
+	} else {
+		server += "dmitri.shuralyov.com:34600";
+	}
+	server += "/status";
+
+	var err error
+	sock, err = websocket.Dial(server)
+	if err != nil {
+		document.GetElementByID("myLiveOut").SetTextContent("Error: " + err.Error())
+		return
+	}
+
+	{
+		document.GetElementByID("inputField").(*dom.HTMLInputElement).Value = "Just joined."
+		document.GetElementByID("inputField").(*dom.HTMLInputElement).Select()
+		liveUpdateTest(document.GetElementByID("inputField").(*dom.HTMLInputElement))
+		document.GetElementByID("inputField").AddEventListener("input", false, func(_ dom.Event) {
+			liveUpdateTest(document.GetElementByID("inputField").(*dom.HTMLInputElement))
+		})
+	}
+
+	/*sock.AddEventListener("close", false, func(event js.Object) {
+		document.GetElementByID("myLiveOut").SetTextContent("Disconnected.")
+	})
+
+	/*sock.OnMessage(func(messageEvent *dom.MessageEvent) {
+		document.GetElementByID("myLiveOut").SetInnerHTML(messageEvent.Data.Str())
+	})*/
+	//sock.AddEventListener("message", false, func(event js.Object) {
+	//	document.GetElementByID("myLiveOut").SetInnerHTML(event.Get("data").Str())
+	//})
+
+	for {
+		b := make([]byte, 200)
+		n, err := sock.Read(b)
+		if err != nil {
+			document.GetElementByID("myLiveOut").SetTextContent("Error: " + err.Error())
+			return
+		}
+
+		document.GetElementByID("myLiveOut").SetInnerHTML(string(b[:n]))
+	}
+
+	/*ch := gist6096872.LineReader(sock)
+	for {
+		select {
+		case b, ok := <-ch:
+			if !ok {
+				return
+			}
+			if len(string(b)) > 160 {
+				return
+			}
+
+			document.GetElementByID("myLiveOut").SetInnerHTML(string(b))
+		}
+	}*/
+}
+		</script>
+	</body>
+</html>
