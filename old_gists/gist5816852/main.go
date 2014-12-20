@@ -8,8 +8,6 @@ import (
 	"strings"
 	"unsafe"
 
-	. "github.com/shurcooL/go/gists/gist5286084"
-
 	//"github.com/go-gl/gl"
 	//gl "github.com/chsc/gogl/gl33"
 	//gl "github.com/err/gl33"
@@ -102,7 +100,9 @@ func main() {
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, gl.TRUE)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	window, err := glfw.CreateWindow(400, 400, "", nil, nil)
-	CheckError(err)
+	if err != nil {
+		panic(err)
+	}
 	window.MakeContextCurrent()
 
 	err = gl.Init()
@@ -137,7 +137,10 @@ func main() {
 
 	size := func(w *glfw.Window, width, height int) {
 		fmt.Println("Framebuffer Size:", width, height)
-		windowWidth, windowHeight := w.GetSize()
+		windowWidth, windowHeight, err := w.GetSize()
+		if err != nil {
+			panic(err)
+		}
 		fmt.Println("Window Size:", windowWidth, windowHeight)
 		gl.Viewport(0, 0, int32(width), int32(height))
 
@@ -147,7 +150,10 @@ func main() {
 		redraw = true
 	}
 	window.SetFramebufferSizeCallback(size)
-	width, height := window.GetFramebufferSize()
+	width, height, err := window.GetFramebufferSize()
+	if err != nil {
+		panic(err)
+	}
 	size(window, width, height)
 
 	MousePos := func(w *glfw.Window, x, y float64) {
@@ -177,7 +183,7 @@ func main() {
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 
-	for !window.ShouldClose() && glfw.Press != window.GetKey(glfw.KeyEscape) {
+	for !mustBool(window.ShouldClose()) && glfw.Press != mustAction(window.GetKey(glfw.KeyEscape)) {
 		glfw.WaitEvents()
 
 		if redraw {
@@ -220,4 +226,20 @@ func createObject(vertices [][2]float32) uint32 {
 	gl.VertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, nil)
 
 	return vao
+}
+
+// ---
+
+func mustAction(action glfw.Action, err error) glfw.Action {
+	if err != nil {
+		panic(err)
+	}
+	return action
+}
+
+func mustBool(b bool, err error) bool {
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
