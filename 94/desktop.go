@@ -136,12 +136,12 @@ func main() {
 		panic(err)
 	}
 
+	gl.Viewport(0, 0, viewportWidth, viewportHeight)
+
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 
 	for !mustBool(window.ShouldClose()) {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-
-		gl.Viewport(0, 0, viewportWidth, viewportHeight)
 
 		pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
 

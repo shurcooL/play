@@ -150,8 +150,7 @@ func main() {
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 
-	frameChan = make(chan struct{}, 1)
-
+	frameChan = make(chan struct{})
 	js.Global.Call("requestAnimationFrame", animate2)
 
 	for !mustBool(window.ShouldClose()) {
@@ -166,6 +165,7 @@ func main() {
 		gl.DrawArrays(gl.TRIANGLES, 0, numItems)
 
 		<-frameChan
+		js.Global.Call("requestAnimationFrame", animate2)
 	}
 
 	// Draw scene.
@@ -175,8 +175,6 @@ func main() {
 var frameChan chan struct{}
 
 func animate2() {
-	js.Global.Call("requestAnimationFrame", animate2)
-
 	go func() {
 		frameChan <- struct{}{}
 	}()
