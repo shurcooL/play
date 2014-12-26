@@ -6,11 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	"honnef.co/go/js/dom"
-
 	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/gopherjs/gopherjs/js"
+	"honnef.co/go/js/dom"
 )
 
 var gl *webgl.Context
@@ -23,13 +22,13 @@ attribute vec3 aVertexPosition;
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 
-void main(void) {
+void main() {
 	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }
 `
 	fragmentSource = `#version 100
 
-void main(void) {
+void main() {
 	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
 `
@@ -38,10 +37,6 @@ void main(void) {
 var program *webgl.Program
 var pMatrixUniform *webgl.UniformLocation
 var mvMatrixUniform *webgl.UniformLocation
-
-/*var program js.Object
-var pMatrixUniform js.Object
-var mvMatrixUniform js.Object*/
 
 var mvMatrix mgl32.Mat4
 var pMatrix mgl32.Mat4
@@ -79,10 +74,14 @@ func initShaders() error {
 	pMatrixUniform = gl.GetUniformLocation(program, "uPMatrix")
 	mvMatrixUniform = gl.GetUniformLocation(program, "uMVMatrix")
 
+	if glError := gl.GetError(); glError != 0 {
+		return fmt.Errorf("gl.GetError: %v", glError)
+	}
+
 	return nil
 }
 
-func createVbo() {
+func createVbo() error {
 	triangleVertexPositionBuffer := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
 	vertices := []float32{
@@ -97,6 +96,12 @@ func createVbo() {
 	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
 	gl.EnableVertexAttribArray(vertexPositionAttribute)
 	gl.VertexAttribPointer(vertexPositionAttribute, itemSize, gl.FLOAT, false, 0, 0)
+
+	if glError := gl.GetError(); glError != 0 {
+		return fmt.Errorf("gl.GetError: %v", glError)
+	}
+
+	return nil
 }
 
 const viewportWidth = 400
@@ -132,13 +137,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	createVbo()
+	err = createVbo()
+	if err != nil {
+		panic(err)
+	}
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
-	gl.Clear(gl.COLOR_BUFFER_BIT)
 
 	// Draw scene.
 	{
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+
 		gl.Viewport(0, 0, viewportWidth, viewportHeight)
 
 		pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
