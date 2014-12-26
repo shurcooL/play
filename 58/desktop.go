@@ -106,6 +106,8 @@ func createVbo() error {
 const viewportWidth = 400
 const viewportHeight = 400
 
+var mouseX, mouseY float32 = 50, 100
+
 func init() {
 	runtime.LockOSThread()
 }
@@ -125,6 +127,11 @@ func main() {
 	}
 	window.MakeContextCurrent()
 
+	MousePos := func(_ *glfw.Window, x, y float64) {
+		mouseX, mouseY = float32(x), float32(y)
+	}
+	window.SetCursorPositionCallback(MousePos)
+
 	err = initShaders()
 	if err != nil {
 		panic(err)
@@ -143,7 +150,7 @@ func main() {
 
 		pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
 
-		mvMatrix = mgl32.Translate3D(50, 100, 0)
+		mvMatrix = mgl32.Translate3D(mouseX, mouseY, 0)
 
 		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
 		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])

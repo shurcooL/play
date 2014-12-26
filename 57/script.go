@@ -6,17 +6,17 @@ import (
 	"errors"
 	"fmt"
 
-	"honnef.co/go/js/dom"
-
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/webgl"
+	"honnef.co/go/js/dom"
 )
 
 var gl *webgl.Context
 
 const (
-	vertexSource = `
+	vertexSource = `#version 100
+
 attribute vec3 aVertexPosition;
 
 uniform mat4 uMVMatrix;
@@ -26,7 +26,8 @@ void main() {
 	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }
 `
-	fragmentSource = `
+	fragmentSource = `#version 100
+
 void main() {
 	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
@@ -34,7 +35,6 @@ void main() {
 )
 
 var program js.Object
-
 var pMatrixUniform js.Object
 var mvMatrixUniform js.Object
 
@@ -74,10 +74,14 @@ func initShaders() error {
 	pMatrixUniform = gl.GetUniformLocation(program, "uPMatrix")
 	mvMatrixUniform = gl.GetUniformLocation(program, "uMVMatrix")
 
+	if glError := gl.GetError(); glError != 0 {
+		return fmt.Errorf("gl.GetError: %v", glError)
+	}
+
 	return nil
 }
 
-func createVbo() {
+func createVbo() error {
 	triangleVertexPositionBuffer := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
 	vertices := []float32{
@@ -92,24 +96,16 @@ func createVbo() {
 	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
 	gl.EnableVertexAttribArray(vertexPositionAttribute)
 	gl.VertexAttribPointer(vertexPositionAttribute, itemSize, gl.FLOAT, false, 0, 0)
+
+	if glError := gl.GetError(); glError != 0 {
+		return fmt.Errorf("gl.GetError: %v", glError)
+	}
+
+	return nil
 }
 
 const viewportWidth = 400
 const viewportHeight = 400
-
-func animate() {
-	js.Global.Call("requestAnimationFrame", animate)
-
-	gl.Clear(gl.COLOR_BUFFER_BIT)
-
-	pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
-
-	mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
-
-	gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
-	gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
-	gl.DrawArrays(gl.TRIANGLES, 0, numItems)
-}
 
 var mouseX, mouseY int = 50, 100
 
@@ -130,8 +126,7 @@ func main() {
 	document.Body().Style().SetProperty("margin", "0px", "")
 
 	document.AddEventListener("mousemove", false, func(event dom.Event) {
-		mouseX = event.(*dom.MouseEvent).ClientX
-		mouseY = event.(*dom.MouseEvent).ClientY
+		mouseX, mouseY = event.(*dom.MouseEvent).ClientX, event.(*dom.MouseEvent).ClientY
 	})
 
 	attrs := webgl.DefaultAttributes()
@@ -148,7 +143,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	createVbo()
+	err = createVbo()
+	if err != nil {
+		panic(err)
+	}
 
 	gl.Viewport(0, 0, canvas.Width, canvas.Height)
 
@@ -156,4 +154,18 @@ func main() {
 
 	// Draw scene.
 	animate()
+}
+
+func animate() {
+	js.Global.Call("requestAnimationFrame", animate)
+
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+
+	pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
+
+	mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
+
+	gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
+	gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
+	gl.DrawArrays(gl.TRIANGLES, 0, numItems)
 }
