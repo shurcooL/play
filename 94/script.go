@@ -104,8 +104,7 @@ func createVbo() error {
 	return nil
 }
 
-const viewportWidth = 400
-const viewportHeight = 400
+var windowSize = [2]int{400, 400}
 
 var mouseX, mouseY float64 = 50, 100
 
@@ -116,16 +115,11 @@ func main() {
 	}
 	defer goglfw.Terminate()
 
-	window, err := goglfw.CreateWindow(viewportWidth, viewportHeight, "Testing", nil, nil)
+	window, err := goglfw.CreateWindow(windowSize[0], windowSize[1], "Testing", nil, nil)
 	if err != nil {
 		panic(err)
 	}
 	window.MakeContextCurrent()
-
-	MousePos := func(_ *goglfw.Window, x, y float64) {
-		mouseX, mouseY = x, y
-	}
-	window.SetCursorPositionCallback(MousePos)
 
 	attrs := webgl.DefaultAttributes()
 	attrs.Alpha = false
@@ -137,6 +131,14 @@ func main() {
 		js.Global.Call("alert", "Error: "+err.Error())
 	}
 
+	MousePos := func(_ *goglfw.Window, x, y float64) {
+		mouseX, mouseY = x, y
+	}
+	window.SetCursorPositionCallback(MousePos)
+
+	// TODO: Use SetFramebufferSizeCallback.
+	gl.Viewport(0, 0, canvas.Width, canvas.Height)
+
 	err = initShaders()
 	if err != nil {
 		panic(err)
@@ -146,17 +148,12 @@ func main() {
 		panic(err)
 	}
 
-	gl.Viewport(0, 0, canvas.Width, canvas.Height)
-
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
-
-	frameChan = make(chan struct{})
-	js.Global.Call("requestAnimationFrame", animate2)
 
 	for !mustBool(window.ShouldClose()) {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
-		pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
+		pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
 
 		mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
 
@@ -164,34 +161,9 @@ func main() {
 		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
 		gl.DrawArrays(gl.TRIANGLES, 0, numItems)
 
-		<-frameChan
-		js.Global.Call("requestAnimationFrame", animate2)
+		window.SwapBuffers()
+		goglfw.PollEvents()
 	}
-
-	// Draw scene.
-	//animate()
-}
-
-var frameChan chan struct{}
-
-func animate2() {
-	go func() {
-		frameChan <- struct{}{}
-	}()
-}
-
-func animate() {
-	js.Global.Call("requestAnimationFrame", animate)
-
-	gl.Clear(gl.COLOR_BUFFER_BIT)
-
-	pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
-
-	mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
-
-	gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
-	gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
-	gl.DrawArrays(gl.TRIANGLES, 0, numItems)
 }
 
 // ---

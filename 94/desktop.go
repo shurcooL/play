@@ -102,8 +102,7 @@ func createVbo() error {
 	return nil
 }
 
-const viewportWidth = 400
-const viewportHeight = 400
+var windowSize = [2]int{400, 400}
 
 var mouseX, mouseY float64 = 50, 100
 
@@ -114,18 +113,30 @@ func main() {
 	}
 	defer goglfw.Terminate()
 
-	gl = webgl.NewContext()
-
-	window, err := goglfw.CreateWindow(viewportWidth, viewportHeight, "Testing", nil, nil)
+	window, err := goglfw.CreateWindow(windowSize[0], windowSize[1], "Testing", nil, nil)
 	if err != nil {
 		panic(err)
 	}
 	window.MakeContextCurrent()
 
+	gl = webgl.NewContext()
+
 	MousePos := func(_ *goglfw.Window, x, y float64) {
 		mouseX, mouseY = x, y
 	}
 	window.SetCursorPositionCallback(MousePos)
+
+	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
+		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
+
+		windowSize[0], windowSize[1], _ = w.GetSize()
+	}
+	{
+		var framebufferSize [2]int
+		framebufferSize[0], framebufferSize[1], _ = window.GetFramebufferSize()
+		framebufferSizeCallback(window, framebufferSize[0], framebufferSize[1])
+	}
+	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
 	err = initShaders()
 	if err != nil {
@@ -136,14 +147,12 @@ func main() {
 		panic(err)
 	}
 
-	gl.Viewport(0, 0, viewportWidth, viewportHeight)
-
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 
 	for !mustBool(window.ShouldClose()) {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
-		pMatrix = mgl32.Ortho2D(0, float32(viewportWidth), float32(viewportHeight), 0)
+		pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
 
 		mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
 
