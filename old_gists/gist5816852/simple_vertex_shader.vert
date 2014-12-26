@@ -1,10 +1,10 @@
-#version 330 core
+#version 410 core
 
-in vec4 aVertexPosition;
+in vec3 aVertexPosition;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 
 void main() {
-	gl_Position = uPMatrix * uMVMatrix * aVertexPosition;
+	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }

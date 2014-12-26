@@ -14,23 +14,19 @@ import (
 	"github.com/go-gl/glow/gl-core/4.1/gl"
 	glfw "github.com/shurcooL/glfw3"
 
-	"github.com/shurcooL/go-goon"
-
 	//"github.com/Ysgard/GoGLutils"
 	"github.com/go-gl/mathgl/mgl32"
 )
-
-var _ = goon.Dump
 
 var updated bool
 
 var pMatrixUniform, mvMatrixUniform int32
 
-var vertices = [][2]float32{
-	{0, 0},
+var vertices = [][3]float32{
+	{0, 0, 0},
 	//{300, 0},
-	{300, 100},
-	{0, 100},
+	{300, 100, 0},
+	{0, 100, 0},
 }
 
 var programID uint32
@@ -209,7 +205,7 @@ func main() {
 
 var vbo uint32
 
-func createObject(vertices [][2]float32) uint32 {
+func createObject(vertices [][3]float32) uint32 {
 	var vao uint32
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
@@ -219,11 +215,11 @@ func createObject(vertices [][2]float32) uint32 {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	//defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
-	gl.BufferData(gl.ARRAY_BUFFER, int(unsafe.Sizeof([2]float32{}))*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, int(unsafe.Sizeof([3]float32{}))*len(vertices), gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	vertexPositionAttribute := uint32(gl.GetAttribLocation(programID, gl.Str("aVertexPosition\x00")))
 	gl.EnableVertexAttribArray(vertexPositionAttribute)
-	gl.VertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, nil)
 
 	return vao
 }

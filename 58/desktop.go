@@ -1,3 +1,5 @@
+// +build !js
+
 package main
 
 import (
@@ -31,11 +33,20 @@ func main() {
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 
-	for !window.ShouldClose() {
+	for !mustBool(window.ShouldClose()) {
 		// Do OpenGL stuff
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
+}
+
+// ---
+
+func mustBool(b bool, err error) bool {
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
