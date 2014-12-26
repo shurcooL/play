@@ -1,3 +1,4 @@
+// Command gist4670289 returns a list of Go keywords (first Go code I ever wrote).
 package main
 
 import (
