@@ -188,8 +188,8 @@ func main() {
 			gl.Clear(gl.COLOR_BUFFER_BIT)
 
 			gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-			gl.UniformMatrix4fv(pMatrixUniform, 1, false, (*float32)(&pMatrix[0]))
-			gl.UniformMatrix4fv(mvMatrixUniform, 1, false, (*float32)(&mvMatrix[0]))
+			gl.UniformMatrix4fv(pMatrixUniform, 1, false, &pMatrix[0])
+			gl.UniformMatrix4fv(mvMatrixUniform, 1, false, &mvMatrix[0])
 			//gl.BindVertexArray(vao)
 			gl.DrawArrays(gl.TRIANGLE_FAN, 0, int32(len(vertices)))
 			//gl.BindVertexArray(0)
