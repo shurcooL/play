@@ -5,7 +5,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
@@ -153,8 +152,7 @@ func main() {
 
 	frameChan = make(chan struct{}, 1)
 
-	//gopherjs:blocking
-	go animate2() //gopherjs:blocking
+	js.Global.Call("requestAnimationFrame", animate2)
 
 	for !mustBool(window.ShouldClose()) {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -167,9 +165,7 @@ func main() {
 		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
 		gl.DrawArrays(gl.TRIANGLES, 0, numItems)
 
-		//gopherjs:blocking
-		<-frameChan //gopherjs:blocking
-		go animate2()
+		<-frameChan
 	}
 
 	// Draw scene.
@@ -178,15 +174,12 @@ func main() {
 
 var frameChan chan struct{}
 
-//gopherjs:blocking
 func animate2() {
-	//gopherjs:blocking
-	//js.Global.Call("requestAnimationFrame", animate2) //gopherjs:blocking
-	//time.Sleep(time.Second) //gopherjs:blocking
-	time.Sleep(15 * time.Millisecond) //gopherjs:blocking
+	js.Global.Call("requestAnimationFrame", animate2)
 
-	//gopherjs:blocking
-	frameChan <- struct{}{} //gopherjs:blocking
+	go func() {
+		frameChan <- struct{}{}
+	}()
 }
 
 func animate() {
