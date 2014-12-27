@@ -136,8 +136,17 @@ func main() {
 	}
 	window.SetCursorPositionCallback(MousePos)
 
-	// TODO: Use SetFramebufferSizeCallback.
-	gl.Viewport(0, 0, canvas.Width, canvas.Height)
+	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
+		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
+
+		windowSize[0], windowSize[1], _ = w.GetSize()
+	}
+	{
+		var framebufferSize [2]int
+		framebufferSize[0], framebufferSize[1], _ = window.GetFramebufferSize()
+		framebufferSizeCallback(window, framebufferSize[0], framebufferSize[1])
+	}
+	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
 	err = initShaders()
 	if err != nil {
