@@ -7,6 +7,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
+	"time"
 
 	"honnef.co/go/js/xhr"
 
@@ -265,6 +267,8 @@ type Track struct {
 }
 
 func newTrack(path string) *Track {
+	started := time.Now()
+
 	/*file, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -282,7 +286,7 @@ func newTrack(path string) *Track {
 	fmt.Println("ResponseHeaders:", req.ResponseHeaders())
 	fmt.Println("len(data):", len(data))
 	//return nil
-	file := bytes.NewReader(data)
+	file := &countingReader{Reader: bytes.NewReader(data)}
 
 	var track Track
 
@@ -331,7 +335,7 @@ func newTrack(path string) *Track {
 		panic(err)
 	}
 	fmt.Printf("Read %v of %v bytes.\n", fileOffset, fi.Size())*/
-	fileOffset := len(data) // HACK.
+	fileOffset := file.N
 	fmt.Printf("Read %v of %v bytes.\n", fileOffset, len(data))
 
 	{
@@ -365,6 +369,8 @@ func newTrack(path string) *Track {
 		//track.textureCoordVbo = createVbo2Float(textureCoordData)
 	}
 
+	fmt.Println("Done loading track in:", time.Since(started))
+
 	return &track
 }
 
@@ -379,4 +385,17 @@ func cStringToGoString(cString []byte) string {
 		n = i + 1
 	}
 	return string(cString[:n])
+}
+
+// =====
+
+type countingReader struct {
+	Reader io.Reader
+	N      uint64
+}
+
+func (cr *countingReader) Read(p []byte) (n int, err error) {
+	n, err = cr.Reader.Read(p)
+	cr.N += uint64(n)
+	return
 }

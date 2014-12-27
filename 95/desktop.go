@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
@@ -252,6 +253,8 @@ type Track struct {
 }
 
 func newTrack(path string) *Track {
+	started := time.Now()
+
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -336,6 +339,8 @@ func newTrack(path string) *Track {
 		//track.colorVbo = createVbo3Ubyte(colorData)
 		//track.textureCoordVbo = createVbo2Float(textureCoordData)
 	}
+
+	fmt.Println("Done loading track in:", time.Since(started))
 
 	return &track
 }
