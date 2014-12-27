@@ -3,7 +3,9 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
+	"os"
 
 	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
@@ -138,6 +140,8 @@ func main() {
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
+	_ = newTrack("./track1.dat")
+
 	err = initShaders()
 	if err != nil {
 		panic(err)
@@ -172,4 +176,179 @@ func mustBool(b bool, err error) bool {
 		panic(err)
 	}
 	return b
+}
+
+// =====
+
+var track *Track
+
+const TRIGROUP_NUM_BITS_USED = 510
+const TRIGROUP_NUM_DWORDS = (TRIGROUP_NUM_BITS_USED + 2) / 32
+const TRIGROUP_WIDTHSHIFT = 4
+const TERR_HEIGHT_SCALE = 1.0 / 32
+const TERR_TEXTURE_SCALE = 1.0 / 20
+
+type TerrTypeNode struct {
+	Type       uint8
+	NextStartX uint16
+	Next       uint16
+	_          uint8
+}
+
+type NavCoord struct {
+	X, Z             uint16
+	DistToStartCoord uint16 // Decider at forks, and determines racers' rank/place.
+	Next             uint16
+	Alt              uint16
+}
+
+type NavCoordLookupNode struct {
+	NavCoord   uint16
+	NextStartX uint16
+	Next       uint16
+}
+
+type TerrCoord struct {
+	Height         uint16
+	LightIntensity uint8
+}
+
+type TriGroup struct {
+	Data [TRIGROUP_NUM_DWORDS]uint32
+}
+
+type TrackFileHeader struct {
+	SunlightDirection, SunlightPitch float32
+	RacerStartPositions              [8][3]float32
+	NumTerrTypes                     uint16
+	NumTerrTypeNodes                 uint16
+	NumNavCoords                     uint16
+	NumNavCoordLookupNodes           uint16
+	Width, Depth                     uint16
+}
+
+type Track struct {
+	TrackFileHeader
+	NumTerrCoords  uint32
+	TriGroupsWidth uint32
+	TriGroupsDepth uint32
+	NumTriGroups   uint32
+
+	TerrTypeTextureFilenames []string
+
+	TerrTypeRuns  []TerrTypeNode
+	TerrTypeNodes []TerrTypeNode
+
+	NavCoords           []NavCoord
+	NavCoordLookupRuns  []NavCoordLookupNode
+	NavCoordLookupNodes []NavCoordLookupNode
+
+	TerrCoords []TerrCoord
+	TriGroups  []TriGroup
+
+	vertexVbo       uint32
+	colorVbo        uint32
+	textureCoordVbo uint32
+}
+
+func newTrack(path string) *Track {
+	file, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	var track Track
+
+	binary.Read(file, binary.LittleEndian, &track.TrackFileHeader)
+
+	// Stuff derived from header info.
+	track.NumTerrCoords = uint32(track.Width) * uint32(track.Depth)
+	track.TriGroupsWidth = (uint32(track.Width) - 1) >> TRIGROUP_WIDTHSHIFT
+	track.TriGroupsDepth = (uint32(track.Depth) - 1) >> TRIGROUP_WIDTHSHIFT
+	track.NumTriGroups = track.TriGroupsWidth * track.TriGroupsDepth
+
+	track.TerrTypeTextureFilenames = make([]string, track.NumTerrTypes)
+	for i := uint16(0); i < track.NumTerrTypes; i++ {
+		var terrTypeTextureFilename [32]byte
+		binary.Read(file, binary.LittleEndian, &terrTypeTextureFilename)
+		track.TerrTypeTextureFilenames[i] = cStringToGoString(terrTypeTextureFilename[:])
+	}
+
+	track.TerrTypeRuns = make([]TerrTypeNode, track.Depth)
+	binary.Read(file, binary.LittleEndian, &track.TerrTypeRuns)
+
+	track.TerrTypeNodes = make([]TerrTypeNode, track.NumTerrTypeNodes)
+	binary.Read(file, binary.LittleEndian, &track.TerrTypeNodes)
+
+	track.NavCoords = make([]NavCoord, track.NumNavCoords)
+	binary.Read(file, binary.LittleEndian, &track.NavCoords)
+
+	track.NavCoordLookupRuns = make([]NavCoordLookupNode, track.Depth)
+	binary.Read(file, binary.LittleEndian, &track.NavCoordLookupRuns)
+
+	track.NavCoordLookupNodes = make([]NavCoordLookupNode, track.NumNavCoordLookupNodes)
+	binary.Read(file, binary.LittleEndian, &track.NavCoordLookupNodes)
+
+	track.TerrCoords = make([]TerrCoord, track.NumTerrCoords)
+	binary.Read(file, binary.LittleEndian, &track.TerrCoords)
+
+	track.TriGroups = make([]TriGroup, track.NumTriGroups)
+	binary.Read(file, binary.LittleEndian, &track.TriGroups)
+
+	fi, err := file.Stat()
+	if err != nil {
+		panic(err)
+	}
+	fileOffset, err := file.Seek(0, os.SEEK_CUR)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Read %v of %v bytes.\n", fileOffset, fi.Size())
+
+	{
+		rowCount := uint64(track.Depth) - 1
+		rowLength := uint64(track.Width)
+
+		vertexData := make([][3]float32, 2*rowLength*rowCount)
+		colorData := make([][3]byte, 2*rowLength*rowCount)
+		textureCoordData := make([][2]float32, 2*rowLength*rowCount)
+
+		var index uint64
+		for y := uint16(1); y < track.Depth; y++ {
+			for x := uint16(0); x < track.Width; x++ {
+				for i := uint16(0); i < 2; i++ {
+					yy := y - i
+
+					terrCoord := track.TerrCoords[uint64(yy)*uint64(track.Width)+uint64(x)]
+					height := float64(terrCoord.Height) * TERR_HEIGHT_SCALE
+					lightIntensity := byte(terrCoord.LightIntensity)
+
+					vertexData[index] = [3]float32{float32(x), float32(yy), float32(height)}
+					colorData[index] = [3]byte{lightIntensity, lightIntensity, lightIntensity}
+					textureCoordData[index] = [2]float32{float32(float32(x) * TERR_TEXTURE_SCALE), float32(float32(yy) * TERR_TEXTURE_SCALE)}
+					index++
+				}
+			}
+		}
+
+		//track.vertexVbo = createVbo3Float(vertexData)
+		//track.colorVbo = createVbo3Ubyte(colorData)
+		//track.textureCoordVbo = createVbo2Float(textureCoordData)
+	}
+
+	return &track
+}
+
+// ---
+
+func cStringToGoString(cString []byte) string {
+	n := 0
+	for i, b := range cString {
+		if b == 0 {
+			break
+		}
+		n = i + 1
+	}
+	return string(cString[:n])
 }
