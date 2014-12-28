@@ -8,10 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"time"
 
 	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/goglfw"
 	"honnef.co/go/js/xhr"
@@ -147,7 +149,7 @@ func main() {
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
-	/*var lastMousePos mgl64.Vec2
+	var lastMousePos mgl64.Vec2
 	lastMousePos[0], lastMousePos[1], _ = window.GetCursorPosition()
 	//fmt.Println("initial:", lastMousePos)
 	mousePos := func(w *goglfw.Window, x, y float64) {
@@ -202,7 +204,7 @@ func main() {
 			//fmt.Printf("Cam rot h = %v, v = %v\n", camera.rh, camera.rv)
 		}
 	}
-	window.SetCursorPositionCallback(mousePos)*/
+	window.SetCursorPositionCallback(mousePos)
 
 	track = newTrack("./track1.dat")
 
