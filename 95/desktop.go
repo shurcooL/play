@@ -21,18 +21,26 @@ const (
 	vertexSource = `#version 120
 
 attribute vec3 aVertexPosition;
+attribute vec3 aVertexColor;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 
+varying vec3 aPixelColor;
+
 void main() {
+	aPixelColor = aVertexColor;
 	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }
 `
 	fragmentSource = `#version 120
 
+//precision lowp float;
+
+varying vec3 aPixelColor;
+
 void main() {
-	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+	gl_FragColor = vec4(aPixelColor, 1.0);
 }
 `
 )
@@ -108,7 +116,14 @@ func createVbo3Float(vertices []float32) *webgl.Buffer {
 	return vbo
 }
 
-var windowSize = [2]int{400, 400}
+func createVbo3Ubyte(vertices []uint8) *webgl.Buffer {
+	vbo := gl.CreateBuffer()
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+	return vbo
+}
+
+var windowSize = [2]int{1024, 800}
 
 func main() {
 	err := goglfw.Init()
@@ -117,7 +132,7 @@ func main() {
 	}
 	defer goglfw.Terminate()
 
-	window, err := goglfw.CreateWindow(windowSize[0], windowSize[1], "Testing", nil, nil)
+	window, err := goglfw.CreateWindow(windowSize[0], windowSize[1], "Terrain", nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -206,9 +221,10 @@ func main() {
 	}
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
+	gl.Enable(gl.DEPTH_TEST)
 
 	for !mustBool(window.ShouldClose()) {
-		gl.Clear(gl.COLOR_BUFFER_BIT)
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		//pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
 		pMatrix = mgl32.Perspective(45, float32(windowSize[0])/float32(windowSize[1]), 0.1, 1000)
@@ -318,7 +334,7 @@ type Track struct {
 	TriGroups  []TriGroup
 
 	vertexVbo       *webgl.Buffer
-	colorVbo        uint32
+	colorVbo        *webgl.Buffer
 	textureCoordVbo uint32
 }
 
@@ -384,7 +400,7 @@ func newTrack(path string) *Track {
 		rowLength := uint64(track.Width)
 
 		vertexData := make([]float32, 3*2*rowLength*rowCount)
-		colorData := make([][3]byte, 2*rowLength*rowCount)
+		colorData := make([]uint8, 3*2*rowLength*rowCount)
 		textureCoordData := make([][2]float32, 2*rowLength*rowCount)
 
 		var index uint64
@@ -395,10 +411,10 @@ func newTrack(path string) *Track {
 
 					terrCoord := track.TerrCoords[uint64(yy)*uint64(track.Width)+uint64(x)]
 					height := float64(terrCoord.Height) * TERR_HEIGHT_SCALE
-					lightIntensity := byte(terrCoord.LightIntensity)
+					lightIntensity := uint8(terrCoord.LightIntensity)
 
 					vertexData[3*index+0], vertexData[3*index+1], vertexData[3*index+2] = float32(x), float32(yy), float32(height)
-					colorData[index] = [3]byte{lightIntensity, lightIntensity, lightIntensity}
+					colorData[3*index+0], colorData[3*index+1], colorData[3*index+2] = lightIntensity, lightIntensity, lightIntensity
 					textureCoordData[index] = [2]float32{float32(float32(x) * TERR_TEXTURE_SCALE), float32(float32(yy) * TERR_TEXTURE_SCALE)}
 					index++
 				}
@@ -406,7 +422,7 @@ func newTrack(path string) *Track {
 		}
 
 		track.vertexVbo = createVbo3Float(vertexData)
-		//track.colorVbo = createVbo3Ubyte(colorData)
+		track.colorVbo = createVbo3Ubyte(colorData)
 		//track.textureCoordVbo = createVbo2Float(textureCoordData)
 	}
 
@@ -423,6 +439,11 @@ func (track *Track) Render() {
 	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
 	gl.EnableVertexAttribArray(vertexPositionAttribute)
 	gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0)
+
+	gl.BindBuffer(gl.ARRAY_BUFFER, track.colorVbo)
+	vertexColorAttribute := gl.GetAttribLocation(program, "aVertexColor")
+	gl.EnableVertexAttribArray(vertexColorAttribute)
+	gl.VertexAttribPointer(vertexColorAttribute, 3, gl.UNSIGNED_BYTE, true, 0, 0)
 
 	for row := uint64(0); row < rowCount; row++ {
 		gl.DrawArrays(gl.TRIANGLE_STRIP, int(row*2*rowLength), int(2*rowLength))
