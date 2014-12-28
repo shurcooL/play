@@ -5,11 +5,13 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"os"
 	"time"
 
 	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/shurcooL/goglfw"
 )
 
@@ -142,6 +144,63 @@ func main() {
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
+	var lastMousePos mgl64.Vec2
+	lastMousePos[0], lastMousePos[1], _ = window.GetCursorPosition()
+	//fmt.Println("initial:", lastMousePos)
+	mousePos := func(w *goglfw.Window, x, y float64) {
+		//fmt.Println("callback:", x, y)
+		sliders := []float64{x - lastMousePos[0], y - lastMousePos[1]}
+		//axes := []float64{x, y}
+
+		lastMousePos[0] = x
+		lastMousePos[1] = y
+
+		{
+			isButtonPressed := [2]bool{
+				mustAction(window.GetMouseButton(goglfw.MouseButton1)) != goglfw.Release,
+				mustAction(window.GetMouseButton(goglfw.MouseButton2)) != goglfw.Release,
+			}
+
+			var moveSpeed = 1.0
+			const rotateSpeed = 0.3
+
+			if mustAction(window.GetKey(goglfw.KeyLeftShift)) != goglfw.Release || mustAction(window.GetKey(goglfw.KeyRightShift)) != goglfw.Release {
+				moveSpeed *= 0.01
+			}
+
+			if isButtonPressed[0] && !isButtonPressed[1] {
+				camera.rh += rotateSpeed * sliders[0]
+			} else if isButtonPressed[0] && isButtonPressed[1] {
+				camera.x += moveSpeed * sliders[0] * math.Cos(mgl64.DegToRad(camera.rh))
+				camera.y += -moveSpeed * sliders[0] * math.Sin(mgl64.DegToRad(camera.rh))
+			} else if !isButtonPressed[0] && isButtonPressed[1] {
+				camera.rh += rotateSpeed * sliders[0]
+			}
+			if isButtonPressed[0] && !isButtonPressed[1] {
+				camera.x -= moveSpeed * sliders[1] * math.Sin(mgl64.DegToRad(camera.rh))
+				camera.y -= moveSpeed * sliders[1] * math.Cos(mgl64.DegToRad(camera.rh))
+			} else if isButtonPressed[0] && isButtonPressed[1] {
+				camera.z -= moveSpeed * sliders[1]
+			} else if !isButtonPressed[0] && isButtonPressed[1] {
+				camera.rv -= rotateSpeed * sliders[1]
+			}
+			for camera.rh < 0 {
+				camera.rh += 360
+			}
+			for camera.rh >= 360 {
+				camera.rh -= 360
+			}
+			if camera.rv > 90 {
+				camera.rv = 90
+			}
+			if camera.rv < -90 {
+				camera.rv = -90
+			}
+			//fmt.Printf("Cam rot h = %v, v = %v\n", camera.rh, camera.rv)
+		}
+	}
+	window.SetCursorPositionCallback(mousePos)
+
 	track = newTrack("./track1.dat")
 
 	err = initShaders()
@@ -178,6 +237,13 @@ func main() {
 }
 
 // ---
+
+func mustAction(action goglfw.Action, err error) goglfw.Action {
+	if err != nil {
+		panic(err)
+	}
+	return action
+}
 
 func mustBool(b bool, err error) bool {
 	if err != nil {

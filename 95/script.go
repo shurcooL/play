@@ -154,8 +154,7 @@ func main() {
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
-	_ = newTrack("./track1.dat")
-	return
+	track = newTrack("./track1.dat")
 
 	err = initShaders()
 	if err != nil {
@@ -267,6 +266,9 @@ type Track struct {
 }
 
 func newTrack(path string) *Track {
+	// HACK: Skip slow loading for now.
+	return &Track{TrackFileHeader: TrackFileHeader{Width: 721, Depth: 721}}
+
 	started := time.Now()
 
 	/*file, err := os.Open(path)
