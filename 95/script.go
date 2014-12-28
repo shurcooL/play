@@ -19,6 +19,8 @@ import (
 	"honnef.co/go/js/xhr"
 )
 
+const skipTrack = false
+
 var gl *webgl.Context
 
 const (
@@ -47,9 +49,6 @@ var mvMatrixUniform *webgl.UniformLocation
 
 var mvMatrix mgl32.Mat4
 var pMatrix mgl32.Mat4
-
-var itemSize int
-var numItems int
 
 func initShaders() error {
 	vertexShader := gl.CreateShader(gl.VERTEX_SHADER)
@@ -88,8 +87,10 @@ func initShaders() error {
 	return nil
 }
 
+var triangleVertexPositionBuffer *webgl.Buffer
+
 func createVbo() error {
-	triangleVertexPositionBuffer := gl.CreateBuffer()
+	triangleVertexPositionBuffer = gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
 	vertices := []float32{
 		0, 0, 0,
@@ -98,18 +99,19 @@ func createVbo() error {
 		0, float32(track.Depth), 0,
 	}
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
-	itemSize = 3
-	numItems = 4
-
-	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
-	gl.EnableVertexAttribArray(vertexPositionAttribute)
-	gl.VertexAttribPointer(vertexPositionAttribute, itemSize, gl.FLOAT, false, 0, 0)
 
 	if glError := gl.GetError(); glError != 0 {
 		return fmt.Errorf("gl.GetError: %v", glError)
 	}
 
 	return nil
+}
+
+func createVbo3Float(vertices []float32) *webgl.Buffer {
+	vbo := gl.CreateBuffer()
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+	return vbo
 }
 
 var windowSize = [2]int{400, 400}
@@ -231,8 +233,16 @@ func main() {
 		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
 		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
 
-		//track.Render()
-		gl.DrawArrays(gl.TRIANGLE_FAN, 0, numItems)
+		// Ground plane.
+		gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
+		vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
+		gl.EnableVertexAttribArray(vertexPositionAttribute)
+		gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0)
+		gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
+
+		if !skipTrack {
+			track.Render()
+		}
 
 		window.SwapBuffers()
 		goglfw.PollEvents()
@@ -323,14 +333,16 @@ type Track struct {
 	TerrCoords []TerrCoord
 	TriGroups  []TriGroup
 
-	vertexVbo       uint32
+	vertexVbo       *webgl.Buffer
 	colorVbo        uint32
 	textureCoordVbo uint32
 }
 
 func newTrack(path string) *Track {
 	// HACK: Skip slow loading for now.
-	return &Track{TrackFileHeader: TrackFileHeader{Width: 721, Depth: 721}}
+	if skipTrack {
+		return &Track{TrackFileHeader: TrackFileHeader{Width: 721, Depth: 721}}
+	}
 
 	started := time.Now()
 
@@ -403,7 +415,7 @@ func newTrack(path string) *Track {
 		rowCount := uint64(track.Depth) - 1
 		rowLength := uint64(track.Width)
 
-		vertexData := make([][3]float32, 2*rowLength*rowCount)
+		vertexData := make([]float32, 3*2*rowLength*rowCount)
 		colorData := make([][3]byte, 2*rowLength*rowCount)
 		textureCoordData := make([][2]float32, 2*rowLength*rowCount)
 
@@ -417,7 +429,7 @@ func newTrack(path string) *Track {
 					height := float64(terrCoord.Height) * TERR_HEIGHT_SCALE
 					lightIntensity := byte(terrCoord.LightIntensity)
 
-					vertexData[index] = [3]float32{float32(x), float32(yy), float32(height)}
+					vertexData[3*index+0], vertexData[3*index+1], vertexData[3*index+2] = float32(x), float32(yy), float32(height)
 					colorData[index] = [3]byte{lightIntensity, lightIntensity, lightIntensity}
 					textureCoordData[index] = [2]float32{float32(float32(x) * TERR_TEXTURE_SCALE), float32(float32(yy) * TERR_TEXTURE_SCALE)}
 					index++
@@ -425,7 +437,7 @@ func newTrack(path string) *Track {
 			}
 		}
 
-		//track.vertexVbo = createVbo3Float(vertexData)
+		track.vertexVbo = createVbo3Float(vertexData)
 		//track.colorVbo = createVbo3Ubyte(colorData)
 		//track.textureCoordVbo = createVbo2Float(textureCoordData)
 	}
@@ -436,7 +448,17 @@ func newTrack(path string) *Track {
 }
 
 func (track *Track) Render() {
-	// ...
+	rowCount := uint64(track.Depth) - 1
+	rowLength := uint64(track.Width)
+
+	gl.BindBuffer(gl.ARRAY_BUFFER, track.vertexVbo)
+	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
+	gl.EnableVertexAttribArray(vertexPositionAttribute)
+	gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0)
+
+	for row := uint64(0); row < rowCount; row++ {
+		gl.DrawArrays(gl.TRIANGLE_STRIP, int(row*2*rowLength), int(2*rowLength))
+	}
 }
 
 // ---
