@@ -282,10 +282,6 @@ func newTrack(path string) *Track {
 		panic(err)
 	}
 	data := js.Global.Get("Uint8Array").New(req.Response).Interface().([]byte)
-	fmt.Println("Status:", req.Status)
-	fmt.Println("ResponseHeaders:", req.ResponseHeaders())
-	fmt.Println("len(data):", len(data))
-	//return nil
 	file := &countingReader{Reader: bytes.NewReader(data)}
 
 	var track Track

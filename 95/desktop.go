@@ -87,12 +87,13 @@ func createVbo() error {
 	gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
 	vertices := []float32{
 		0, 0, 0,
-		300, 100, 0,
-		0, 100, 0,
+		float32(track.Width), 0, 0,
+		float32(track.Width), float32(track.Depth), 0,
+		0, float32(track.Depth), 0,
 	}
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 	itemSize = 3
-	numItems = 3
+	numItems = 4
 
 	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
 	gl.EnableVertexAttribArray(vertexPositionAttribute)
@@ -141,7 +142,7 @@ func main() {
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
-	_ = newTrack("./track1.dat")
+	track = newTrack("./track1.dat")
 
 	err = initShaders()
 	if err != nil {
@@ -157,17 +158,23 @@ func main() {
 	for !mustBool(window.ShouldClose()) {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
-		pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
+		//pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
+		pMatrix = mgl32.Perspective(45, float32(windowSize[0])/float32(windowSize[1]), 0.1, 1000)
 
-		mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
+		//mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
+		mvMatrix = camera.Apply()
 
 		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
 		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
-		gl.DrawArrays(gl.TRIANGLES, 0, numItems)
+
+		//track.Render()
+		gl.DrawArrays(gl.TRIANGLE_FAN, 0, numItems)
 
 		window.SwapBuffers()
 		goglfw.PollEvents()
 	}
+
+	//goon.DumpExpr(camera)
 }
 
 // ---
@@ -345,6 +352,10 @@ func newTrack(path string) *Track {
 	return &track
 }
 
+func (track *Track) Render() {
+	// ...
+}
+
 // ---
 
 func cStringToGoString(cString []byte) string {
@@ -356,4 +367,25 @@ func cStringToGoString(cString []byte) string {
 		n = i + 1
 	}
 	return string(cString[:n])
+}
+
+// =====
+
+var camera = Camera{x: 160.12941888695732, y: 685.2641404161014, z: 600, rh: 115.50000000000003, rv: -14.999999999999998}
+
+type Camera struct {
+	x float64
+	y float64
+	z float64
+
+	rh float64
+	rv float64
+}
+
+func (this *Camera) Apply() mgl32.Mat4 {
+	mat := mgl32.Ident4()
+	mat = mat.Mul4(mgl32.HomogRotate3D(mgl32.DegToRad(float32(this.rv+90)), mgl32.Vec3{-1, 0, 0})) // The 90 degree offset is necessary to make Z axis the up-vector in OpenGL (normally it's the in/out-of-screen vector).
+	mat = mat.Mul4(mgl32.HomogRotate3D(mgl32.DegToRad(float32(this.rh)), mgl32.Vec3{0, 0, 1}))
+	mat = mat.Mul4(mgl32.Translate3D(float32(-this.x), float32(-this.y), float32(-this.z)))
+	return mat
 }
