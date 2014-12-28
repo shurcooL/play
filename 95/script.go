@@ -10,12 +10,11 @@ import (
 	"io"
 	"time"
 
-	"honnef.co/go/js/xhr"
-
 	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/goglfw"
+	"honnef.co/go/js/xhr"
 )
 
 var gl *webgl.Context
@@ -92,12 +91,13 @@ func createVbo() error {
 	gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
 	vertices := []float32{
 		0, 0, 0,
-		300, 100, 0,
-		0, 100, 0,
+		float32(track.Width), 0, 0,
+		float32(track.Width), float32(track.Depth), 0,
+		0, float32(track.Depth), 0,
 	}
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 	itemSize = 3
-	numItems = 3
+	numItems = 4
 
 	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
 	gl.EnableVertexAttribArray(vertexPositionAttribute)
@@ -111,8 +111,6 @@ func createVbo() error {
 }
 
 var windowSize = [2]int{400, 400}
-
-var mouseX, mouseY float64 = 50, 100
 
 func main() {
 	err := goglfw.Init()
@@ -137,11 +135,6 @@ func main() {
 		js.Global.Call("alert", "Error: "+err.Error())
 	}
 
-	MousePos := func(_ *goglfw.Window, x, y float64) {
-		mouseX, mouseY = x, y
-	}
-	window.SetCursorPositionCallback(MousePos)
-
 	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
 
@@ -153,6 +146,63 @@ func main() {
 		framebufferSizeCallback(window, framebufferSize[0], framebufferSize[1])
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
+
+	/*var lastMousePos mgl64.Vec2
+	lastMousePos[0], lastMousePos[1], _ = window.GetCursorPosition()
+	//fmt.Println("initial:", lastMousePos)
+	mousePos := func(w *goglfw.Window, x, y float64) {
+		//fmt.Println("callback:", x, y)
+		sliders := []float64{x - lastMousePos[0], y - lastMousePos[1]}
+		//axes := []float64{x, y}
+
+		lastMousePos[0] = x
+		lastMousePos[1] = y
+
+		{
+			isButtonPressed := [2]bool{
+				mustAction(window.GetMouseButton(goglfw.MouseButton1)) != goglfw.Release,
+				mustAction(window.GetMouseButton(goglfw.MouseButton2)) != goglfw.Release,
+			}
+
+			var moveSpeed = 1.0
+			const rotateSpeed = 0.3
+
+			if mustAction(window.GetKey(goglfw.KeyLeftShift)) != goglfw.Release || mustAction(window.GetKey(goglfw.KeyRightShift)) != goglfw.Release {
+				moveSpeed *= 0.01
+			}
+
+			if isButtonPressed[0] && !isButtonPressed[1] {
+				camera.rh += rotateSpeed * sliders[0]
+			} else if isButtonPressed[0] && isButtonPressed[1] {
+				camera.x += moveSpeed * sliders[0] * math.Cos(mgl64.DegToRad(camera.rh))
+				camera.y += -moveSpeed * sliders[0] * math.Sin(mgl64.DegToRad(camera.rh))
+			} else if !isButtonPressed[0] && isButtonPressed[1] {
+				camera.rh += rotateSpeed * sliders[0]
+			}
+			if isButtonPressed[0] && !isButtonPressed[1] {
+				camera.x -= moveSpeed * sliders[1] * math.Sin(mgl64.DegToRad(camera.rh))
+				camera.y -= moveSpeed * sliders[1] * math.Cos(mgl64.DegToRad(camera.rh))
+			} else if isButtonPressed[0] && isButtonPressed[1] {
+				camera.z -= moveSpeed * sliders[1]
+			} else if !isButtonPressed[0] && isButtonPressed[1] {
+				camera.rv -= rotateSpeed * sliders[1]
+			}
+			for camera.rh < 0 {
+				camera.rh += 360
+			}
+			for camera.rh >= 360 {
+				camera.rh -= 360
+			}
+			if camera.rv > 90 {
+				camera.rv = 90
+			}
+			if camera.rv < -90 {
+				camera.rv = -90
+			}
+			//fmt.Printf("Cam rot h = %v, v = %v\n", camera.rh, camera.rv)
+		}
+	}
+	window.SetCursorPositionCallback(mousePos)*/
 
 	track = newTrack("./track1.dat")
 
@@ -170,13 +220,17 @@ func main() {
 	for !mustBool(window.ShouldClose()) {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
-		pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
+		//pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
+		pMatrix = mgl32.Perspective(45, float32(windowSize[0])/float32(windowSize[1]), 0.1, 1000)
 
-		mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
+		//mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
+		mvMatrix = camera.Apply()
 
 		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
 		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
-		gl.DrawArrays(gl.TRIANGLES, 0, numItems)
+
+		//track.Render()
+		gl.DrawArrays(gl.TRIANGLE_FAN, 0, numItems)
 
 		window.SwapBuffers()
 		goglfw.PollEvents()
@@ -184,6 +238,13 @@ func main() {
 }
 
 // ---
+
+func mustAction(action goglfw.Action, err error) goglfw.Action {
+	if err != nil {
+		panic(err)
+	}
+	return action
+}
 
 func mustBool(b bool, err error) bool {
 	if err != nil {
@@ -372,6 +433,10 @@ func newTrack(path string) *Track {
 	return &track
 }
 
+func (track *Track) Render() {
+	// ...
+}
+
 // ---
 
 func cStringToGoString(cString []byte) string {
@@ -383,6 +448,27 @@ func cStringToGoString(cString []byte) string {
 		n = i + 1
 	}
 	return string(cString[:n])
+}
+
+// =====
+
+var camera = Camera{x: 160.12941888695732, y: 685.2641404161014, z: 600, rh: 115.50000000000003, rv: -14.999999999999998}
+
+type Camera struct {
+	x float64
+	y float64
+	z float64
+
+	rh float64
+	rv float64
+}
+
+func (this *Camera) Apply() mgl32.Mat4 {
+	mat := mgl32.Ident4()
+	mat = mat.Mul4(mgl32.HomogRotate3D(mgl32.DegToRad(float32(this.rv+90)), mgl32.Vec3{-1, 0, 0})) // The 90 degree offset is necessary to make Z axis the up-vector in OpenGL (normally it's the in/out-of-screen vector).
+	mat = mat.Mul4(mgl32.HomogRotate3D(mgl32.DegToRad(float32(this.rh)), mgl32.Vec3{0, 0, 1}))
+	mat = mat.Mul4(mgl32.Translate3D(float32(-this.x), float32(-this.y), float32(-this.z)))
+	return mat
 }
 
 // =====

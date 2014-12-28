@@ -110,8 +110,6 @@ func createVbo() error {
 
 var windowSize = [2]int{400, 400}
 
-var mouseX, mouseY float64 = 50, 100
-
 func main() {
 	err := goglfw.Init()
 	if err != nil {
@@ -126,11 +124,6 @@ func main() {
 	window.MakeContextCurrent()
 
 	gl = webgl.NewContext()
-
-	MousePos := func(_ *goglfw.Window, x, y float64) {
-		mouseX, mouseY = x, y
-	}
-	window.SetCursorPositionCallback(MousePos)
 
 	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
