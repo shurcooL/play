@@ -273,16 +273,16 @@ func main() {
 		gl.ActiveTexture(gl.TEXTURE1)
 		gl.BindTexture(gl.TEXTURE_2D, textures[1])
 
+		if !skipTrack {
+			track.Render()
+		}
+
 		// Ground plane.
 		gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
 		vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
 		gl.EnableVertexAttribArray(vertexPositionAttribute)
 		gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0)
 		gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
-
-		if !skipTrack {
-			track.Render()
-		}
 
 		window.SwapBuffers()
 		goglfw.PollEvents()
@@ -497,8 +497,8 @@ func newTrack(path string) *Track {
 }
 
 func (track *Track) Render() {
-	rowCount := uint64(track.Depth) - 1
-	rowLength := uint64(track.Width)
+	rowCount := int(track.Depth) - 1
+	rowLength := int(track.Width)
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, track.vertexVbo)
 	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
@@ -515,8 +515,8 @@ func (track *Track) Render() {
 	gl.EnableVertexAttribArray(vertexTerrTypeAttribute)
 	gl.VertexAttribPointer(vertexTerrTypeAttribute, 1, gl.FLOAT, false, 0, 0)
 
-	for row := uint64(0); row < rowCount; row++ {
-		gl.DrawArrays(gl.TRIANGLE_STRIP, int(row*2*rowLength), int(2*rowLength))
+	for row := 0; row < rowCount; row++ {
+		gl.DrawArrays(gl.TRIANGLE_STRIP, row*2*rowLength, 2*rowLength)
 	}
 }
 
