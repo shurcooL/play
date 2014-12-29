@@ -455,9 +455,8 @@ func newTrack(path string) *Track {
 		rowLength := int(track.Width)
 
 		terrTypeMap := make([]uint8, int(track.Width)*int(track.Depth))
-		var pCurrNode *TerrTypeNode
 		for y := 0; y < int(track.Depth); y++ {
-			pCurrNode = &track.TerrTypeRuns[y]
+			pCurrNode := &track.TerrTypeRuns[y]
 
 			for x := 0; x < int(track.Width); x++ {
 				if x >= int(pCurrNode.NextStartX) {
@@ -473,13 +472,12 @@ func newTrack(path string) *Track {
 		textureCoordData := make([][2]float32, 2*rowLength*rowCount)
 
 		var index int
-		var terrCoord *TerrCoord
 		for y := 1; y < int(track.Depth); y++ {
 			for x := 0; x < int(track.Width); x++ {
 				for i := 0; i < 2; i++ {
 					yy := y - i
 
-					terrCoord = &track.TerrCoords[yy*int(track.Width)+x]
+					terrCoord := &track.TerrCoords[yy*int(track.Width)+x]
 					height := float64(terrCoord.Height) * TERR_HEIGHT_SCALE
 					lightIntensity := uint8(terrCoord.LightIntensity)
 
