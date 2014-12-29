@@ -15,6 +15,8 @@ import (
 	"github.com/shurcooL/goglfw"
 )
 
+const skipTrack = false
+
 var gl *webgl.Context
 
 const (
@@ -242,7 +244,9 @@ func main() {
 		gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0)
 		gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 
-		track.Render()
+		if !skipTrack {
+			track.Render()
+		}
 
 		window.SwapBuffers()
 		goglfw.PollEvents()
@@ -339,6 +343,11 @@ type Track struct {
 }
 
 func newTrack(path string) *Track {
+	// HACK: Skip slow loading for now.
+	if skipTrack {
+		return &Track{TrackFileHeader: TrackFileHeader{Width: 721, Depth: 721}}
+	}
+
 	started := time.Now()
 
 	file, err := os.Open(path)
@@ -396,20 +405,20 @@ func newTrack(path string) *Track {
 	fmt.Printf("Read %v of %v bytes.\n", fileOffset, fi.Size())
 
 	{
-		rowCount := uint64(track.Depth) - 1
-		rowLength := uint64(track.Width)
+		rowCount := int(track.Depth) - 1
+		rowLength := int(track.Width)
 
 		vertexData := make([]float32, 3*2*rowLength*rowCount)
 		colorData := make([]uint8, 3*2*rowLength*rowCount)
 		textureCoordData := make([][2]float32, 2*rowLength*rowCount)
 
-		var index uint64
-		for y := uint16(1); y < track.Depth; y++ {
-			for x := uint16(0); x < track.Width; x++ {
-				for i := uint16(0); i < 2; i++ {
+		var index int
+		for y := 1; y < int(track.Depth); y++ {
+			for x := 0; x < int(track.Width); x++ {
+				for i := 0; i < 2; i++ {
 					yy := y - i
 
-					terrCoord := track.TerrCoords[uint64(yy)*uint64(track.Width)+uint64(x)]
+					terrCoord := &track.TerrCoords[yy*int(track.Width)+x]
 					height := float64(terrCoord.Height) * TERR_HEIGHT_SCALE
 					lightIntensity := uint8(terrCoord.LightIntensity)
 
