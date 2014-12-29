@@ -350,7 +350,7 @@ func newTrack(path string) *Track {
 
 	started := time.Now()
 
-	file, err := os.Open(path)
+	file, err := goglfw.Open(path)
 	if err != nil {
 		panic(err)
 	}
@@ -394,15 +394,15 @@ func newTrack(path string) *Track {
 	track.TriGroups = make([]TriGroup, track.NumTriGroups)
 	binary.Read(file, binary.LittleEndian, &track.TriGroups)
 
-	fi, err := file.Stat()
-	if err != nil {
-		panic(err)
-	}
 	fileOffset, err := file.Seek(0, os.SEEK_CUR)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Read %v of %v bytes.\n", fileOffset, fi.Size())
+	fileSize, err := file.Seek(0, os.SEEK_END)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Read %v of %v bytes.\n", fileOffset, fileSize)
 
 	{
 		rowCount := int(track.Depth) - 1

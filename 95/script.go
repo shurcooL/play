@@ -3,12 +3,11 @@
 package main
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"io"
 	"math"
+	"os"
 	"time"
 
 	"github.com/ajhager/webgl"
@@ -16,7 +15,6 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/goglfw"
-	"honnef.co/go/js/xhr"
 )
 
 const skipTrack = false
@@ -362,20 +360,11 @@ func newTrack(path string) *Track {
 
 	started := time.Now()
 
-	/*file, err := os.Open(path)
+	file, err := goglfw.Open(path)
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()*/
-
-	req := xhr.NewRequest("GET", "/track1.dat")
-	req.ResponseType = xhr.ArrayBuffer
-	err := req.Send(nil)
-	if err != nil {
-		panic(err)
-	}
-	data := js.Global.Get("Uint8Array").New(req.Response).Interface().([]byte)
-	file := &countingReader{Reader: bytes.NewReader(data)}
+	defer file.Close()
 
 	var track Track
 
@@ -415,17 +404,15 @@ func newTrack(path string) *Track {
 	track.TriGroups = make([]TriGroup, track.NumTriGroups)
 	binary.Read(file, binary.LittleEndian, &track.TriGroups)
 
-	/*fi, err := file.Stat()
-	if err != nil {
-		panic(err)
-	}
 	fileOffset, err := file.Seek(0, os.SEEK_CUR)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Read %v of %v bytes.\n", fileOffset, fi.Size())*/
-	fileOffset := file.N
-	fmt.Printf("Read %v of %v bytes.\n", fileOffset, len(data))
+	fileSize, err := file.Seek(0, os.SEEK_END)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Read %v of %v bytes.\n", fileOffset, fileSize)
 
 	{
 		rowCount := int(track.Depth) - 1
@@ -514,17 +501,4 @@ func (this *Camera) Apply() mgl32.Mat4 {
 	mat = mat.Mul4(mgl32.HomogRotate3D(mgl32.DegToRad(float32(this.rh)), mgl32.Vec3{0, 0, 1}))
 	mat = mat.Mul4(mgl32.Translate3D(float32(-this.x), float32(-this.y), float32(-this.z)))
 	return mat
-}
-
-// =====
-
-type countingReader struct {
-	Reader io.Reader
-	N      uint64
-}
-
-func (cr *countingReader) Read(p []byte) (n int, err error) {
-	n, err = cr.Reader.Read(p)
-	cr.N += uint64(n)
-	return
 }
