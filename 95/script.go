@@ -428,20 +428,20 @@ func newTrack(path string) *Track {
 	fmt.Printf("Read %v of %v bytes.\n", fileOffset, len(data))
 
 	{
-		rowCount := uint64(track.Depth) - 1
-		rowLength := uint64(track.Width)
+		rowCount := int(track.Depth) - 1
+		rowLength := int(track.Width)
 
 		vertexData := make([]float32, 3*2*rowLength*rowCount)
 		colorData := make([]uint8, 3*2*rowLength*rowCount)
 		textureCoordData := make([][2]float32, 2*rowLength*rowCount)
 
-		var index uint64
-		for y := uint16(1); y < track.Depth; y++ {
-			for x := uint16(0); x < track.Width; x++ {
-				for i := uint16(0); i < 2; i++ {
+		var index int
+		for y := 1; y < int(track.Depth); y++ {
+			for x := 0; x < int(track.Width); x++ {
+				for i := 0; i < 2; i++ {
 					yy := y - i
 
-					terrCoord := track.TerrCoords[uint64(yy)*uint64(track.Width)+uint64(x)]
+					terrCoord := track.TerrCoords[yy*int(track.Width)+x]
 					height := float64(terrCoord.Height) * TERR_HEIGHT_SCALE
 					lightIntensity := uint8(terrCoord.LightIntensity)
 
