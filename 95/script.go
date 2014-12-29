@@ -435,7 +435,7 @@ func newTrack(path string) *Track {
 		colorData := make([]uint8, 3*2*rowLength*rowCount)
 		textureCoordData := make([][2]float32, 2*rowLength*rowCount)
 
-		var index uint64
+		var index int
 		for y := uint16(1); y < track.Depth; y++ {
 			for x := uint16(0); x < track.Width; x++ {
 				for i := uint16(0); i < 2; i++ {
