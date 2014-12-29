@@ -441,7 +441,7 @@ func newTrack(path string) *Track {
 				for i := uint16(0); i < 2; i++ {
 					yy := y - i
 
-					terrCoord := track.TerrCoords[uint64(yy)*uint64(track.Width)+uint64(x)]
+					terrCoord := &track.TerrCoords[uint64(yy)*uint64(track.Width)+uint64(x)]
 					height := float64(terrCoord.Height) * TERR_HEIGHT_SCALE
 					lightIntensity := uint8(terrCoord.LightIntensity)
 
