@@ -22,7 +22,7 @@ var gl *webgl.Context
 const (
 	vertexSource = `#version 120
 
-const float TERR_TEXTURE_SCALE = 1.0 / 12;
+const float TERR_TEXTURE_SCALE = 1.0 / 20; // From track.h rather than terrain.h.
 
 attribute vec3 aVertexPosition;
 attribute vec3 aVertexColor;
@@ -189,10 +189,11 @@ func main() {
 			}
 
 			var moveSpeed = 1.0
-			const rotateSpeed = 0.3
+			var rotateSpeed = 0.3
 
 			if mustAction(window.GetKey(goglfw.KeyLeftShift)) != goglfw.Release || mustAction(window.GetKey(goglfw.KeyRightShift)) != goglfw.Release {
 				moveSpeed *= 0.01
+				rotateSpeed *= 0.1
 			}
 
 			if isButtonPressed[0] && !isButtonPressed[1] {
@@ -308,7 +309,7 @@ const TRIGROUP_NUM_BITS_USED = 510
 const TRIGROUP_NUM_DWORDS = (TRIGROUP_NUM_BITS_USED + 2) / 32
 const TRIGROUP_WIDTHSHIFT = 4
 const TERR_HEIGHT_SCALE = 1.0 / 32
-const TERR_TEXTURE_SCALE = 1.0 / 20
+const TERR_TEXTURE_SCALE = 1.0 / 20 // From track.h rather than terrain.h.
 
 type TerrTypeNode struct {
 	Type       uint8
