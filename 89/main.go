@@ -17,7 +17,7 @@ func main() {
 	defer r.Close()
 
 	for _, f := range r.File {
-		fmt.Printf("extracting %q...", f.Name)
+		fmt.Printf("extracting %q into %q...", f.Name, filepath.Join(os.TempDir(), f.Name))
 		rc, err := f.Open()
 		if err != nil {
 			panic(err)
