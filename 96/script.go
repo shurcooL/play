@@ -259,7 +259,7 @@ func main() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		//pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
-		pMatrix = mgl32.Perspective(45, float32(windowSize[0])/float32(windowSize[1]), 0.1, 1000)
+		pMatrix = mgl32.Perspective(mgl32.DegToRad(45), float32(windowSize[0])/float32(windowSize[1]), 0.1, 1000)
 
 		//mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
 		mvMatrix = camera.Apply()
