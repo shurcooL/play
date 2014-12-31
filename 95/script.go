@@ -13,7 +13,6 @@ import (
 	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/goglfw"
 )
 
@@ -142,15 +141,7 @@ func main() {
 	}
 	window.MakeContextCurrent()
 
-	attrs := webgl.DefaultAttributes()
-	attrs.Alpha = false
-	attrs.Antialias = false
-
-	canvas := window.Canvas // TODO: See what's the best way.
-	gl, err = webgl.NewContext(canvas.Underlying(), attrs)
-	if err != nil {
-		js.Global.Call("alert", "Error: "+err.Error())
-	}
+	gl = window.Context
 
 	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)

@@ -8,7 +8,6 @@ import (
 
 	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
-	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/goglfw"
 )
 
@@ -121,15 +120,7 @@ func main() {
 	}
 	window.MakeContextCurrent()
 
-	attrs := webgl.DefaultAttributes()
-	attrs.Alpha = false
-	attrs.Antialias = false
-
-	canvas := window.Canvas // TODO: See what's the best way.
-	gl, err = webgl.NewContext(canvas.Underlying(), attrs)
-	if err != nil {
-		js.Global.Call("alert", "Error: "+err.Error())
-	}
+	gl = window.Context
 
 	MousePos := func(_ *goglfw.Window, x, y float64) {
 		mouseX, mouseY = x, y

@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ajhager/webgl"
@@ -58,14 +59,14 @@ func initShaders() error {
 	gl.AttachShader(program, fragmentShader)
 	gl.LinkProgram(program)
 
-	/*if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
+	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
 		return errors.New("LINK_STATUS")
-	}*/
+	}
 
 	gl.ValidateProgram(program)
-	/*if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
+	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
 		return errors.New("VALIDATE_STATUS")
-	}*/
+	}
 
 	gl.UseProgram(program)
 
@@ -119,7 +120,7 @@ func main() {
 	}
 	window.MakeContextCurrent()
 
-	gl = webgl.NewContext()
+	gl = window.Context
 
 	MousePos := func(_ *goglfw.Window, x, y float64) {
 		mouseX, mouseY = x, y

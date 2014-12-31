@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"image"
 	_ "image/png"
@@ -87,14 +88,14 @@ func initShaders() error {
 	gl.AttachShader(program, fragmentShader)
 	gl.LinkProgram(program)
 
-	/*if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
+	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
 		return errors.New("LINK_STATUS")
-	}*/
+	}
 
 	gl.ValidateProgram(program)
-	/*if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
+	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
 		return errors.New("VALIDATE_STATUS")
-	}*/
+	}
 
 	gl.UseProgram(program)
 
@@ -159,7 +160,7 @@ func main() {
 	}
 	window.MakeContextCurrent()
 
-	gl = webgl.NewContext()
+	gl = window.Context
 
 	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
