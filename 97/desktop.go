@@ -11,7 +11,6 @@ import (
 	"github.com/bradfitz/iter"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/shurcooL/go-goon"
 	"github.com/shurcooL/goglfw"
 	"github.com/shurcooL/webgl"
 )
@@ -22,16 +21,17 @@ const (
 	vertexSource = `#version 120
 
 attribute vec3 aVertexPosition;
-//attribute vec3 aVertexColor;
+attribute vec3 aNormal;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 
-varying vec3 aPixelColor;
+varying vec3 vPosition;
+varying vec3 vNormal;
 
 void main() {
-	//aPixelColor = aVertexColor;
-	aPixelColor = vec3(1.0, 1.0, 1.0);
+	vNormal = normalize(aNormal);
+	vPosition = aVertexPosition.xyz;
 	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }
 `
@@ -39,10 +39,19 @@ void main() {
 
 //precision lowp float;
 
-varying vec3 aPixelColor;
+uniform vec3 uCameraPosition;
+
+varying vec3 vPosition;
+varying vec3 vNormal;
 
 void main() {
-	gl_FragColor = vec4(aPixelColor, 1.0);
+	// Diffuse lighting.
+	vec3 posToCamera = normalize(uCameraPosition - vPosition);
+	float diffuse = dot(vNormal, posToCamera);
+
+	vec3 PixelColor = (0.1 + 0.9 * diffuse) * vec3(1.0, 1.0, 1.0);
+
+	gl_FragColor = vec4(PixelColor, 1.0);
 }
 `
 )
@@ -50,6 +59,7 @@ void main() {
 var program *webgl.Program
 var pMatrixUniform *webgl.UniformLocation
 var mvMatrixUniform *webgl.UniformLocation
+var uCameraPosition *webgl.UniformLocation
 
 var mvMatrix mgl32.Mat4
 var pMatrix mgl32.Mat4
@@ -83,6 +93,7 @@ func initShaders() error {
 
 	pMatrixUniform = gl.GetUniformLocation(program, "uPMatrix")
 	mvMatrixUniform = gl.GetUniformLocation(program, "uMVMatrix")
+	uCameraPosition = gl.GetUniformLocation(program, "uCameraPosition")
 
 	if glError := gl.GetError(); glError != 0 {
 		return fmt.Errorf("gl.GetError: %v", glError)
@@ -100,6 +111,7 @@ func loadModel() error {
 	var err error
 	doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/unit_box.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/complex_shape.dae")
+	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Wall_Scene/Platform.dae")
 	if err != nil {
 		return err
 	}
@@ -116,31 +128,44 @@ func loadModel() error {
 	// ---
 
 	vertices := make([]float32, 3*3*m_TriangleCount)
-	goon.DumpExpr(len(vertices))
+	normals := make([]float32, 3*3*m_TriangleCount)
 
 	nTriangleNumber := 0
 	for _, geometry := range doc.LibraryGeometries[0].Geometry {
+		if len(geometry.Mesh.Triangles) == 0 {
+			continue
+		}
+
+		// HACK. 0 seems to be position, 1 is normal, but need to not hardcode this.
 		pVertexData := geometry.Mesh.Source[0].FloatArray.F32()
+		pNormalData := geometry.Mesh.Source[1].FloatArray.F32()
 
 		for _, triangles := range geometry.Mesh.Triangles {
-			pVertexIndicies := triangles.HasP.P.I()
-			sharedInput := len(triangles.HasSharedInput.Input)
-			offset := 0 // HACK. 0 seems to be position, 1 is normal, but need to not hardcode this.
+			sharedIndicies := triangles.HasP.P.I()
+			sharedCount := len(triangles.HasSharedInput.Input)
 
 			for nTriangle := range iter.N(triangles.HasCount.Count) {
-				vertices[3*3*nTriangleNumber+0] = pVertexData[3*pVertexIndicies[(3*nTriangle+0)*sharedInput+offset]+0]
-				vertices[3*3*nTriangleNumber+1] = pVertexData[3*pVertexIndicies[(3*nTriangle+0)*sharedInput+offset]+1]
-				vertices[3*3*nTriangleNumber+2] = pVertexData[3*pVertexIndicies[(3*nTriangle+0)*sharedInput+offset]+2]
-				vertices[3*3*nTriangleNumber+3] = pVertexData[3*pVertexIndicies[(3*nTriangle+1)*sharedInput+offset]+0]
-				vertices[3*3*nTriangleNumber+4] = pVertexData[3*pVertexIndicies[(3*nTriangle+1)*sharedInput+offset]+1]
-				vertices[3*3*nTriangleNumber+5] = pVertexData[3*pVertexIndicies[(3*nTriangle+1)*sharedInput+offset]+2]
-				vertices[3*3*nTriangleNumber+6] = pVertexData[3*pVertexIndicies[(3*nTriangle+2)*sharedInput+offset]+0]
-				vertices[3*3*nTriangleNumber+7] = pVertexData[3*pVertexIndicies[(3*nTriangle+2)*sharedInput+offset]+1]
-				vertices[3*3*nTriangleNumber+8] = pVertexData[3*pVertexIndicies[(3*nTriangle+2)*sharedInput+offset]+2]
-				fmt.Printf("setting from %v to %v\n", 3*3*nTriangleNumber+0, 3*3*nTriangleNumber+8)
-				fmt.Printf("vertex 0: %v %v %v\n", vertices[3*3*nTriangleNumber+0], vertices[3*3*nTriangleNumber+1], vertices[3*3*nTriangleNumber+2])
-				fmt.Printf("vertex 1: %v %v %v\n", vertices[3*3*nTriangleNumber+3], vertices[3*3*nTriangleNumber+4], vertices[3*3*nTriangleNumber+5])
-				fmt.Printf("vertex 2: %v %v %v\n", vertices[3*3*nTriangleNumber+6], vertices[3*3*nTriangleNumber+7], vertices[3*3*nTriangleNumber+8])
+				offset := 0 // HACK. 0 seems to be position, 1 is normal, but need to not hardcode this.
+				vertices[3*3*nTriangleNumber+0] = pVertexData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+0]
+				vertices[3*3*nTriangleNumber+1] = pVertexData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+1]
+				vertices[3*3*nTriangleNumber+2] = pVertexData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+2]
+				vertices[3*3*nTriangleNumber+3] = pVertexData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+0]
+				vertices[3*3*nTriangleNumber+4] = pVertexData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+1]
+				vertices[3*3*nTriangleNumber+5] = pVertexData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+2]
+				vertices[3*3*nTriangleNumber+6] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+0]
+				vertices[3*3*nTriangleNumber+7] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+1]
+				vertices[3*3*nTriangleNumber+8] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+2]
+
+				offset = 1 // HACK. 0 seems to be position, 1 is normal, but need to not hardcode this.
+				normals[3*3*nTriangleNumber+0] = pNormalData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+0]
+				normals[3*3*nTriangleNumber+1] = pNormalData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+1]
+				normals[3*3*nTriangleNumber+2] = pNormalData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+2]
+				normals[3*3*nTriangleNumber+3] = pNormalData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+0]
+				normals[3*3*nTriangleNumber+4] = pNormalData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+1]
+				normals[3*3*nTriangleNumber+5] = pNormalData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+2]
+				normals[3*3*nTriangleNumber+6] = pNormalData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+0]
+				normals[3*3*nTriangleNumber+7] = pNormalData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+1]
+				normals[3*3*nTriangleNumber+8] = pNormalData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+2]
 
 				nTriangleNumber++
 			}
@@ -150,6 +175,7 @@ func loadModel() error {
 	// ---
 
 	vertexVbo = createVbo3Float(vertices)
+	normalVbo = createVbo3Float(normals)
 
 	if glError := gl.GetError(); glError != 0 {
 		return fmt.Errorf("gl.GetError: %v", glError)
@@ -281,6 +307,7 @@ func main() {
 
 		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
 		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
+		gl.Uniform3f(uCameraPosition, float32(camera.x), float32(camera.y), float32(camera.z))
 
 		// Render.
 		{
@@ -288,6 +315,11 @@ func main() {
 			vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
 			gl.EnableVertexAttribArray(vertexPositionAttribute)
 			gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0)
+
+			gl.BindBuffer(gl.ARRAY_BUFFER, normalVbo)
+			normalAttribute := gl.GetAttribLocation(program, "aNormal")
+			gl.EnableVertexAttribArray(normalAttribute)
+			gl.VertexAttribPointer(normalAttribute, 3, gl.FLOAT, false, 0, 0)
 
 			gl.DrawArrays(gl.TRIANGLES, 0, 3*m_TriangleCount)
 		}
