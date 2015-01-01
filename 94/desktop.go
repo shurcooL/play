@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/shurcooL/goglfw"
+	"github.com/shurcooL/webgl"
 )
 
 var gl *webgl.Context

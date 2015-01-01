@@ -12,10 +12,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/ajhager/webgl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/shurcooL/goglfw"
+	"github.com/shurcooL/webgl"
 )
 
 const skipTrack = false
