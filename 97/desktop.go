@@ -109,9 +109,10 @@ var normalVbo *webgl.Buffer
 
 func loadModel() error {
 	var err error
-	doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/unit_box.dae")
+	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/unit_box.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/complex_shape.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Wall_Scene/Platform.dae")
+	doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Ship.dae")
 	if err != nil {
 		return err
 	}
@@ -127,6 +128,8 @@ func loadModel() error {
 
 	// ---
 
+	//goon.DumpExpr(doc.LibraryGeometries[0].Geometry)
+
 	vertices := make([]float32, 3*3*m_TriangleCount)
 	normals := make([]float32, 3*3*m_TriangleCount)
 
@@ -140,9 +143,17 @@ func loadModel() error {
 		pVertexData := geometry.Mesh.Source[0].FloatArray.F32()
 		pNormalData := geometry.Mesh.Source[1].FloatArray.F32()
 
+		//goon.DumpExpr(len(pVertexData))
+		//goon.DumpExpr(len(pNormalData))
+
+		unsharedCount := len(geometry.Mesh.Vertices.Input)
+
 		for _, triangles := range geometry.Mesh.Triangles {
 			sharedIndicies := triangles.HasP.P.I()
 			sharedCount := len(triangles.HasSharedInput.Input)
+
+			//goon.DumpExpr(len(sharedIndicies))
+			//goon.DumpExpr(sharedCount)
 
 			for nTriangle := range iter.N(triangles.HasCount.Count) {
 				offset := 0 // HACK. 0 seems to be position, 1 is normal, but need to not hardcode this.
@@ -156,16 +167,18 @@ func loadModel() error {
 				vertices[3*3*nTriangleNumber+7] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+1]
 				vertices[3*3*nTriangleNumber+8] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+2]
 
-				offset = 1 // HACK. 0 seems to be position, 1 is normal, but need to not hardcode this.
-				normals[3*3*nTriangleNumber+0] = pNormalData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+0]
-				normals[3*3*nTriangleNumber+1] = pNormalData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+1]
-				normals[3*3*nTriangleNumber+2] = pNormalData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+2]
-				normals[3*3*nTriangleNumber+3] = pNormalData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+0]
-				normals[3*3*nTriangleNumber+4] = pNormalData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+1]
-				normals[3*3*nTriangleNumber+5] = pNormalData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+2]
-				normals[3*3*nTriangleNumber+6] = pNormalData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+0]
-				normals[3*3*nTriangleNumber+7] = pNormalData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+1]
-				normals[3*3*nTriangleNumber+8] = pNormalData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+2]
+				if unsharedCount*sharedCount == 2 {
+					offset = sharedCount - 1 // HACK. 0 seems to be position, 1 is normal, but need to not hardcode this.
+					normals[3*3*nTriangleNumber+0] = pNormalData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+0]
+					normals[3*3*nTriangleNumber+1] = pNormalData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+1]
+					normals[3*3*nTriangleNumber+2] = pNormalData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+2]
+					normals[3*3*nTriangleNumber+3] = pNormalData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+0]
+					normals[3*3*nTriangleNumber+4] = pNormalData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+1]
+					normals[3*3*nTriangleNumber+5] = pNormalData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+2]
+					normals[3*3*nTriangleNumber+6] = pNormalData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+0]
+					normals[3*3*nTriangleNumber+7] = pNormalData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+1]
+					normals[3*3*nTriangleNumber+8] = pNormalData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+2]
+				}
 
 				nTriangleNumber++
 			}
