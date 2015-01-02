@@ -50,7 +50,7 @@ void main() {
 	vec3 posToCamera = normalize(uCameraPosition - vPosition);
 	float diffuse = dot(vNormal, posToCamera);
 
-	vec3 PixelColor = (0.4 + 0.6 * diffuse) * vec3(1.0, 1.0, 1.0);
+	vec3 PixelColor = (0.2 + 0.8 * diffuse) * vec3(1.0, 1.0, 1.0);
 
 	gl_FragColor = vec4(PixelColor, 1.0);
 }
@@ -114,7 +114,7 @@ func loadModel() error {
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/complex_shape.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Wall_Scene/Platform.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Ship.dae")
-	doc, err = collada.LoadDocument("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/Hover/try1.dae")
+	doc, err = collada.LoadDocument("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/Hover/vehicle0.dae")
 	if err != nil {
 		return err
 	}
