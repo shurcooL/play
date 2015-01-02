@@ -46,11 +46,20 @@ varying vec3 vPosition;
 varying vec3 vNormal;
 
 void main() {
-	// Diffuse lighting.
-	vec3 posToCamera = normalize(uCameraPosition - vPosition);
-	float diffuse = dot(vNormal, posToCamera);
+	vec3 vNormal = normalize(vNormal);
 
-	vec3 PixelColor = (0.2 + 0.8 * diffuse) * vec3(1.0, 1.0, 1.0);
+	// Diffuse lighting.
+	vec3 toLight = normalize(vec3(1.0, 1.0, 3.0));
+	float diffuse = dot(vNormal, toLight);
+	diffuse = clamp(diffuse, 0.0, 1.0);
+
+	// Specular highlights.
+	vec3 posToCamera = normalize(uCameraPosition - vPosition);
+	vec3 halfV = normalize(toLight + posToCamera);
+	float intSpec = max(dot(halfV, vNormal), 0.0);
+	vec3 spec = 0.5 * vec3(1.0, 1.0, 1.0) * pow(intSpec, 32);
+
+	vec3 PixelColor = (0.2 + 0.8 * diffuse) * vec3(0.75, 0.75, 0.75) + spec;
 
 	gl_FragColor = vec4(PixelColor, 1.0);
 }
