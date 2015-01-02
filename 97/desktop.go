@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/GlenKelley/go-collada"
 	"github.com/bradfitz/iter"
@@ -49,7 +50,7 @@ void main() {
 	vec3 posToCamera = normalize(uCameraPosition - vPosition);
 	float diffuse = dot(vNormal, posToCamera);
 
-	vec3 PixelColor = (0.1 + 0.9 * diffuse) * vec3(1.0, 1.0, 1.0);
+	vec3 PixelColor = (0.4 + 0.6 * diffuse) * vec3(1.0, 1.0, 1.0);
 
 	gl_FragColor = vec4(PixelColor, 1.0);
 }
@@ -112,7 +113,8 @@ func loadModel() error {
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/unit_box.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/complex_shape.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Wall_Scene/Platform.dae")
-	doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Ship.dae")
+	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Ship.dae")
+	doc, err = collada.LoadDocument("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/Hover/try1.dae")
 	if err != nil {
 		return err
 	}
@@ -129,6 +131,11 @@ func loadModel() error {
 	// ---
 
 	//goon.DumpExpr(doc.LibraryGeometries[0].Geometry)
+
+	var scale float32 = 1.0
+	if strings.Contains(doc.HasAsset.Asset.Contributor[0].AuthoringTool, "Google SketchUp 8") {
+		scale = 0.4
+	}
 
 	vertices := make([]float32, 3*3*m_TriangleCount)
 	normals := make([]float32, 3*3*m_TriangleCount)
@@ -157,15 +164,15 @@ func loadModel() error {
 
 			for nTriangle := range iter.N(triangles.HasCount.Count) {
 				offset := 0 // HACK. 0 seems to be position, 1 is normal, but need to not hardcode this.
-				vertices[3*3*nTriangleNumber+0] = pVertexData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+0]
-				vertices[3*3*nTriangleNumber+1] = pVertexData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+1]
-				vertices[3*3*nTriangleNumber+2] = pVertexData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+2]
-				vertices[3*3*nTriangleNumber+3] = pVertexData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+0]
-				vertices[3*3*nTriangleNumber+4] = pVertexData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+1]
-				vertices[3*3*nTriangleNumber+5] = pVertexData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+2]
-				vertices[3*3*nTriangleNumber+6] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+0]
-				vertices[3*3*nTriangleNumber+7] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+1]
-				vertices[3*3*nTriangleNumber+8] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+2]
+				vertices[3*3*nTriangleNumber+0] = pVertexData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+0] * scale
+				vertices[3*3*nTriangleNumber+1] = pVertexData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+1] * scale
+				vertices[3*3*nTriangleNumber+2] = pVertexData[3*sharedIndicies[(3*nTriangle+0)*sharedCount+offset]+2] * scale
+				vertices[3*3*nTriangleNumber+3] = pVertexData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+0] * scale
+				vertices[3*3*nTriangleNumber+4] = pVertexData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+1] * scale
+				vertices[3*3*nTriangleNumber+5] = pVertexData[3*sharedIndicies[(3*nTriangle+1)*sharedCount+offset]+2] * scale
+				vertices[3*3*nTriangleNumber+6] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+0] * scale
+				vertices[3*3*nTriangleNumber+7] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+1] * scale
+				vertices[3*3*nTriangleNumber+8] = pVertexData[3*sharedIndicies[(3*nTriangle+2)*sharedCount+offset]+2] * scale
 
 				if unsharedCount*sharedCount == 2 {
 					offset = sharedCount - 1 // HACK. 0 seems to be position, 1 is normal, but need to not hardcode this.
@@ -220,7 +227,7 @@ func main() {
 	}
 	defer goglfw.Terminate()
 
-	window, err := goglfw.CreateWindow(windowSize[0], windowSize[1], "Terrain", nil, nil)
+	window, err := goglfw.CreateWindow(windowSize[0], windowSize[1], "", nil, nil)
 	if err != nil {
 		panic(err)
 	}

@@ -13,7 +13,7 @@ func main() {
 		panic(err)
 	}
 
-	//goon.DumpExpr(doc)
+	goon.DumpExpr(doc)
 
-	goon.DumpExpr(doc.LibraryGeometries[0].Geometry)
+	//goon.DumpExpr(doc.LibraryGeometries[0].Geometry)
 }
