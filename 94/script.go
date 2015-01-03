@@ -114,6 +114,8 @@ func main() {
 	}
 	defer goglfw.Terminate()
 
+	//goglfw.WindowHint(goglfw.Samples, 8) // Anti-aliasing.
+
 	window, err := goglfw.CreateWindow(windowSize[0], windowSize[1], "Testing", nil, nil)
 	if err != nil {
 		panic(err)
