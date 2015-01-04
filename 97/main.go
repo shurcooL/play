@@ -1,5 +1,3 @@
-// +build !js
-
 package main
 
 import (
@@ -7,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/GlenKelley/go-collada"
 	"github.com/bradfitz/iter"
@@ -16,10 +15,13 @@ import (
 	"github.com/shurcooL/webgl"
 )
 
+var startedProcess = time.Now()
+
 var gl *webgl.Context
 
 const (
-	vertexSource = `#version 120
+	vertexSource = `//#version 120 // OpenGL 2.1.
+//#version 100 // WebGL.
 
 attribute vec3 aVertexPosition;
 attribute vec3 aNormal;
@@ -36,9 +38,12 @@ void main() {
 	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }
 `
-	fragmentSource = `#version 120
+	fragmentSource = `//#version 120 // OpenGL 2.1.
+//#version 100 // WebGL.
 
-//precision lowp float;
+#ifdef GL_ES
+	precision lowp float;
+#endif
 
 uniform vec3 uCameraPosition;
 
@@ -57,7 +62,7 @@ void main() {
 	vec3 posToCamera = normalize(uCameraPosition - vPosition);
 	vec3 halfV = normalize(toLight + posToCamera);
 	float intSpec = max(dot(halfV, vNormal), 0.0);
-	vec3 spec = 0.5 * vec3(1.0, 1.0, 1.0) * pow(intSpec, 32);
+	vec3 spec = 0.5 * vec3(1.0, 1.0, 1.0) * pow(intSpec, 32.0);
 
 	vec3 PixelColor = (0.2 + 0.8 * diffuse) * vec3(0.75, 0.75, 0.75) + spec;
 
@@ -80,10 +85,18 @@ func initShaders() error {
 	gl.CompileShader(vertexShader)
 	defer gl.DeleteShader(vertexShader)
 
+	if !gl.GetShaderParameterb(vertexShader, gl.COMPILE_STATUS) {
+		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(vertexShader))
+	}
+
 	fragmentShader := gl.CreateShader(gl.FRAGMENT_SHADER)
 	gl.ShaderSource(fragmentShader, fragmentSource)
 	gl.CompileShader(fragmentShader)
 	defer gl.DeleteShader(fragmentShader)
+
+	if !gl.GetShaderParameterb(fragmentShader, gl.COMPILE_STATUS) {
+		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(fragmentShader))
+	}
 
 	program = gl.CreateProgram()
 	gl.AttachShader(program, vertexShader)
@@ -91,12 +104,12 @@ func initShaders() error {
 	gl.LinkProgram(program)
 
 	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
-		return errors.New("LINK_STATUS")
+		return errors.New("LINK_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
 	gl.ValidateProgram(program)
 	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
-		return errors.New("VALIDATE_STATUS")
+		return errors.New("VALIDATE_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
 	gl.UseProgram(program)
@@ -118,12 +131,19 @@ var vertexVbo *webgl.Buffer
 var normalVbo *webgl.Buffer
 
 func loadModel() error {
-	var err error
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/unit_box.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/complex_shape.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Wall_Scene/Platform.dae")
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/Ship.dae")
-	doc, err = collada.LoadDocument("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/Hover/vehicle0.dae")
+	//doc, err = collada.LoadDocument("/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/Hover/vehicle0.dae")
+
+	file, err := goglfw.Open("./vehicle0.dae")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	doc, err = collada.LoadDocumentFromReader(file)
 	if err != nil {
 		return err
 	}
@@ -244,6 +264,9 @@ func main() {
 
 	gl = window.Context
 
+	gl.ClearColor(0.8, 0.3, 0.01, 1)
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+
 	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
 
@@ -322,9 +345,11 @@ func main() {
 		panic(err)
 	}
 
-	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Enable(gl.DEPTH_TEST)
 
+	fmt.Printf("Loaded in %v ms.\n", time.Since(startedProcess).Seconds()*1000)
+
+	firstFrame := true
 	for !mustBool(window.ShouldClose()) {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -355,7 +380,14 @@ func main() {
 
 		window.SwapBuffers()
 		goglfw.PollEvents()
+
+		if firstFrame {
+			fmt.Printf("First frame in %v ms.\n", time.Since(startedProcess).Seconds()*1000)
+			firstFrame = false
+		}
 	}
+
+	//goon.DumpExpr(camera)
 }
 
 // ---
@@ -376,7 +408,7 @@ func mustBool(b bool, err error) bool {
 
 // =====
 
-var camera = Camera{x: 3.413633, y: -3.883973, z: 3.516000, rh: 322.550000, rv: -33.400000}
+var camera = Camera{x: 22.816348782468104, y: 13.10065063866078, z: 26.516, rh: 239.74999999999983, rv: -46.299999999999976}
 
 type Camera struct {
 	x float64
