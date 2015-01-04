@@ -1,5 +1,3 @@
-// +build !js
-
 package main
 
 import (
@@ -21,7 +19,8 @@ const skipTrack = false
 var gl *webgl.Context
 
 const (
-	vertexSource = `#version 120
+	vertexSource = `//#version 120 // OpenGL 2.1.
+//#version 100 // WebGL.
 
 attribute vec3 aVertexPosition;
 attribute vec3 aVertexColor;
@@ -36,9 +35,12 @@ void main() {
 	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }
 `
-	fragmentSource = `#version 120
+	fragmentSource = `//#version 120 // OpenGL 2.1.
+//#version 100 // WebGL.
 
-//precision lowp float;
+#ifdef GL_ES
+	precision lowp float;
+#endif
 
 varying vec3 aPixelColor;
 
@@ -143,6 +145,9 @@ func main() {
 
 	gl = window.Context
 
+	gl.ClearColor(0.8, 0.3, 0.01, 1)
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+
 	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
 
@@ -223,7 +228,6 @@ func main() {
 		panic(err)
 	}
 
-	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Enable(gl.DEPTH_TEST)
 
 	for !mustBool(window.ShouldClose()) {
