@@ -63,10 +63,18 @@ func initShaders() error {
 	gl.CompileShader(vertexShader)
 	defer gl.DeleteShader(vertexShader)
 
+	if !gl.GetShaderParameterb(vertexShader, gl.COMPILE_STATUS) {
+		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(vertexShader))
+	}
+
 	fragmentShader := gl.CreateShader(gl.FRAGMENT_SHADER)
 	gl.ShaderSource(fragmentShader, fragmentSource)
 	gl.CompileShader(fragmentShader)
 	defer gl.DeleteShader(fragmentShader)
+
+	if !gl.GetShaderParameterb(fragmentShader, gl.COMPILE_STATUS) {
+		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(fragmentShader))
+	}
 
 	program = gl.CreateProgram()
 	gl.AttachShader(program, vertexShader)
@@ -74,12 +82,12 @@ func initShaders() error {
 	gl.LinkProgram(program)
 
 	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
-		return errors.New("LINK_STATUS")
+		return errors.New("LINK_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
 	gl.ValidateProgram(program)
 	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
-		return errors.New("VALIDATE_STATUS")
+		return errors.New("VALIDATE_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
 	gl.UseProgram(program)
