@@ -1,5 +1,3 @@
-// +build js
-
 package main
 
 import (
@@ -14,7 +12,8 @@ import (
 var gl *webgl.Context
 
 const (
-	vertexSource = `#version 100
+	vertexSource = `//#version 120 // OpenGL 2.1.
+//#version 100 // WebGL.
 
 attribute vec3 aVertexPosition;
 
@@ -25,7 +24,8 @@ void main() {
 	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }
 `
-	fragmentSource = `#version 100
+	fragmentSource = `//#version 120 // OpenGL 2.1.
+//#version 100 // WebGL.
 
 void main() {
 	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
@@ -49,10 +49,18 @@ func initShaders() error {
 	gl.CompileShader(vertexShader)
 	defer gl.DeleteShader(vertexShader)
 
+	if !gl.GetShaderParameterb(vertexShader, gl.COMPILE_STATUS) {
+		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(vertexShader))
+	}
+
 	fragmentShader := gl.CreateShader(gl.FRAGMENT_SHADER)
 	gl.ShaderSource(fragmentShader, fragmentSource)
 	gl.CompileShader(fragmentShader)
 	defer gl.DeleteShader(fragmentShader)
+
+	if !gl.GetShaderParameterb(fragmentShader, gl.COMPILE_STATUS) {
+		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(fragmentShader))
+	}
 
 	program = gl.CreateProgram()
 	gl.AttachShader(program, vertexShader)
@@ -60,12 +68,12 @@ func initShaders() error {
 	gl.LinkProgram(program)
 
 	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
-		return errors.New("LINK_STATUS")
+		return errors.New("LINK_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
 	gl.ValidateProgram(program)
 	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
-		return errors.New("VALIDATE_STATUS")
+		return errors.New("VALIDATE_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
 	gl.UseProgram(program)
@@ -124,6 +132,9 @@ func main() {
 
 	gl = window.Context
 
+	gl.ClearColor(0.8, 0.3, 0.01, 1)
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+
 	MousePos := func(_ *goglfw.Window, x, y float64) {
 		mouseX, mouseY = x, y
 	}
@@ -149,8 +160,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	gl.ClearColor(0.8, 0.3, 0.01, 1)
 
 	for !mustBool(window.ShouldClose()) {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
