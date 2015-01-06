@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/goglfw"
 	"github.com/shurcooL/webgl"
 )
@@ -444,6 +445,9 @@ func newTrack(path string) *Track {
 	}
 
 	fmt.Println("Done loading track in:", time.Since(started))
+	if js.Global != nil {
+		js.Global.Call("alert", fmt.Sprintln("Done loading track in:", time.Since(started)))
+	}
 
 	return &track
 }
