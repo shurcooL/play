@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"net/http"
 
-	"code.google.com/p/go.tools/godoc/vfs/zipfs"
+	"golang.org/x/tools/godoc/vfs/zipfs"
 
 	"github.com/shurcooL/go/raw_file_server"
 )
@@ -14,6 +14,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer rc.Close()
 
 	fs := zipfs.New(rc, "name")
 
