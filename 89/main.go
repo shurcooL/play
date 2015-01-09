@@ -1,3 +1,4 @@
+// Extract a .zip file.
 package main
 
 import (
