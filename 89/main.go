@@ -5,6 +5,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/shurcooL/go/u/u11"
@@ -18,13 +19,20 @@ func main() {
 	defer r.Close()
 
 	for _, f := range r.File {
-		fmt.Printf("extracting %q into %q...", f.Name, filepath.Join(os.TempDir(), f.Name))
+		name := path.Base(f.Name)
+		fmt.Printf("extracting %q into %q...", f.Name, filepath.Join(os.TempDir(), name))
 		rc, err := f.Open()
 		if err != nil {
 			panic(err)
 		}
-		u11.WriteFile(rc, filepath.Join(os.TempDir(), f.Name))
-		rc.Close()
+		err = u11.WriteFile(rc, filepath.Join(os.TempDir(), name))
+		if err != nil {
+			panic(err)
+		}
+		err = rc.Close()
+		if err != nil {
+			panic(err)
+		}
 		fmt.Println("\ndone")
 	}
 }
