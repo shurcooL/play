@@ -53,7 +53,7 @@ func main() {
 
 	/*sock.OnMessage(func(messageEvent *dom.MessageEvent) {
 		println("received msg")
-		println(messageEvent.Data.Str())
+		println(messageEvent.Data.String())
 	})*/
 
 	sock.OnOpen(func(event js.Object) {

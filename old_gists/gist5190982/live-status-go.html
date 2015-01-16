@@ -75,7 +75,7 @@ func main() {
 		document.GetElementByID("myLiveOut").SetTextContent("Disconnected.")
 	})
 	sock.AddEventListener("message", false, func(event js.Object) {
-		document.GetElementByID("myLiveOut").SetInnerHTML(event.Get("data").Str())
+		document.GetElementByID("myLiveOut").SetInnerHTML(event.Get("data").String())
 	})
 }
 		</script>
