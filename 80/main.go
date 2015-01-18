@@ -3,7 +3,7 @@ package main
 import (
 	"net/url"
 
-	"azul3d.org/semver.v1"
+	"azul3d.org/semver.v2"
 	"github.com/shurcooL/go-goon"
 )
 
