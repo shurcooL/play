@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	sg := vcsclient.New(&url.URL{Scheme: "http", Host: "gotools.org:26203"}, nil)
+	sg := vcsclient.New(&url.URL{Scheme: "http", Host: "localhost:26203"}, nil)
 	sg.UserAgent = "gotools.org backend " + sg.UserAgent
 
 	cloneUrl, err := url.Parse("https://github.com/shurcooL/play")
@@ -29,7 +29,8 @@ func main() {
 		log.Panicln(err)
 	}
 
-	commitId, err := repo.ResolveRevision("371e3d65c2f47031ba88675eeae69f94a81a0ddc")
+	//commitId, err := repo.ResolveRevision("371e3d65c2f47031ba88675eeae69f94a81a0ddc")
+	commitId, err := repo.ResolveRevision("2874b2ef9be165966e5620fc29b592c041262721")
 
 	goon.DumpExpr(commitId, err)
 
@@ -38,7 +39,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	{
+	if false {
 		walkFn := func(path string, fi os.FileInfo, err error) error {
 			if err != nil {
 				log.Printf("can't stat file %s: %v\n", path, err)
