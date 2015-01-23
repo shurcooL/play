@@ -234,6 +234,19 @@ func main() {
 	}
 	window.SetCursorPositionCallback(mousePos)
 
+	window.SetMouseButtonCallback(func(_ *goglfw.Window, button goglfw.MouseButton, action goglfw.Action, mods goglfw.ModifierKey) {
+		isButtonPressed := [2]bool{
+			mustAction(window.GetMouseButton(goglfw.MouseButton1)) != goglfw.Release,
+			mustAction(window.GetMouseButton(goglfw.MouseButton2)) != goglfw.Release,
+		}
+
+		if isButtonPressed[0] || isButtonPressed[1] {
+			window.SetInputMode(goglfw.Cursor, goglfw.CursorDisabled)
+		} else {
+			window.SetInputMode(goglfw.Cursor, goglfw.CursorNormal)
+		}
+	})
+
 	track = newTrack("./track1.dat")
 
 	err = initShaders()

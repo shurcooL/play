@@ -172,7 +172,7 @@ func main() {
 	var lastMousePos mgl64.Vec2
 	lastMousePos[0], lastMousePos[1], _ = window.GetCursorPosition()
 	//fmt.Println("initial:", lastMousePos)
-	mousePos := func(w *goglfw.Window, x, y float64) {
+	mousePos := func(_ *goglfw.Window, x, y float64) {
 		//fmt.Println("callback:", x, y)
 		sliders := []float64{x - lastMousePos[0], y - lastMousePos[1]}
 		//axes := []float64{x, y}
@@ -225,6 +225,19 @@ func main() {
 		}
 	}
 	window.SetCursorPositionCallback(mousePos)
+
+	window.SetMouseButtonCallback(func(_ *goglfw.Window, button goglfw.MouseButton, action goglfw.Action, mods goglfw.ModifierKey) {
+		isButtonPressed := [2]bool{
+			mustAction(window.GetMouseButton(goglfw.MouseButton1)) != goglfw.Release,
+			mustAction(window.GetMouseButton(goglfw.MouseButton2)) != goglfw.Release,
+		}
+
+		if isButtonPressed[0] || isButtonPressed[1] {
+			window.SetInputMode(goglfw.Cursor, goglfw.CursorDisabled)
+		} else {
+			window.SetInputMode(goglfw.Cursor, goglfw.CursorNormal)
+		}
+	})
 
 	track = newTrack("./track1.dat")
 
