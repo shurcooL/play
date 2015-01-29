@@ -1,11 +1,10 @@
-// +build js
-
 package main
 
 import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"image"
 	_ "image/png"
 	"math"
 	"os"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/goglfw"
 	"github.com/shurcooL/webgl"
 )
@@ -23,7 +21,8 @@ const skipTrack = false
 var gl *webgl.Context
 
 const (
-	vertexSource = `#version 100
+	vertexSource = `//#version 120 // OpenGL 2.1.
+//#version 100 // WebGL.
 
 const float TERR_TEXTURE_SCALE = 1.0 / 20.0; // From track.h rather than terrain.h.
 
@@ -45,9 +44,12 @@ void main() {
 	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }
 `
-	fragmentSource = `#version 100
+	fragmentSource = `//#version 120 // OpenGL 2.1.
+//#version 100 // WebGL.
 
-precision lowp float;
+#ifdef GL_ES
+	precision lowp float;
+#endif
 
 uniform sampler2D texUnit;
 uniform sampler2D texUnit2;
@@ -572,7 +574,7 @@ func loadTexture(path string) (*webgl.Texture, error) {
 	fmt.Printf("Trying to load texture %q: ", path)
 
 	// Open the file
-	/*file, err := goglfw.Open(path)
+	file, err := goglfw.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -585,28 +587,23 @@ func loadTexture(path string) (*webgl.Texture, error) {
 	}
 
 	bounds := img.Bounds()
-	fmt.Printf("loaded %vx%v texture.\n", bounds.Dx(), bounds.Dy())*/
+	fmt.Printf("loaded %vx%v texture.\n", bounds.Dx(), bounds.Dy())
 
-	ch := make(chan error, 1)
-	img := js.Global.Get("Image").New()
-	img.Call("addEventListener", "load", func(js.Object) {
-		go func() { ch <- nil }()
-	}, false)
-	img.Call("addEventListener", "error", func(o js.Object) {
-		go func() { ch <- &js.Error{Object: o} }()
-	}, false)
-	img.Set("src", path)
-	err := <-ch
-	if err != nil {
-		return nil, err
+	var pix []byte
+	switch img := img.(type) {
+	case *image.RGBA:
+		pix = img.Pix
+	case *image.NRGBA:
+		pix = img.Pix
+	default:
+		panic("Unsupported image type.")
 	}
 
 	texture := gl.CreateTexture()
 	gl.BindTexture(gl.TEXTURE_2D, texture)
-	//gl.TexParameteri(gl.TEXTURE_2D, gl.GENERATE_MIPMAP, gl.TRUE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, bounds.Dx(), bounds.Dy(), 0, gl.RGBA, gl.UNSIGNED_BYTE, pix)
 	gl.GenerateMipmap(gl.TEXTURE_2D)
 
 	if glError := gl.GetError(); glError != 0 {
