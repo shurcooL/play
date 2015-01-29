@@ -575,6 +575,10 @@ func (this *Camera) Apply() mgl32.Mat4 {
 
 func loadTexture(path string) (*webgl.Texture, error) {
 	fmt.Printf("Trying to load texture %q: ", path)
+	started := time.Now()
+	defer func() {
+		fmt.Println("taken:", time.Since(started))
+	}()
 
 	// Open the file
 	file, err := goglfw.Open(path)
