@@ -164,6 +164,9 @@ func main() {
 
 	gl = window.Context
 
+	fmt.Printf("OpenGL: %s %s %s; %v samples.\n", gl.GetString(gl.VENDOR), gl.GetString(gl.RENDERER), gl.GetString(gl.VERSION), gl.GetInteger(gl.SAMPLES))
+	fmt.Printf("GLSL: %s.\n", gl.GetString(gl.SHADING_LANGUAGE_VERSION))
+
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
