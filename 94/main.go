@@ -138,16 +138,16 @@ func main() {
 	MousePos := func(_ *glfw.Window, x, y float64) {
 		mouseX, mouseY = x, y
 	}
-	window.SetCursorPositionCallback(MousePos)
+	window.SetCursorPosCallback(MousePos)
 
 	framebufferSizeCallback := func(w *glfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
 
-		windowSize[0], windowSize[1], _ = w.GetSize()
+		windowSize[0], windowSize[1] = w.GetSize()
 	}
 	{
 		var framebufferSize [2]int
-		framebufferSize[0], framebufferSize[1], _ = window.GetFramebufferSize()
+		framebufferSize[0], framebufferSize[1] = window.GetFramebufferSize()
 		framebufferSizeCallback(window, framebufferSize[0], framebufferSize[1])
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
@@ -161,7 +161,7 @@ func main() {
 		panic(err)
 	}
 
-	for !mustBool(window.ShouldClose()) {
+	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
 		pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
@@ -175,13 +175,4 @@ func main() {
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
-}
-
-// ---
-
-func mustBool(b bool, err error) bool {
-	if err != nil {
-		panic(err)
-	}
-	return b
 }
