@@ -11,7 +11,7 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/shurcooL/goglfw"
+	glfw "github.com/shurcooL/goglfw"
 	"github.com/shurcooL/webgl"
 )
 
@@ -140,13 +140,13 @@ func createVbo3Ubyte(vertices []uint8) *webgl.Buffer {
 var windowSize = [2]int{1024, 800}
 
 func main() {
-	err := goglfw.Init()
+	err := glfw.Init()
 	if err != nil {
 		panic(err)
 	}
-	defer goglfw.Terminate()
+	defer glfw.Terminate()
 
-	window, err := goglfw.CreateWindow(windowSize[0], windowSize[1], "Terrain", nil, nil)
+	window, err := glfw.CreateWindow(windowSize[0], windowSize[1], "Terrain", nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -157,7 +157,7 @@ func main() {
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
-	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
+	framebufferSizeCallback := func(w *glfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
 
 		windowSize[0], windowSize[1], _ = w.GetSize()
@@ -169,19 +169,19 @@ func main() {
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
-	mouseMovement := func(_ *goglfw.Window, xdelta, ydelta float64) {
+	mouseMovement := func(_ *glfw.Window, xdelta, ydelta float64) {
 		sliders := []float64{xdelta, ydelta}
 
 		{
 			isButtonPressed := [2]bool{
-				mustAction(window.GetMouseButton(goglfw.MouseButton1)) != goglfw.Release,
-				mustAction(window.GetMouseButton(goglfw.MouseButton2)) != goglfw.Release,
+				mustAction(window.GetMouseButton(glfw.MouseButton1)) != glfw.Release,
+				mustAction(window.GetMouseButton(glfw.MouseButton2)) != glfw.Release,
 			}
 
 			var moveSpeed = 1.0
 			const rotateSpeed = 0.3
 
-			if mustAction(window.GetKey(goglfw.KeyLeftShift)) != goglfw.Release || mustAction(window.GetKey(goglfw.KeyRightShift)) != goglfw.Release {
+			if mustAction(window.GetKey(glfw.KeyLeftShift)) != glfw.Release || mustAction(window.GetKey(glfw.KeyRightShift)) != glfw.Release {
 				moveSpeed *= 0.01
 			}
 
@@ -217,16 +217,16 @@ func main() {
 	}
 	window.SetMouseMovementCallback(mouseMovement)
 
-	window.SetMouseButtonCallback(func(_ *goglfw.Window, button goglfw.MouseButton, action goglfw.Action, mods goglfw.ModifierKey) {
+	window.SetMouseButtonCallback(func(_ *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 		isButtonPressed := [2]bool{
-			mustAction(window.GetMouseButton(goglfw.MouseButton1)) != goglfw.Release,
-			mustAction(window.GetMouseButton(goglfw.MouseButton2)) != goglfw.Release,
+			mustAction(window.GetMouseButton(glfw.MouseButton1)) != glfw.Release,
+			mustAction(window.GetMouseButton(glfw.MouseButton2)) != glfw.Release,
 		}
 
 		if isButtonPressed[0] || isButtonPressed[1] {
-			window.SetInputMode(goglfw.Cursor, goglfw.CursorDisabled)
+			window.SetInputMode(glfw.Cursor, glfw.CursorDisabled)
 		} else {
-			window.SetInputMode(goglfw.Cursor, goglfw.CursorNormal)
+			window.SetInputMode(glfw.Cursor, glfw.CursorNormal)
 		}
 	})
 
@@ -267,13 +267,13 @@ func main() {
 		}
 
 		window.SwapBuffers()
-		goglfw.PollEvents()
+		glfw.PollEvents()
 	}
 }
 
 // ---
 
-func mustAction(action goglfw.Action, err error) goglfw.Action {
+func mustAction(action glfw.Action, err error) glfw.Action {
 	if err != nil {
 		panic(err)
 	}
@@ -366,7 +366,7 @@ func newTrack(path string) *Track {
 
 	started := time.Now()
 
-	file, err := goglfw.Open(path)
+	file, err := glfw.Open(path)
 	if err != nil {
 		panic(err)
 	}

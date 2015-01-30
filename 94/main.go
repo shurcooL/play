@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-gl/mathgl/mgl32"
-	"github.com/shurcooL/goglfw"
+	glfw "github.com/shurcooL/goglfw"
 	"github.com/shurcooL/webgl"
 )
 
@@ -116,15 +116,15 @@ var windowSize = [2]int{400, 400}
 var mouseX, mouseY float64 = 50, 100
 
 func main() {
-	err := goglfw.Init()
+	err := glfw.Init()
 	if err != nil {
 		panic(err)
 	}
-	defer goglfw.Terminate()
+	defer glfw.Terminate()
 
-	//goglfw.WindowHint(goglfw.Samples, 8) // Anti-aliasing.
+	//glfw.WindowHint(glfw.Samples, 8) // Anti-aliasing.
 
-	window, err := goglfw.CreateWindow(windowSize[0], windowSize[1], "Testing", nil, nil)
+	window, err := glfw.CreateWindow(windowSize[0], windowSize[1], "Testing", nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -135,12 +135,12 @@ func main() {
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
-	MousePos := func(_ *goglfw.Window, x, y float64) {
+	MousePos := func(_ *glfw.Window, x, y float64) {
 		mouseX, mouseY = x, y
 	}
 	window.SetCursorPositionCallback(MousePos)
 
-	framebufferSizeCallback := func(w *goglfw.Window, framebufferSize0, framebufferSize1 int) {
+	framebufferSizeCallback := func(w *glfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
 
 		windowSize[0], windowSize[1], _ = w.GetSize()
@@ -173,7 +173,7 @@ func main() {
 		gl.DrawArrays(gl.TRIANGLES, 0, numItems)
 
 		window.SwapBuffers()
-		goglfw.PollEvents()
+		glfw.PollEvents()
 	}
 }
 
