@@ -279,16 +279,8 @@ func main() {
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
-	var lastMousePos mgl64.Vec2
-	lastMousePos[0], lastMousePos[1], _ = window.GetCursorPosition()
-	//fmt.Println("initial:", lastMousePos)
-	mousePos := func(w *goglfw.Window, x, y float64) {
-		//fmt.Println("callback:", x, y)
-		sliders := []float64{x - lastMousePos[0], y - lastMousePos[1]}
-		//axes := []float64{x, y}
-
-		lastMousePos[0] = x
-		lastMousePos[1] = y
+	mouseMovement := func(_ *goglfw.Window, xdelta, ydelta float64) {
+		sliders := []float64{xdelta, ydelta}
 
 		{
 			isButtonPressed := [2]bool{
@@ -331,10 +323,22 @@ func main() {
 			if camera.rv < -90 {
 				camera.rv = -90
 			}
-			//fmt.Printf("Cam rot h = %v, v = %v\n", camera.rh, camera.rv)
 		}
 	}
-	window.SetCursorPositionCallback(mousePos)
+	window.SetMouseMovementCallback(mouseMovement)
+
+	window.SetMouseButtonCallback(func(_ *goglfw.Window, button goglfw.MouseButton, action goglfw.Action, mods goglfw.ModifierKey) {
+		isButtonPressed := [2]bool{
+			mustAction(window.GetMouseButton(goglfw.MouseButton1)) != goglfw.Release,
+			mustAction(window.GetMouseButton(goglfw.MouseButton2)) != goglfw.Release,
+		}
+
+		if isButtonPressed[0] || isButtonPressed[1] {
+			window.SetInputMode(goglfw.Cursor, goglfw.CursorDisabled)
+		} else {
+			window.SetInputMode(goglfw.Cursor, goglfw.CursorNormal)
+		}
+	})
 
 	err = initShaders()
 	if err != nil {
