@@ -2,9 +2,10 @@ package main
 
 import (
 	"go/parser"
-	"go/printer"
 	"go/token"
 	"os"
+
+	"github.com/shurcooL/play/101/printer"
 
 	"github.com/shurcooL/go-goon"
 )
