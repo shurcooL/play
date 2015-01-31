@@ -9,25 +9,6 @@ import (
 )
 
 func Test(t *testing.T) {
-	in := []byte(`package main
-
-import "fmt"
-
-// An example of gofmt not being idempotent.
-// Repeatedly invoking gofmt will add a level of indent to the b string line each time.
-
-type Foo struct {
-	/*a string
-
-	b string*/
-	c string
-}
-
-func main() {
-	fmt.Println("Hello, playground")
-}
-`)
-
 	out, err := format.Source(in)
 	if err != nil {
 		panic(err)
