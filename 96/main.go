@@ -91,12 +91,12 @@ func initShaders() error {
 	gl.LinkProgram(program)
 
 	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
-		return errors.New("LINK_STATUS")
+		return errors.New("LINK_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
 	gl.ValidateProgram(program)
 	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
-		return errors.New("VALIDATE_STATUS")
+		return errors.New("VALIDATE_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
 	gl.UseProgram(program)
