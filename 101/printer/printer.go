@@ -506,6 +506,7 @@ func stripCommonPrefix(lines []string) {
 	var prefix string
 	if len(lines) > 2 {
 		first := true
+		allBlank := true
 		for i, line := range lines[1 : len(lines)-1] {
 			switch {
 			case isBlank(line):
@@ -513,9 +514,15 @@ func stripCommonPrefix(lines []string) {
 			case first:
 				prefix = commonPrefix(line, line)
 				first = false
+				allBlank = false
 			default:
 				prefix = commonPrefix(prefix, line)
+				allBlank = false
 			}
+		}
+		if allBlank { // all lines other than first and last are blank
+			line := lines[len(lines)-1]
+			prefix = commonPrefix(line, line)
 		}
 	} else { // len(lines) == 2, lines cannot be blank (contain /* and */)
 		line := lines[1]
