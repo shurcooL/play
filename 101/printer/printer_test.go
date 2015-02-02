@@ -96,8 +96,8 @@ func diff(aname, bname string, a, b []byte) error {
 	for i := 0; i < len(a) && i < len(b); i++ {
 		ch := a[i]
 		if ch != b[i] {
-			fmt.Fprintf(&buf, "\n%s:%d:%d: %s", aname, line, i-offs+1, lineAt(a, offs))
-			fmt.Fprintf(&buf, "\n%s:%d:%d: %s", bname, line, i-offs+1, lineAt(b, offs))
+			fmt.Fprintf(&buf, "\n%s:%d:%d: %q", aname, line, i-offs+1, lineAt(a, offs))
+			fmt.Fprintf(&buf, "\n%s:%d:%d: %q", bname, line, i-offs+1, lineAt(b, offs))
 			fmt.Fprintf(&buf, "\n\n")
 			break
 		}

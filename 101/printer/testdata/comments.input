@@ -418,6 +418,68 @@ func _() {
 		aligned line */
 }
 
+// Test cases from issue 5128?
+func _() {
+	/*a string
+
+	b string*/
+
+	/*A string
+
+
+
+	Z string*/
+
+	/*a string
+
+	b string
+
+	c string*/
+
+	{
+		/*a string
+b string*/
+
+		/*a string
+
+b string*/
+
+		/*a string
+
+b string
+
+c string*/
+	}
+
+	{
+		/*a string
+				b string*/
+
+		/*a string
+
+				b string*/
+
+		/*a string
+
+				b string
+
+				c string*/
+	}
+
+	/*
+	*/
+
+	/*
+
+	*/
+
+	/*
+
+	 * line
+
+	*/
+}
+
 /*
  * line
  * of
