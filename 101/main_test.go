@@ -1,11 +1,12 @@
 package main
 
 import (
-	"go/format"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
+
+	"github.com/shurcooL/play/101/format"
 )
 
 func Test(t *testing.T) {

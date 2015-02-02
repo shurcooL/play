@@ -10,10 +10,11 @@ import (
 	"fmt"
 	"go/ast"
 	"go/parser"
-	"go/printer"
 	"go/token"
 	"io"
 	"strings"
+
+	"github.com/shurcooL/play/101/printer"
 )
 
 var config = printer.Config{Mode: printer.UseSpaces | printer.TabIndent, Tabwidth: 8}
