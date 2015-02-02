@@ -24,6 +24,10 @@ func Test(t *testing.T) {
 	}
 }
 
+func TestRunMain(t *testing.T) {
+	main()
+}
+
 func diff(b1, b2 []byte) (data []byte, err error) {
 	f1, err := ioutil.TempFile("", "")
 	if err != nil {

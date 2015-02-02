@@ -6,16 +6,16 @@ import (
 	"os"
 
 	"github.com/shurcooL/play/101/printer"
-
-	"github.com/shurcooL/go-goon"
 )
 
 var in = []byte(`package main
 
-type Foo struct {
-	/*a string
+func main() {
+	if true {
+		/*a string
 
-	b string*/
+		b string*/
+	}
 }
 `)
 
@@ -37,5 +37,10 @@ func main() {
 		panic(err)
 	}
 
-	goon.DumpExpr(file)
+	/*err = ast.Fprint(os.Stdout, fset, file, nil)
+	if err != nil {
+		panic(err)
+	}*/
+
+	//goon.DumpExpr(file)
 }
