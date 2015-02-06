@@ -182,7 +182,7 @@ func main() {
 	}
 	window.SetFramebufferSizeCallback(framebufferSizeCallback)
 
-	mouseMovement := func(_ *glfw.Window, xdelta, ydelta float64) {
+	mouseMovement := func(_ *glfw.Window, xpos, ypos, xdelta, ydelta float64) {
 		sliders := []float64{xdelta, ydelta}
 
 		{
