@@ -9,7 +9,7 @@ import (
 	"net/rpc/jsonrpc"
 	"time"
 
-	"code.google.com/p/go.net/websocket"
+	"golang.org/x/net/websocket"
 
 	"github.com/bradfitz/iter"
 )

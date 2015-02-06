@@ -11,13 +11,12 @@
 package main
 
 import (
-	"github.com/gopherjs/gopherjs/js"
-
 	"net/rpc/jsonrpc"
 	"time"
 	"fmt"
 
-	"github.com/shurcooL/go/js/websocket"
+	//"github.com/gopherjs/gopherjs/js"
+	"github.com/gopherjs/websocket"
 	//"honnef.co/go/js/dom"
 )
 
@@ -25,7 +24,7 @@ type Args struct {
 	A, B int
 }
 
-var sock *websocket.WebSocket
+var sock *websocket.Conn
 
 func begin() { //gopherjs:blocking
 	client := jsonrpc.NewClient(sock)
@@ -48,7 +47,11 @@ func begin() { //gopherjs:blocking
 } //gopherjs:blocking
 
 func main() {
-	sock = websocket.New("ws://localhost:8081/rpc-websocket")
+	var err error
+	sock, err = websocket.Dial("ws://localhost:8081/rpc-websocket")
+	if err != nil {
+		panic(err)
+	}
 	//sock = websocket.New("ws://shurserv-no-ip.org:34600/status")
 
 	/*sock.OnMessage(func(messageEvent *dom.MessageEvent) {
@@ -56,13 +59,15 @@ func main() {
 		println(messageEvent.Data.String())
 	})*/
 
-	sock.OnOpen(func(event js.Object) {
+	/*sock.OnOpen(func(event js.Object) {
 		//sock.Write([]byte(`{"method":"Arith.Multiply","params":[{"A":15,"B":4}],"id":0}`))
 
 		go func() { //gopherjs:blocking
 			begin() //gopherjs:blocking
 		}() //gopherjs:blocking
-	})
+	})*/
+
+	begin()
 }
 		</script>
 	</body>
