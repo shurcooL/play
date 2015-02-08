@@ -12,13 +12,13 @@ import (
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/shurcooL/gogl"
 	glfw "github.com/shurcooL/goglfw"
-	"github.com/shurcooL/webgl"
 )
 
 const skipTrack = false
 
-var gl *webgl.Context
+var gl *gogl.Context
 
 const (
 	vertexSource = `//#version 120 // OpenGL 2.1.
@@ -65,11 +65,11 @@ void main() {
 `
 )
 
-var program *webgl.Program
-var pMatrixUniform *webgl.UniformLocation
-var mvMatrixUniform *webgl.UniformLocation
-var texUnit *webgl.UniformLocation
-var texUnit2 *webgl.UniformLocation
+var program *gogl.Program
+var pMatrixUniform *gogl.UniformLocation
+var mvMatrixUniform *gogl.UniformLocation
+var texUnit *gogl.UniformLocation
+var texUnit2 *gogl.UniformLocation
 
 var mvMatrix mgl32.Mat4
 var pMatrix mgl32.Mat4
@@ -113,7 +113,7 @@ func initShaders() error {
 	return nil
 }
 
-var triangleVertexPositionBuffer *webgl.Buffer
+var triangleVertexPositionBuffer *gogl.Buffer
 
 func createVbo() error {
 	triangleVertexPositionBuffer = gl.CreateBuffer()
@@ -133,14 +133,14 @@ func createVbo() error {
 	return nil
 }
 
-func createVbo3Float(vertices []float32) *webgl.Buffer {
+func createVbo3Float(vertices []float32) *gogl.Buffer {
 	vbo := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 	return vbo
 }
 
-func createVbo3Ubyte(vertices []uint8) *webgl.Buffer {
+func createVbo3Ubyte(vertices []uint8) *gogl.Buffer {
 	vbo := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
@@ -253,7 +253,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	var textures [2]*webgl.Texture
+	var textures [2]*gogl.Texture
 	textures[0], err = loadTexture("./dirt.png")
 	if err != nil {
 		panic(err)
@@ -367,9 +367,9 @@ type Track struct {
 	TerrCoords []TerrCoord
 	TriGroups  []TriGroup
 
-	vertexVbo   *webgl.Buffer
-	colorVbo    *webgl.Buffer
-	terrTypeVbo *webgl.Buffer
+	vertexVbo   *gogl.Buffer
+	colorVbo    *gogl.Buffer
+	terrTypeVbo *gogl.Buffer
 }
 
 func newTrack(path string) *Track {
@@ -548,7 +548,7 @@ func (this *Camera) Apply() mgl32.Mat4 {
 
 // =====
 
-func loadTexture(path string) (*webgl.Texture, error) {
+func loadTexture(path string) (*gogl.Texture, error) {
 	fmt.Printf("Trying to load texture %q: ", path)
 	started := time.Now()
 	defer func() {

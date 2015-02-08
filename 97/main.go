@@ -11,13 +11,13 @@ import (
 	"github.com/bradfitz/iter"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/shurcooL/gogl"
 	glfw "github.com/shurcooL/goglfw"
-	"github.com/shurcooL/webgl"
 )
 
 var startedProcess = time.Now()
 
-var gl *webgl.Context
+var gl *gogl.Context
 
 const (
 	vertexSource = `//#version 120 // OpenGL 2.1.
@@ -71,10 +71,10 @@ void main() {
 `
 )
 
-var program *webgl.Program
-var pMatrixUniform *webgl.UniformLocation
-var mvMatrixUniform *webgl.UniformLocation
-var uCameraPosition *webgl.UniformLocation
+var program *gogl.Program
+var pMatrixUniform *gogl.UniformLocation
+var mvMatrixUniform *gogl.UniformLocation
+var uCameraPosition *gogl.UniformLocation
 
 var mvMatrix mgl32.Mat4
 var pMatrix mgl32.Mat4
@@ -127,8 +127,8 @@ func initShaders() error {
 
 var doc *collada.Collada
 var m_TriangleCount, m_LineCount int
-var vertexVbo *webgl.Buffer
-var normalVbo *webgl.Buffer
+var vertexVbo *gogl.Buffer
+var normalVbo *gogl.Buffer
 
 func loadModel() error {
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/unit_box.dae")
@@ -233,14 +233,14 @@ func loadModel() error {
 	return nil
 }
 
-func createVbo3Float(vertices []float32) *webgl.Buffer {
+func createVbo3Float(vertices []float32) *gogl.Buffer {
 	vbo := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 	return vbo
 }
 
-func createVbo3Ubyte(vertices []uint8) *webgl.Buffer {
+func createVbo3Ubyte(vertices []uint8) *gogl.Buffer {
 	vbo := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)

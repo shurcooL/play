@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/shurcooL/gogl"
 	glfw "github.com/shurcooL/goglfw"
-	"github.com/shurcooL/webgl"
 )
 
-var gl *webgl.Context
+var gl *gogl.Context
 
 const (
 	vertexSource = `//#version 120 // OpenGL 2.1.
@@ -33,9 +33,9 @@ void main() {
 `
 )
 
-var program *webgl.Program
-var pMatrixUniform *webgl.UniformLocation
-var mvMatrixUniform *webgl.UniformLocation
+var program *gogl.Program
+var pMatrixUniform *gogl.UniformLocation
+var mvMatrixUniform *gogl.UniformLocation
 
 var mvMatrix mgl32.Mat4
 var pMatrix mgl32.Mat4
