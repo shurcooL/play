@@ -13,9 +13,12 @@ import (
 type PacketType uint8
 
 const (
-	JoinServerRequestPacketType PacketType = 1
-	JoinServerAcceptPacketType  PacketType = 2
-	LocalPlayerInfoPacketType   PacketType = 30
+	JoinServerRequestPacketType        PacketType = 1
+	JoinServerAcceptPacketType         PacketType = 2
+	UdpConnectionEstablishedPacketType PacketType = 5
+	LoadLevelPacketType                PacketType = 20
+	CurrentPlayersInfoPacketType       PacketType = 21
+	LocalPlayerInfoPacketType          PacketType = 30
 
 	HandshakePacketType PacketType = 100
 )
@@ -42,6 +45,36 @@ type JoinServerAcceptPacket struct {
 	TotalPlayerCount uint8
 }
 
+type UdpConnectionEstablishedPacket struct {
+	TcpPacketHeader
+}
+
+type LoadLevelPacket struct {
+	TcpPacketHeader
+
+	LevelFilename []byte
+}
+
+type CurrentPlayersInfoPacket struct {
+	TcpPacketHeader
+
+	Players []PlayerInfo
+}
+
+type PlayerInfo struct {
+	NameLength uint8
+	Name       []byte
+	Team       uint8
+	State      *State // If Team != 2.
+}
+
+type State struct {
+	LastCommandSequenceNumber uint8
+	X                         float32
+	Y                         float32
+	Z                         float32
+}
+
 type LocalPlayerInfoPacket struct {
 	TcpPacketHeader
 
@@ -59,6 +92,10 @@ type HandshakePacket struct {
 	UdpPacketHeader
 
 	Signature uint64
+}
+
+var state struct {
+	TotalPlayerCount uint8
 }
 
 func main() {
@@ -95,6 +132,8 @@ func main() {
 			panic(err)
 		}
 		goon.Dump(r)
+
+		state.TotalPlayerCount = r.TotalPlayerCount + 1
 	}
 
 	udp, err := net.Dial("udp", "localhost:25045")
@@ -114,7 +153,14 @@ func main() {
 		}
 	}
 
-	time.Sleep(time.Second) // HACK, TODO: Need to wait for UDP Connection Established packet.
+	{
+		var r UdpConnectionEstablishedPacket
+		err := binary.Read(tcp, binary.BigEndian, &r)
+		if err != nil {
+			panic(err)
+		}
+		goon.Dump(r)
+	}
 
 	{
 		const name = "shurcooL"
@@ -148,6 +194,61 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	{
+		var r LoadLevelPacket
+		err := binary.Read(tcp, binary.BigEndian, &r.TcpPacketHeader)
+		if err != nil {
+			panic(err)
+		}
+		r.LevelFilename = make([]byte, r.PacketLength)
+		err = binary.Read(tcp, binary.BigEndian, &r.LevelFilename)
+		if err != nil {
+			panic(err)
+		}
+		goon.Dump(r)
+		goon.Dump(string(r.LevelFilename))
+	}
+
+	{
+		var r CurrentPlayersInfoPacket
+		err := binary.Read(tcp, binary.BigEndian, &r.TcpPacketHeader)
+		if err != nil {
+			panic(err)
+		}
+		r.Players = make([]PlayerInfo, state.TotalPlayerCount)
+		for i := range r.Players {
+			var playerInfo PlayerInfo
+			err = binary.Read(tcp, binary.BigEndian, &playerInfo.NameLength)
+			if err != nil {
+				panic(err)
+			}
+
+			if playerInfo.NameLength != 0 {
+				playerInfo.Name = make([]byte, playerInfo.NameLength)
+				err = binary.Read(tcp, binary.BigEndian, &playerInfo.Name)
+				if err != nil {
+					panic(err)
+				}
+
+				err = binary.Read(tcp, binary.BigEndian, &playerInfo.Team)
+				if err != nil {
+					panic(err)
+				}
+
+				if playerInfo.Team != 2 {
+					playerInfo.State = new(State)
+					err = binary.Read(tcp, binary.BigEndian, playerInfo.State)
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+
+			r.Players[i] = playerInfo
+		}
+		goon.Dump(r)
 	}
 
 	fmt.Println("done")
