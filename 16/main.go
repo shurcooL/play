@@ -10,9 +10,21 @@ import (
 	"github.com/shurcooL/go-goon"
 )
 
+type PacketType uint8
+
+const (
+	JoinServerRequestPacketType PacketType = 1
+	JoinServerAcceptPacketType  PacketType = 2
+	LocalPlayerInfoPacketType   PacketType = 30
+
+	HandshakePacketType PacketType = 100
+)
+
+//go:generate stringer -type=PacketType
+
 type TcpPacketHeader struct {
 	PacketLength uint16
-	PacketType   uint8
+	PacketType   PacketType
 }
 
 type JoinServerRequestPacket struct {
@@ -40,7 +52,7 @@ type LocalPlayerInfoPacket struct {
 }
 
 type UdpPacketHeader struct {
-	PacketType uint8
+	PacketType PacketType
 }
 
 type HandshakePacket struct {
@@ -61,7 +73,7 @@ func main() {
 	{
 		var p = JoinServerRequestPacket{
 			TcpPacketHeader: TcpPacketHeader{
-				PacketType: 1,
+				PacketType: JoinServerRequestPacketType,
 			},
 			Version:    1,
 			Passphrase: [16]byte{'s', 'o', 'm', 'e', 'r', 'a', 'n', 'd', 'o', 'm', 'p', 'a', 's', 's', '0', '1'},
@@ -93,7 +105,7 @@ func main() {
 
 	{
 		var p HandshakePacket
-		p.PacketType = 100
+		p.PacketType = HandshakePacketType
 		p.Signature = signature
 
 		err := binary.Write(udp, binary.BigEndian, &p)
@@ -108,7 +120,7 @@ func main() {
 		const name = "shurcooL"
 
 		var p LocalPlayerInfoPacket
-		p.PacketType = 30
+		p.PacketType = LocalPlayerInfoPacketType
 		p.NameLength = uint8(len(name))
 		p.Name = []byte(name)
 		p.CommandRate = 20
