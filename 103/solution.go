@@ -1,19 +1,19 @@
 package task
 
 // deepIteratorInt is a basic implementation of DeepIterator<T> where T is int.
-type deepIteratorInt struct {
-	its []IteratorDataInt
+type deepIteratorᐸIntᐳ struct {
+	its []IteratorᐸDataᐸIntᐳᐳ
 }
 
-func NewDeepIteratorInt(c CollectionDataInt) DeepIteratorInt {
+func NewDeepIteratorᐸIntᐳ(c CollectionᐸDataᐸIntᐳᐳ) DeepIteratorᐸIntᐳ {
 	topmostIterator := c.Iterator()
-	return &deepIteratorInt{
-		its: []IteratorDataInt{topmostIterator},
+	return &deepIteratorᐸIntᐳ{
+		its: []IteratorᐸDataᐸIntᐳᐳ{topmostIterator},
 	}
 }
 
 // Next returns the next element.
-func (di *deepIteratorInt) Next() int {
+func (di *deepIteratorᐸIntᐳ) Next() int {
 	if !di.HasNext() {
 		panic("no next")
 	}
@@ -29,7 +29,7 @@ func (di *deepIteratorInt) Next() int {
 
 // HasNext returns true if there's at least one more element available.
 // Next can only be safely called if HasNext returns true.
-func (di *deepIteratorInt) HasNext() bool {
+func (di *deepIteratorᐸIntᐳ) HasNext() bool {
 	for {
 		if len(di.its) == 0 {
 			return false
