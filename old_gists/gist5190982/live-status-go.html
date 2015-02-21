@@ -63,7 +63,7 @@ func main() {
 		return
 	}
 
-	sock.AddEventListener("open", false, func(event js.Object) {
+	sock.AddEventListener("open", false, func(event *js.Object) {
 		document.GetElementByID("inputField").(*dom.HTMLInputElement).Value = "Just joined."
 		document.GetElementByID("inputField").(*dom.HTMLInputElement).Select()
 		liveUpdateTest(document.GetElementByID("inputField").(*dom.HTMLInputElement))
@@ -71,10 +71,10 @@ func main() {
 			liveUpdateTest(document.GetElementByID("inputField").(*dom.HTMLInputElement))
 		})
 	})
-	sock.AddEventListener("close", false, func(event js.Object) {
+	sock.AddEventListener("close", false, func(event *js.Object) {
 		document.GetElementByID("myLiveOut").SetTextContent("Disconnected.")
 	})
-	sock.AddEventListener("message", false, func(event js.Object) {
+	sock.AddEventListener("message", false, func(event *js.Object) {
 		document.GetElementByID("myLiveOut").SetInnerHTML(event.Get("data").String())
 	})
 }

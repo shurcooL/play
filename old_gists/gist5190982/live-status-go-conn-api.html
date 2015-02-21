@@ -31,7 +31,7 @@ import (
 )
 
 var document = dom.GetWindow().Document()
-var _ js.Object
+var _ *js.Object
 
 var sock *websocket.Conn
 var previousValue = ""
@@ -74,14 +74,14 @@ func main() {
 		})
 	}
 
-	/*sock.AddEventListener("close", false, func(event js.Object) {
+	/*sock.AddEventListener("close", false, func(event *js.Object) {
 		document.GetElementByID("myLiveOut").SetTextContent("Disconnected.")
 	})
 
 	/*sock.OnMessage(func(messageEvent *dom.MessageEvent) {
 		document.GetElementByID("myLiveOut").SetInnerHTML(messageEvent.Data.String())
 	})*/
-	//sock.AddEventListener("message", false, func(event js.Object) {
+	//sock.AddEventListener("message", false, func(event *js.Object) {
 	//	document.GetElementByID("myLiveOut").SetInnerHTML(event.Get("data").String())
 	//})
 

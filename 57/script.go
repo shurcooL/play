@@ -34,9 +34,9 @@ void main() {
 `
 )
 
-var program js.Object
-var pMatrixUniform js.Object
-var mvMatrixUniform js.Object
+var program *js.Object
+var pMatrixUniform *js.Object
+var mvMatrixUniform *js.Object
 
 var mvMatrix mgl32.Mat4
 var pMatrix mgl32.Mat4
