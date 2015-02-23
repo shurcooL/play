@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	//gl "github.com/chsc/gogl/gl33"
-	"github.com/go-gl/glow/gl-core/4.1/gl"
+	"github.com/go-gl/gl/v4.1-core/gl"
 )
 
 // Reads a file and returns its contents as a single string.

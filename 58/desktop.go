@@ -7,8 +7,8 @@ import (
 	"runtime"
 
 	"github.com/ajhager/webgl"
+	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"
-	glfw "github.com/shurcooL/glfw3"
 )
 
 var gl *webgl.Context
@@ -130,7 +130,7 @@ func main() {
 	MousePos := func(_ *glfw.Window, x, y float64) {
 		mouseX, mouseY = float32(x), float32(y)
 	}
-	window.SetCursorPositionCallback(MousePos)
+	window.SetCursorPosCallback(MousePos)
 
 	err = initShaders()
 	if err != nil {
@@ -143,7 +143,7 @@ func main() {
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 
-	for !mustBool(window.ShouldClose()) {
+	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
 		gl.Viewport(0, 0, viewportWidth, viewportHeight)
@@ -159,13 +159,4 @@ func main() {
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
-}
-
-// ---
-
-func mustBool(b bool, err error) bool {
-	if err != nil {
-		panic(err)
-	}
-	return b
 }

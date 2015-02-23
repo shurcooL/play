@@ -11,8 +11,8 @@ import (
 	//"github.com/go-gl/gl"
 	//gl "github.com/chsc/gogl/gl33"
 	//gl "github.com/err/gl33"
-	"github.com/go-gl/glow/gl-core/4.1/gl"
-	glfw "github.com/shurcooL/glfw3"
+	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/glfw/v3.1/glfw"
 
 	//"github.com/Ysgard/GoGLutils"
 	"github.com/go-gl/mathgl/mgl32"
@@ -38,10 +38,7 @@ var programID uint32
 }*/
 
 func CheckCoreProfile(window *glfw.Window) {
-	openGlProfile, err := window.GetAttribute(glfw.OpenGLProfile)
-	if err != nil {
-		log.Panicln(err)
-	}
+	openGlProfile := window.GetAttrib(glfw.OpenGLProfile)
 	fmt.Println("glfw.OpenGLCoreProfile:", glfw.OpenGLCoreProfile == openGlProfile)
 }
 
@@ -123,7 +120,7 @@ func main() {
 	}
 
 	//window.SetPosition(1600, 600)
-	window.SetPosition(1200, 300)
+	window.SetPos(1200, 300)
 	glfw.SwapInterval(1)
 
 	redraw := true
@@ -133,10 +130,7 @@ func main() {
 
 	size := func(w *glfw.Window, width, height int) {
 		fmt.Println("Framebuffer Size:", width, height)
-		windowWidth, windowHeight, err := w.GetSize()
-		if err != nil {
-			panic(err)
-		}
+		windowWidth, windowHeight := w.GetSize()
 		fmt.Println("Window Size:", windowWidth, windowHeight)
 		gl.Viewport(0, 0, int32(width), int32(height))
 
@@ -146,10 +140,7 @@ func main() {
 		redraw = true
 	}
 	window.SetFramebufferSizeCallback(size)
-	width, height, err := window.GetFramebufferSize()
-	if err != nil {
-		panic(err)
-	}
+	width, height := window.GetFramebufferSize()
 	size(window, width, height)
 
 	MousePos := func(w *glfw.Window, x, y float64) {
@@ -158,7 +149,7 @@ func main() {
 
 		mvMatrix = mgl32.Translate3D(float32(x), float32(y), 0)
 	}
-	window.SetCursorPositionCallback(MousePos)
+	window.SetCursorPosCallback(MousePos)
 
 	// Load Shaders
 	programID = CreateShaderProgram([]string{
@@ -179,7 +170,7 @@ func main() {
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 
-	for !mustBool(window.ShouldClose()) && glfw.Press != mustAction(window.GetKey(glfw.KeyEscape)) {
+	for !window.ShouldClose() && glfw.Press != window.GetKey(glfw.KeyEscape) {
 		glfw.WaitEvents()
 
 		if redraw {
@@ -222,20 +213,4 @@ func createObject(vertices [][3]float32) uint32 {
 	gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, nil)
 
 	return vao
-}
-
-// ---
-
-func mustAction(action glfw.Action, err error) glfw.Action {
-	if err != nil {
-		panic(err)
-	}
-	return action
-}
-
-func mustBool(b bool, err error) bool {
-	if err != nil {
-		panic(err)
-	}
-	return b
 }
