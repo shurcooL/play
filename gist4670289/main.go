@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	//. "github.com/shurcooL/go/gists/gist4668739"
 )
 
 // GoKeywords returns a list of Go keywords.
@@ -19,7 +18,7 @@ func GoKeywords() []string {
 		panic(err)
 	}
 	s := string(b)*/
-	s := HttpGet("http://golang.org/ref/spec")
+	s := httpGet("http://golang.org/ref/spec")
 	//fmt.Println(s)
 	f := strings.Index(s, "following keywords are reserved and may not be used as identifiers")
 	s = s[f:]
@@ -41,20 +40,27 @@ func main() {
 	fmt.Println(GoKeywords())
 }
 
-// Vendor gist4668739 package so this can compile after that package is removed.
+// ---
 
-func HttpGet(url string) string {
-	return string(HttpGetB(url))
+func httpGet(url string) string {
+	b, err := httpGetB(url)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
-func HttpGetB(url string) []byte {
-	r, err := http.Get(url)
+func httpGetB(url string) ([]byte, error) {
+	resp, err := http.Get(url)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	defer r.Body.Close()
-	b, err := ioutil.ReadAll(r.Body)
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("non-200 status code: %v", resp.StatusCode)
+	}
+	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return b
+	return b, nil
 }
