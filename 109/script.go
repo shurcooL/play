@@ -1,11 +1,16 @@
-// Try switching pages in frontend by rendering different html/template, without reloading page.
+// +build js
+
 package main
 
 import (
 	"bytes"
+	"crypto/sha1"
+	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"html/template"
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/gopherjs/gopherjs/js"
@@ -19,6 +24,8 @@ var document = dom.GetWindow().Document().(dom.HTMLDocument)
 func main() {}
 
 func init() {
+	rand.Seed(time.Now().UnixNano())
+
 	js.Global.Set("Open", jsutil.Wrap(Open))
 
 	document.AddEventListener("DOMContentLoaded", false, func(_ dom.Event) {
@@ -41,11 +48,18 @@ func open(name string) {
 	started := time.Now()
 	defer func() { fmt.Println("open:", time.Since(started).Seconds()*1000, "ms") }()
 
+	randomString := func() string {
+		h := sha1.New()
+		binary.Write(h, binary.LittleEndian, time.Now().UnixNano())
+		sum := h.Sum(nil)
+		return base64.URLEncoding.EncodeToString(sum)[:4+rand.Intn(17)]
+	}
+
 	var data = struct {
 		Packages   [10]string // Index 0 is the top (most recently viewed Go package).
 		Production bool
 	}{
-		Packages:   [10]string{"package 1", "package 2", "package 3", 9: "package 10"},
+		Packages:   [10]string{"package 1", "package 2", "package 3", 5: randomString(), 9: "package 10"},
 		Production: false,
 	}
 
@@ -55,12 +69,20 @@ func open(name string) {
 		log.Printf("executing template %q: %v\n", name, err)
 	}
 
-	fmt.Println("ExecuteTemplate:", time.Since(started).Seconds()*1000, "ms")
+	//fmt.Println("ExecuteTemplate:", time.Since(started).Seconds()*1000, "ms")
 
 	document.Body().SetInnerHTML(buf.String())
 	//document.Head().SetInnerHTML("<title>Title</title>") // Doing this gets rid of this script.
 
-	fmt.Println("SetInnerHTML:", time.Since(started).Seconds()*1000, "ms")
+	//newBody := document.CreateElement("body")
+	/*newBody := document.Body().CloneNode(false).(dom.Element)
+	newBody.SetInnerHTML(buf.String())
+	document.Body().ParentNode().ReplaceChild(newBody, document.Body())*/
+	/*newBody := js.Global.Get("document").Call("createElement", "body")
+	newBody.Set("innerHTML", buf.String())
+	js.Global.Get("document").Call("replaceChild", newBody, js.Global.Get("document").Get("body"))*/
+
+	//fmt.Println("SetInnerHTML:", time.Since(started).Seconds()*1000, "ms")
 }
 
 var t = template.Must(template.New("").Funcs(template.FuncMap{}).Parse(`{{define "GA"}}{{end}}
