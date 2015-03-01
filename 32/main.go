@@ -35,7 +35,7 @@ func local() {
 	started := time.Now()
 	args := &Args{7, 8}
 	var reply int
-	for _ = range iter.N(times) {
+	for range iter.N(times) {
 		err := arith.Multiply(args, &reply)
 		if err != nil {
 			log.Fatalln("arith error:", err)
