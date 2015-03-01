@@ -6,10 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/rpc"
-	"net/rpc/jsonrpc"
 	"time"
-
-	"golang.org/x/net/websocket"
 
 	"github.com/bradfitz/iter"
 )
@@ -29,8 +26,8 @@ type Args struct {
 type Arith struct{}
 
 func (_ *Arith) Multiply(args *Args, reply *int) error {
-	fmt.Printf("locally multiplying %v by %v\n", args.A, args.B)
 	*reply = args.A * args.B
+	//fmt.Printf("locally multiplying %v by %v -> %v\n", args.A, args.B, *reply)
 	return nil
 }
 
@@ -51,6 +48,7 @@ func remoteServe() {
 	rpc.Register(arith)
 	rpc.HandleHTTP()
 	go http.ListenAndServe(laddr, nil)
+	time.Sleep(time.Second)
 }
 
 func remoteSync() {
@@ -96,18 +94,9 @@ func remoteAsync() {
 }
 
 func main() {
-	switch 1 {
-	case 0:
-		local()
+	local()
 
-		remoteServe()
-		remoteAsync()
-		remoteSync()
-	case 1:
-		rpc.Register(arith)
-		http.Handle("/rpc-websocket", websocket.Handler(func(ws *websocket.Conn) {
-			jsonrpc.ServeConn(ws)
-		}))
-		panic(http.ListenAndServe(":8081", nil))
-	}
+	remoteServe()
+	remoteSync()
+	remoteAsync()
 }
