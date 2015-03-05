@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/shurcooL/go/gists/gist6545684"
 	"github.com/shurcooL/gogl"
 	glfw "github.com/shurcooL/goglfw"
 )
@@ -36,12 +37,6 @@ void main() {
 var program *gogl.Program
 var pMatrixUniform *gogl.UniformLocation
 var mvMatrixUniform *gogl.UniformLocation
-
-var mvMatrix mgl32.Mat4
-var pMatrix mgl32.Mat4
-
-var itemSize int
-var numItems int
 
 func initShaders() error {
 	vertexShader := gl.CreateShader(gl.VERTEX_SHADER)
@@ -91,18 +86,17 @@ func initShaders() error {
 func createVbo() error {
 	triangleVertexPositionBuffer := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
-	vertices := []float32{
-		0, 0, 0,
-		300, 100, 0,
-		0, 100, 0,
+	var vertices []float32
+	for _, contour := range polygon.Contours {
+		for _, vertex := range contour.Vertices {
+			vertices = append(vertices, float32(vertex[0]), float32(vertex[1]))
+		}
 	}
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
-	itemSize = 3
-	numItems = 3
 
 	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
 	gl.EnableVertexAttribArray(vertexPositionAttribute)
-	gl.VertexAttribPointer(vertexPositionAttribute, itemSize, gl.FLOAT, false, 0, 0)
+	gl.VertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0)
 
 	if glError := gl.GetError(); glError != 0 {
 		return fmt.Errorf("gl.GetError: %v", glError)
@@ -111,9 +105,11 @@ func createVbo() error {
 	return nil
 }
 
-var windowSize = [2]int{400, 400}
+var windowSize = [2]int{1280, 1280}
 
-var mouseX, mouseY float64 = 50, 100
+var cameraX, cameraY float64 = 825, 510
+
+var polygon gist6545684.Polygon
 
 func main() {
 	err := glfw.Init()
@@ -124,7 +120,7 @@ func main() {
 
 	//glfw.WindowHint(glfw.Samples, 8) // Anti-aliasing.
 
-	window, err := glfw.CreateWindow(windowSize[0], windowSize[1], "Testing", nil, nil)
+	window, err := glfw.CreateWindow(windowSize[0], windowSize[1], "", nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -135,10 +131,10 @@ func main() {
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
-	MousePos := func(_ *glfw.Window, x, y float64) {
-		mouseX, mouseY = x, y
-	}
-	window.SetCursorPosCallback(MousePos)
+	window.SetScrollCallback(func(_ *glfw.Window, xoff, yoff float64) {
+		cameraX += xoff * 5
+		cameraY += yoff * 5
+	})
 
 	framebufferSizeCallback := func(w *glfw.Window, framebufferSize0, framebufferSize1 int) {
 		gl.Viewport(0, 0, framebufferSize0, framebufferSize1)
@@ -156,6 +152,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	{
+		f, err := glfw.Open("test3.wwl")
+		if err != nil {
+			panic(err)
+		}
+		polygon, err = gist6545684.ReadGpcFromReader(f)
+		f.Close()
+		if err != nil {
+			panic(err)
+		}
+	}
 	err = createVbo()
 	if err != nil {
 		panic(err)
@@ -164,13 +171,19 @@ func main() {
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
-		pMatrix = mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
-
-		mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
+		pMatrix := mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
+		mvMatrix := mgl32.Translate3D(float32(cameraX), float32(cameraY), 0)
 
 		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
 		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
-		gl.DrawArrays(gl.TRIANGLES, 0, numItems)
+
+		// Render polygon.
+		var first int
+		for _, contour := range polygon.Contours {
+			count := len(contour.Vertices)
+			gl.DrawArrays(gl.LINE_LOOP, first, count)
+			first += count
+		}
 
 		window.SwapBuffers()
 		glfw.PollEvents()
