@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/shurcooL/go-goon"
-	"github.com/shurcooL/go/vfs_util"
+	"github.com/shurcooL/go/vfs/godocfs/vfsutil"
 
 	"strings"
 
@@ -56,7 +56,7 @@ func main() {
 			return nil
 		}
 
-		err = vfs_util.Walk(fs, "./", walkFn)
+		err = vfsutil.Walk(fs, "./", walkFn)
 		if err != nil {
 			panic(err)
 		}

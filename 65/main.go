@@ -7,9 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/shurcooL/go/vfs_util"
-
-	"code.google.com/p/go.tools/godoc/vfs"
+	"github.com/shurcooL/go/vfs/godocfs/vfsutil"
+	"golang.org/x/tools/godoc/vfs"
 )
 
 func main() {
@@ -40,7 +39,7 @@ func main() {
 
 	fs := vfs.OS("")
 
-	err = vfs_util.Walk(fs, root, walkFn)
+	err = vfsutil.Walk(fs, root, walkFn)
 	if err != nil {
 		panic(err)
 	}

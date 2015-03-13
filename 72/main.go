@@ -7,8 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"code.google.com/p/go.tools/godoc/vfs"
+	"github.com/shurcooL/go/vfs/godocfs/vfsutil"
 	"github.com/shurcooL/go/vfs_util"
+	"golang.org/x/tools/godoc/vfs"
 )
 
 func main() {
@@ -38,7 +39,7 @@ func main() {
 
 		fs = vfs_util.NewDebugFS(fs)
 
-		err := vfs_util.Walk(fs, "/", walkFn)
+		err := vfsutil.Walk(fs, "/", walkFn)
 		if err != nil {
 			panic(err)
 		}
@@ -56,7 +57,7 @@ func main() {
 
 		fs = vfs_util.NewDebugFS(ns)
 
-		err := vfs_util.Walk(fs, "/home/prefix/foo/bar/gzz", walkFn)
+		err := vfsutil.Walk(fs, "/home/prefix/foo/bar/gzz", walkFn)
 		if err != nil {
 			panic(err)
 		}

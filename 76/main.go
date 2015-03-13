@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/shurcooL/go/vfs_util"
+	"github.com/shurcooL/go/vfs/godocfs/vfsutil"
 	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 	_ "sourcegraph.com/sourcegraph/go-vcs/vcs/gitcmd"
 	_ "sourcegraph.com/sourcegraph/go-vcs/vcs/hgcmd"
@@ -59,7 +59,7 @@ func foo() (interface{}, interface{}, error) {
 			return nil
 		}
 
-		err = vfs_util.Walk(fs, "./", walkFn)
+		err = vfsutil.Walk(fs, "./", walkFn)
 		if err != nil {
 			panic(err)
 		}
