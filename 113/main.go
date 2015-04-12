@@ -10,6 +10,7 @@ import (
 	glfw "github.com/shurcooL/goglfw"
 	"golang.org/x/mobile/f32"
 	"golang.org/x/mobile/gl"
+	"golang.org/x/mobile/gl/glutil"
 )
 
 const (
@@ -45,35 +46,14 @@ var itemSize int
 var numItems int
 
 func initShaders() error {
-	vertexShader := gl.CreateShader(gl.VERTEX_SHADER)
-	gl.ShaderSource(vertexShader, vertexSource)
-	gl.CompileShader(vertexShader)
-	defer gl.DeleteShader(vertexShader)
-
-	if !gl.GetShaderParameterb(vertexShader, gl.COMPILE_STATUS) {
-		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(vertexShader))
-	}
-
-	fragmentShader := gl.CreateShader(gl.FRAGMENT_SHADER)
-	gl.ShaderSource(fragmentShader, fragmentSource)
-	gl.CompileShader(fragmentShader)
-	defer gl.DeleteShader(fragmentShader)
-
-	if !gl.GetShaderParameterb(fragmentShader, gl.COMPILE_STATUS) {
-		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(fragmentShader))
-	}
-
-	program = gl.CreateProgram()
-	gl.AttachShader(program, vertexShader)
-	gl.AttachShader(program, fragmentShader)
-
-	gl.LinkProgram(program)
-	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
-		return errors.New("LINK_STATUS: " + gl.GetProgramInfoLog(program))
+	var err error
+	program, err = glutil.CreateProgram(vertexSource, fragmentSource)
+	if err != nil {
+		return err
 	}
 
 	gl.ValidateProgram(program)
-	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
+	if gl.GetProgrami(program, gl.VALIDATE_STATUS) != gl.TRUE {
 		return errors.New("VALIDATE_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
@@ -117,27 +97,21 @@ var windowSize = [2]int{400, 400}
 var mouseX, mouseY float64 = 50, 100
 
 func main() {
-	err := glfw.Init()
+	err := glfw.Init(gl.ContextSwitcher)
 	if err != nil {
 		panic(err)
 	}
 	defer glfw.Terminate()
 
 	//glfw.WindowHint(glfw.Samples, 8) // Anti-aliasing.
-
 	window, err := glfw.CreateWindow(windowSize[0], windowSize[1], "Testing", nil, nil)
 	if err != nil {
 		panic(err)
 	}
 	window.MakeContextCurrent()
 
-	// TODO: Figure out the best way to do this.
-	//       Creating a context in WebGL world requires a reference to an HTML canvas element.
-	//gl = window.Context
-	err = gl.Init(window.Canvas)
-	if err != nil {
-		panic(err)
-	}
+	fmt.Printf("OpenGL: %s %s %s; %v samples.\n", gl.GetString(gl.VENDOR), gl.GetString(gl.RENDERER), gl.GetString(gl.VERSION), gl.GetInteger(gl.SAMPLES))
+	fmt.Printf("GLSL: %s.\n", gl.GetString(gl.SHADING_LANGUAGE_VERSION))
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
