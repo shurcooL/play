@@ -95,11 +95,11 @@ func main() {
 
 	{
 		println()
-		typ, val, err := types.Eval("Shunpo", tpkg, tpkg.Scope())
+		typVal, err := types.Eval("Shunpo", tpkg, tpkg.Scope())
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(typ, val)
+		fmt.Println(`types.Eval("Shunpo"):`, typVal)
 	}
 
 	println()
