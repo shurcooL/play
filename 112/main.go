@@ -25,7 +25,6 @@ func main() {
 		return nil
 	}
 
-
 	err := vfsutil.Walk(ns, "/test1", walkFn)
 	if err != nil {
 		panic(err)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"math"
@@ -11,13 +12,13 @@ import (
 	"github.com/bradfitz/iter"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/shurcooL/gogl"
 	glfw "github.com/shurcooL/goglfw"
+	"golang.org/x/mobile/f32"
+	"golang.org/x/mobile/gl"
+	"golang.org/x/mobile/gl/glutil"
 )
 
 var startedProcess = time.Now()
-
-var gl *gogl.Context
 
 const (
 	vertexSource = `//#version 120 // OpenGL 2.1.
@@ -71,44 +72,23 @@ void main() {
 `
 )
 
-var program *gogl.Program
-var pMatrixUniform *gogl.UniformLocation
-var mvMatrixUniform *gogl.UniformLocation
-var uCameraPosition *gogl.UniformLocation
+var program gl.Program
+var pMatrixUniform gl.Uniform
+var mvMatrixUniform gl.Uniform
+var uCameraPosition gl.Uniform
 
 var mvMatrix mgl32.Mat4
 var pMatrix mgl32.Mat4
 
 func initShaders() error {
-	vertexShader := gl.CreateShader(gl.VERTEX_SHADER)
-	gl.ShaderSource(vertexShader, vertexSource)
-	gl.CompileShader(vertexShader)
-	defer gl.DeleteShader(vertexShader)
-
-	if !gl.GetShaderParameterb(vertexShader, gl.COMPILE_STATUS) {
-		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(vertexShader))
-	}
-
-	fragmentShader := gl.CreateShader(gl.FRAGMENT_SHADER)
-	gl.ShaderSource(fragmentShader, fragmentSource)
-	gl.CompileShader(fragmentShader)
-	defer gl.DeleteShader(fragmentShader)
-
-	if !gl.GetShaderParameterb(fragmentShader, gl.COMPILE_STATUS) {
-		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(fragmentShader))
-	}
-
-	program = gl.CreateProgram()
-	gl.AttachShader(program, vertexShader)
-	gl.AttachShader(program, fragmentShader)
-
-	gl.LinkProgram(program)
-	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
-		return errors.New("LINK_STATUS: " + gl.GetProgramInfoLog(program))
+	var err error
+	program, err = glutil.CreateProgram(vertexSource, fragmentSource)
+	if err != nil {
+		return err
 	}
 
 	gl.ValidateProgram(program)
-	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
+	if gl.GetProgrami(program, gl.VALIDATE_STATUS) != gl.TRUE {
 		return errors.New("VALIDATE_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
@@ -127,8 +107,8 @@ func initShaders() error {
 
 var doc *collada.Collada
 var m_TriangleCount, m_LineCount int
-var vertexVbo *gogl.Buffer
-var normalVbo *gogl.Buffer
+var vertexVbo gl.Buffer
+var normalVbo gl.Buffer
 
 func loadModel() error {
 	//doc, err = collada.LoadDocument("/Users/Dmitri/Dmitri/^Work/^GitHub/Slide/Models/unit_box.dae")
@@ -233,14 +213,14 @@ func loadModel() error {
 	return nil
 }
 
-func createVbo3Float(vertices []float32) *gogl.Buffer {
+func createVbo3Float(vertices []float32) gl.Buffer {
 	vbo := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, f32.Bytes(binary.LittleEndian, vertices...), gl.STATIC_DRAW)
 	return vbo
 }
 
-func createVbo3Ubyte(vertices []uint8) *gogl.Buffer {
+func createVbo3Ubyte(vertices []uint8) gl.Buffer {
 	vbo := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
@@ -250,7 +230,7 @@ func createVbo3Ubyte(vertices []uint8) *gogl.Buffer {
 var windowSize = [2]int{1024, 800}
 
 func main() {
-	err := glfw.Init()
+	err := glfw.Init(gl.ContextSwitcher)
 	if err != nil {
 		panic(err)
 	}
@@ -261,8 +241,6 @@ func main() {
 		panic(err)
 	}
 	window.MakeContextCurrent()
-
-	gl = window.Context
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -363,8 +341,8 @@ func main() {
 		//mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
 		mvMatrix = camera.Apply()
 
-		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
-		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
+		gl.UniformMatrix4fv(pMatrixUniform, pMatrix[:])
+		gl.UniformMatrix4fv(mvMatrixUniform, mvMatrix[:])
 		gl.Uniform3f(uCameraPosition, float32(camera.x), float32(camera.y), float32(camera.z))
 
 		// Render.
