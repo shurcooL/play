@@ -1,16 +1,17 @@
 package main
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/goxjs/gl"
+	"github.com/goxjs/gl/glutil"
+	"github.com/goxjs/glfw"
 	"github.com/shurcooL/go/gists/gist6545684"
-	"github.com/shurcooL/gogl"
-	glfw "github.com/shurcooL/goglfw"
+	"golang.org/x/mobile/f32"
 )
-
-var gl *gogl.Context
 
 const (
 	vertexSource = `//#version 120 // OpenGL 2.1.
@@ -34,40 +35,19 @@ void main() {
 `
 )
 
-var program *gogl.Program
-var pMatrixUniform *gogl.UniformLocation
-var mvMatrixUniform *gogl.UniformLocation
+var program gl.Program
+var pMatrixUniform gl.Uniform
+var mvMatrixUniform gl.Uniform
 
 func initShaders() error {
-	vertexShader := gl.CreateShader(gl.VERTEX_SHADER)
-	gl.ShaderSource(vertexShader, vertexSource)
-	gl.CompileShader(vertexShader)
-	defer gl.DeleteShader(vertexShader)
-
-	if !gl.GetShaderParameterb(vertexShader, gl.COMPILE_STATUS) {
-		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(vertexShader))
-	}
-
-	fragmentShader := gl.CreateShader(gl.FRAGMENT_SHADER)
-	gl.ShaderSource(fragmentShader, fragmentSource)
-	gl.CompileShader(fragmentShader)
-	defer gl.DeleteShader(fragmentShader)
-
-	if !gl.GetShaderParameterb(fragmentShader, gl.COMPILE_STATUS) {
-		return errors.New("COMPILE_STATUS: " + gl.GetShaderInfoLog(fragmentShader))
-	}
-
-	program = gl.CreateProgram()
-	gl.AttachShader(program, vertexShader)
-	gl.AttachShader(program, fragmentShader)
-
-	gl.LinkProgram(program)
-	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
-		return errors.New("LINK_STATUS: " + gl.GetProgramInfoLog(program))
+	var err error
+	program, err = glutil.CreateProgram(vertexSource, fragmentSource)
+	if err != nil {
+		return err
 	}
 
 	gl.ValidateProgram(program)
-	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
+	if gl.GetProgrami(program, gl.VALIDATE_STATUS) != gl.TRUE {
 		return errors.New("VALIDATE_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
@@ -92,7 +72,7 @@ func createVbo() error {
 			vertices = append(vertices, float32(vertex[0]), float32(vertex[1]))
 		}
 	}
-	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, f32.Bytes(binary.LittleEndian, vertices...), gl.STATIC_DRAW)
 
 	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
 	gl.EnableVertexAttribArray(vertexPositionAttribute)
@@ -112,7 +92,7 @@ var cameraX, cameraY float64 = 825, 510
 var polygon gist6545684.Polygon
 
 func main() {
-	err := glfw.Init()
+	err := glfw.Init(gl.ContextSwitcher)
 	if err != nil {
 		panic(err)
 	}
@@ -125,8 +105,6 @@ func main() {
 		panic(err)
 	}
 	window.MakeContextCurrent()
-
-	gl = window.Context
 
 	gl.ClearColor(0.8, 0.3, 0.01, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -174,8 +152,8 @@ func main() {
 		pMatrix := mgl32.Ortho2D(0, float32(windowSize[0]), float32(windowSize[1]), 0)
 		mvMatrix := mgl32.Translate3D(float32(cameraX), float32(cameraY), 0)
 
-		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
-		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
+		gl.UniformMatrix4fv(pMatrixUniform, pMatrix[:])
+		gl.UniformMatrix4fv(mvMatrixUniform, mvMatrix[:])
 
 		// Render polygon.
 		var first int

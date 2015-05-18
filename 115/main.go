@@ -1,3 +1,4 @@
+// Render terrain with textures using "golang.org/x/mobile/gl" package (with CL 8793 merged).
 package main
 
 import (
@@ -12,10 +13,10 @@ import (
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
-	glfw "github.com/shurcooL/goglfw"
+	"github.com/goxjs/gl" // "golang.org/x/mobile/gl" package fork (with CL 8793 merged).
+	"github.com/goxjs/gl/glutil"
+	"github.com/goxjs/glfw"
 	"golang.org/x/mobile/f32"
-	"golang.org/x/mobile/gl"
-	"golang.org/x/mobile/gl/glutil"
 )
 
 const skipTrack = false
