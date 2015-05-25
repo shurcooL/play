@@ -1,3 +1,4 @@
+// Play with blackfriday Markdown renderers.
 package main
 
 import (

@@ -1,3 +1,4 @@
+// An example of creating a custom blackfriday.Renderer that reuses blackfriday.Html while overriding Link rendering.
 package main
 
 import (
