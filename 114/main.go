@@ -120,7 +120,7 @@ func createVbo3Ubyte(vertices []uint8) gl.Buffer {
 var windowSize = [2]int{1024, 800}
 
 func main() {
-	err := glfw.Init(gl.ContextSwitcher)
+	err := glfw.Init(gl.ContextWatcher)
 	if err != nil {
 		panic(err)
 	}

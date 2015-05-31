@@ -92,7 +92,7 @@ var cameraX, cameraY float64 = 825, 510
 var polygon gist6545684.Polygon
 
 func main() {
-	err := glfw.Init(gl.ContextSwitcher)
+	err := glfw.Init(gl.ContextWatcher)
 	if err != nil {
 		panic(err)
 	}

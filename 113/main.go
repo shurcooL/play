@@ -97,7 +97,7 @@ var windowSize = [2]int{400, 400}
 var mouseX, mouseY float64 = 50, 100
 
 func main() {
-	err := glfw.Init(gl.ContextSwitcher)
+	err := glfw.Init(gl.ContextWatcher)
 	if err != nil {
 		panic(err)
 	}
