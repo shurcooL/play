@@ -42,6 +42,16 @@ func foo() (interface{}, interface{}, error) {
 		return nil, nil, err
 	}
 
+	_, err = fs.Open("/doc.go") // doesn't exist (now fixed)
+	fmt.Println(err)
+	_, err = fs.Open("doc.go") // works
+	fmt.Println(err)
+
+	_, err = fs.ReadDir("/") // doesn't exist (now fixed)
+	fmt.Println(err)
+	_, err = fs.ReadDir(".") // works
+	fmt.Println(err)
+
 	{
 		walkFn := func(path string, fi os.FileInfo, err error) error {
 			if err != nil {
@@ -65,5 +75,6 @@ func foo() (interface{}, interface{}, error) {
 		}
 	}
 
-	panic("all good")
+	fmt.Println("all good")
+	return nil, nil, nil
 }
