@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/shurcooL/go/github_flavored_markdown"
+	"github.com/shurcooL/github_flavored_markdown"
 	"github.com/shurcooL/go/u/u9"
 	"github.com/shurcooL/markdownfmt/markdown"
 
