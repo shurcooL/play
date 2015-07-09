@@ -15,7 +15,7 @@ import (
 	"github.com/goxjs/gl" // "golang.org/x/mobile/gl" package fork (with CL 8793 merged).
 	"github.com/goxjs/gl/glutil"
 	"github.com/goxjs/glfw"
-	"golang.org/x/mobile/f32"
+	"golang.org/x/mobile/exp/f32"
 )
 
 const skipTrack = false

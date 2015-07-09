@@ -16,7 +16,7 @@ import (
 	"github.com/goxjs/gl"
 	"github.com/goxjs/gl/glutil"
 	"github.com/goxjs/glfw"
-	"golang.org/x/mobile/f32"
+	"golang.org/x/mobile/exp/f32"
 )
 
 var startedProcess = time.Now()
