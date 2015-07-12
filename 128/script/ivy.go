@@ -60,7 +60,7 @@ func main() {
 
 	// Send a copy of stdin to stdout (like in most terminals).
 	input := NewReader(document.GetElementByID("input").(*dom.HTMLInputElement))
-	stdin := bufio.NewReader(io.TeeReader(input, stdout))
+	stdin := io.TeeReader(input, stdout)
 
 	// When console is clicked, focus the input element.
 	// TODO: Make it possible/friendlier to copy the text from stdout...
@@ -123,7 +123,7 @@ func main() {
 		return
 	}
 
-	scanner := scan.New(&conf, "<stdin>", stdin)
+	scanner := scan.New(&conf, "<stdin>", bufio.NewReader(stdin))
 	parser := parse.NewParser(&conf, "<stdin>", scanner, context)
 	for !run(parser, context, true) {
 	}
