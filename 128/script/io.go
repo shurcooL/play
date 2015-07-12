@@ -40,7 +40,7 @@ func (r *reader) Read(p []byte) (n int, err error) {
 	return n, nil
 }
 
-// NewWriter takes a <pre> element and makes a writer out of it.
+// NewWriter takes a <pre> element and makes an io.Writer out of it.
 func NewWriter(e *dom.HTMLPreElement) io.Writer {
 	return &writer{e: e}
 }
