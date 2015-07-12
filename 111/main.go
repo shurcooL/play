@@ -1,3 +1,4 @@
+// Render a simple 2D polygon using "golang.org/x/mobile/gl" package (with CL 8793 merged).
 package main
 
 import (
