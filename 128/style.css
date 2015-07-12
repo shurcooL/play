@@ -1,0 +1,23 @@
+body {
+	margin: 20px;
+}
+
+#output {
+	margin: 0;
+	font-size: 1em;
+}
+
+#input {
+	font-family: monospace;
+	font-size: 1em;
+	outline: none;
+	border: none;
+	padding: 0;
+	width: 100%;
+	background-color: #eee;
+}
+
+#console {
+	background-color: #eee;
+	padding: 6px;
+}
