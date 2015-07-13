@@ -57,10 +57,10 @@ func main() {
 	// Create an implementation of stdout, stderr, stdin that uses a <pre> and <input> html elements.
 	stdout := NewWriter(document.GetElementByID("output").(*dom.HTMLPreElement))
 	stderr = NewWriter(document.GetElementByID("output").(*dom.HTMLPreElement))
+	stdin := NewReader(document.GetElementByID("input").(*dom.HTMLInputElement))
 
 	// Send a copy of stdin to stdout (like in most terminals).
-	input := NewReader(document.GetElementByID("input").(*dom.HTMLInputElement))
-	stdin := io.TeeReader(input, stdout)
+	stdin = io.TeeReader(stdin, stdout)
 
 	// When console is clicked, focus the input element.
 	// TODO: Make it possible/friendlier to copy the text from stdout...
