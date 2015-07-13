@@ -5,6 +5,7 @@ body {
 #output {
 	margin: 0;
 	font-size: 1em;
+	word-wrap: break-word;
 }
 
 #input {
