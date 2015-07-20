@@ -27,7 +27,8 @@ func main() {
 	defer f.Close()
 
 	var importers u5.Importers
-	if err := json.NewDecoder(f).Decode(&importers); err != nil {
+	err = json.NewDecoder(f).Decode(&importers)
+	if err != nil {
 		panic(err)
 	}
 
