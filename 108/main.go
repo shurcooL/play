@@ -6,7 +6,7 @@ package main
 /*
 #cgo CFLAGS: -x objective-c
 #cgo LDFLAGS: -framework Cocoa
-#include "main.m"
+#include "main.h"
 */
 import "C"
 
