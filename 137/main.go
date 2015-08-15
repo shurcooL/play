@@ -1,4 +1,4 @@
-// Render a basic triangle using "golang.org/x/mobile/gl" package (with CL 8793 merged).
+// Render a basic triangle using "golang.org/x/mobile/gl" package.
 package main
 
 import (
