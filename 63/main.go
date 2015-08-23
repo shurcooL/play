@@ -249,7 +249,7 @@ func parserHandler(w http.ResponseWriter, req *http.Request) {
 
 		sort.Sort(anns)
 
-		b, err := annotate.Annotate(src, anns, func(w io.Writer, b []byte) { template.HTMLEscape(w, b) })
+		b, err := annotate.Annotate(src, anns, template.HTMLEscape)
 		if err != nil {
 			panic(err)
 		}
