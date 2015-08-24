@@ -38,6 +38,11 @@ func init() {
 
 //func SwitchTab(event dom.Event, anchor *dom.HTMLAnchorElement) {
 func SwitchTab(event dom.Event, element dom.HTMLElement) {
+	// If it's not a left click, defer to default event handling.
+	if me, ok := event.(*dom.MouseEvent); ok && me.Button != 0 {
+		return
+	}
+
 	event.PreventDefault()
 
 	rawQuery := strings.TrimPrefix(element.(*dom.HTMLAnchorElement).Search, "?")
