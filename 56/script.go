@@ -91,7 +91,7 @@ func main() {
 
 			hideOverlay(overlay)
 
-			if document.ActiveElement().Underlying() == command.Underlying() {
+			if document.ActiveElement().IsEqualNode(command) {
 				//dom.GetWindow().Location().Hash = baseHash
 				js.Global.Get("window").Get("history").Call("replaceState", nil, nil, "#"+baseHash)
 				dom.GetWindow().ScrollTo(baseX, baseY)
