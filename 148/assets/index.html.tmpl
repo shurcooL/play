@@ -1,0 +1,45 @@
+<html>
+	<head>
+		<style>
+nav {
+	margin: 16px 0 16px 0;
+}
+nav a {
+	color: black; text-decoration: none;
+	display: inline-block;
+	padding: 6px 14px 6px 14px;
+}
+nav a.active {
+	cursor: default;
+	background-color: #ddd;
+}
+		</style>
+		<script src="/assets/script/script.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<h1>Multiple Tabs on One Page</h1>
+		<p>There are three tabs below. Try switching between them.</p>
+		<nav id="nav">{{.Tabs}}</nav>
+		<div id="tab">{{template "tab1"}}</div>
+	</body>
+</html>
+
+{{define "tab1"}}
+<p>Stuff that happens to be on tab 1.</p>
+
+<ul>
+	<li>First thing</li>
+	<li>Second thing</li>
+	<li>Third thing</li>
+</ul>
+
+<div>Your Go Package: <input placeholder="import/path"></input></div>
+{{end}}
+
+{{define "tab2"}}
+Stuff that happens to be on tab 2.
+{{end}}
+
+{{define "tab3"}}
+Stuff that happens to be on tab 3.
+{{end}}
