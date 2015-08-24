@@ -3,18 +3,21 @@
 package main
 
 import (
+	"bytes"
+	"crypto/sha1"
+	"encoding/base64"
+	"encoding/binary"
+	"fmt"
 	"html/template"
+	"log"
 	"math/rand"
 	"net/url"
 	"strings"
 	"time"
 
-	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
-
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/go/gopherjs_http/jsutil"
-	"github.com/shurcooL/htmlg"
+	"github.com/shurcooL/play/148/pages"
 
 	"honnef.co/go/js/dom"
 )
@@ -40,7 +43,7 @@ func SwitchTab(event dom.Event, element dom.HTMLElement) {
 	rawQuery := strings.TrimPrefix(element.(*dom.HTMLAnchorElement).Search, "?")
 	query, _ := url.ParseQuery(rawQuery)
 
-	document.GetElementByID("nav").SetInnerHTML(string(tabs(query)))
+	document.GetElementByID("nav").SetInnerHTML(string(pages.Tabs(query)))
 
 	// TODO: dom.GetWindow().History().PushState(...)
 	// TODO: Use existing dom.GetWindow().Location().Search, just change "tab" query.
@@ -48,8 +51,7 @@ func SwitchTab(event dom.Event, element dom.HTMLElement) {
 	// TODO: Verify the "." thing works in general case, e.g., for files, different subfolders, etc.
 	js.Global.Get("window").Get("history").Call("pushState", nil, nil, "."+fullQuery(query.Encode())+dom.GetWindow().Location().Hash)
 
-	//var selectedTab = query.Get("tab")
-	//fmt.Println(selectedTab)
+	go open("tab" + query.Get("tab"))
 
 	/*name := "index"
 	if event != nil && element != nil {
@@ -68,40 +70,6 @@ func fullQuery(rawQuery string) string {
 	return "?" + rawQuery
 }
 
-func tabs(query url.Values) template.HTML {
-	//return `<a class="active" onclick="Open(event, this);">Tab 1</a><a>Tab 2</a><a>Tab 3</a>`
-
-	var selectedTab = query.Get("tab")
-
-	var ns []*html.Node
-
-	for _, tab := range []struct {
-		id   string
-		name string
-	}{{"", "Tab 1"}, {"2", "Tab 2"}, {"3", "Tab 3"}} {
-		a := &html.Node{Type: html.ElementNode, Data: atom.A.String()}
-		if tab.id == selectedTab {
-			a.Attr = []html.Attribute{{Key: "class", Val: "active"}}
-		} else {
-			u := url.URL{Path: "/"}
-			if tab.id != "" {
-				u.RawQuery = url.Values{"tab": {tab.id}}.Encode()
-			}
-			a.Attr = []html.Attribute{{Key: atom.Href.String(), Val: u.String()}}
-		}
-		a.Attr = append(a.Attr, html.Attribute{Key: "onclick", Val: "SwitchTab(event, this);"})
-		a.AppendChild(htmlg.Text(tab.name))
-		ns = append(ns, a)
-	}
-
-	tabs, err := htmlg.RenderNodes(ns...)
-	if err != nil {
-		panic(err)
-	}
-	return tabs
-}
-
-/*
 //func Open(event dom.Event, anchor *dom.HTMLAnchorElement) {
 func Open(event dom.Event, element dom.HTMLElement) {
 	name := "index"
@@ -138,6 +106,26 @@ func open(name string) {
 		log.Printf("executing template %q: %v\n", name, err)
 	}
 
-	document.Body().SetInnerHTML(buf.String())
+	document.GetElementByID("tab").SetInnerHTML(buf.String())
 }
-*/
+
+var t = template.Must(template.New("").Funcs(template.FuncMap{}).Parse(`{{define "tab"}}
+<p>Stuff that happens to be on tab 1.</p>
+
+<ul>
+	<li>First thing</li>
+	<li>Second thing</li>
+	<li>Third thing</li>
+</ul>
+
+<div>Your Go Package: <input placeholder="import/path"></input></div>
+{{end}}
+
+{{define "tab2"}}
+Stuff that happens to be on tab 2.
+{{end}}
+
+{{define "tab3"}}
+Stuff that happens to be on tab 3.
+{{end}}
+`))
