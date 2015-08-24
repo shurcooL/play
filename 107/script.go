@@ -8,6 +8,8 @@ import (
 	"html"
 	"html/template"
 
+	"github.com/shurcooL/go/u/u9"
+
 	"honnef.co/go/js/dom"
 )
 
@@ -65,6 +67,9 @@ func setup() {
 	input2.Value = initial2
 
 	run(nil)
+
+	u9.AddTabSupport(input)
+	u9.AddTabSupport(input2)
 }
 
 const initial = `{{define "GA"}}{{end}}
