@@ -56,7 +56,7 @@ func SwitchTab(event dom.Event, element dom.HTMLElement) {
 	// TODO: Verify the "." thing works in general case, e.g., for files, different subfolders, etc.
 	js.Global.Get("window").Get("history").Call("pushState", nil, nil, "."+fullQuery(query.Encode())+dom.GetWindow().Location().Hash)
 
-	go open("tab" + query.Get("tab"))
+	go switchTab("tab" + query.Get("tab"))
 
 	/*name := "index"
 	if event != nil && element != nil {
@@ -67,6 +67,8 @@ func SwitchTab(event dom.Event, element dom.HTMLElement) {
 	go open(name)*/
 }
 
+var tabs = make(map[string]dom.Node) // Tab id -> existing Node.
+
 // fullQuery returns rawQuery with a "?" prefix if rawQuery is non-empty.
 func fullQuery(rawQuery string) string {
 	if rawQuery == "" {
@@ -75,7 +77,7 @@ func fullQuery(rawQuery string) string {
 	return "?" + rawQuery
 }
 
-//func Open(event dom.Event, anchor *dom.HTMLAnchorElement) {
+/*//func Open(event dom.Event, anchor *dom.HTMLAnchorElement) {
 func Open(event dom.Event, element dom.HTMLElement) {
 	name := "index"
 	if event != nil && element != nil {
@@ -84,11 +86,18 @@ func Open(event dom.Event, element dom.HTMLElement) {
 	}
 
 	go open(name)
-}
+}*/
 
-func open(name string) {
+func switchTab(name string) {
 	started := time.Now()
-	defer func() { fmt.Println("open:", time.Since(started).Seconds()*1000, "ms") }()
+	defer func() { fmt.Println("switchTab:", len(tabs), "tabs,", time.Since(started).Seconds()*1000, "ms") }()
+
+	oldTab := document.GetElementByID("tab")
+
+	if tab, ok := tabs[name]; ok {
+		oldTab.ParentNode().ReplaceChild(tab, oldTab)
+		return
+	}
 
 	randomString := func() string {
 		h := sha1.New()
@@ -111,7 +120,13 @@ func open(name string) {
 		log.Printf("executing template %q: %v\n", name, err)
 	}
 
-	document.GetElementByID("tab").SetInnerHTML(buf.String())
+	// <div id="tab">{{template "tab"}}</div>
+	newTab := document.CreateElement("div")
+	newTab.SetID("tab")
+	newTab.SetInnerHTML(buf.String())
+	tabs[name] = newTab
+
+	oldTab.ParentNode().ReplaceChild(newTab, oldTab)
 }
 
 var t = template.Must(template.New("").Funcs(template.FuncMap{}).Parse(`{{define "tab"}}
