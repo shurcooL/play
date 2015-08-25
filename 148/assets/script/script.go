@@ -88,14 +88,18 @@ func Open(event dom.Event, element dom.HTMLElement) {
 	go open(name)
 }*/
 
+var previousTab = "tab" // HACK.
+
 func switchTab(name string) {
 	started := time.Now()
 	defer func() { fmt.Println("switchTab:", len(tabs), "tabs,", time.Since(started).Seconds()*1000, "ms") }()
 
-	oldTab := document.GetElementByID("tab")
+	oldTab := document.GetElementByID(previousTab)
 
 	if tab, ok := tabs[name]; ok {
-		oldTab.ParentNode().ReplaceChild(tab, oldTab)
+		oldTab.(dom.HTMLElement).Style().SetProperty("display", "none", "")
+		tab.(dom.HTMLElement).Style().SetProperty("display", "initial", "")
+		previousTab = name
 		return
 	}
 
@@ -122,11 +126,13 @@ func switchTab(name string) {
 
 	// <div id="tab">{{template "tab"}}</div>
 	newTab := document.CreateElement("div")
-	newTab.SetID("tab")
+	newTab.SetID(name)
 	newTab.SetInnerHTML(buf.String())
 	tabs[name] = newTab
 
-	oldTab.ParentNode().ReplaceChild(newTab, oldTab)
+	oldTab.ParentNode().InsertBefore(newTab, oldTab)
+	oldTab.(dom.HTMLElement).Style().SetProperty("display", "none", "")
+	previousTab = name
 }
 
 var t = template.Must(template.New("").Funcs(template.FuncMap{}).Parse(`{{define "tab"}}
