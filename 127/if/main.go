@@ -1,23 +1,26 @@
 // Play with benchmarking a tight loop with many iterations and a func call, compare gc vs GopherJS performance.
 //
-// The initial implementation that uses math.Pow.
+// An alternative more close-to-metal implementation that doesn't use math.Pow.
 package main
 
 import (
 	"fmt"
-	"math"
 	"time"
 )
 
-func term(k float64) float64 {
-	return 4 * math.Pow(-1, k) / (2*k + 1)
+func term(k int32) float64 {
+	if k%2 == 0 {
+		return 4 / (2*float64(k) + 1)
+	} else {
+		return -4 / (2*float64(k) + 1)
+	}
 }
 
-// pi performs n iterations to compute an approximation of pi using math.Pow.
+// pi performs n iterations to compute an approximation of pi.
 func pi(n int32) float64 {
 	f := 0.0
 	for k := int32(0); k <= n; k++ {
-		f += term(float64(k))
+		f += term(k)
 	}
 	return f
 }
@@ -26,7 +29,7 @@ func main() {
 	// Start measuring time from now.
 	started := time.Now()
 
-	const n = 50 * 1000 * 1000
+	const n = 1000 * 1000 * 1000
 	fmt.Printf("approximating pi with %v iterations.\n", n)
 	fmt.Println(pi(n))
 
