@@ -10,14 +10,13 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/go.net/websocket"
-
-	. "github.com/shurcooL/go/gists/gist6096872"
+	"github.com/shurcooL/go/gists/gist6096872"
+	"golang.org/x/net/websocket"
 )
 
 // ffmpeg -s 640x480 -f video4linux2 -i /dev/video0 -f mpeg1video -b 800k -r 30 'http://10.0.0.22:8080/input?width=640&height=480'
 
-var data = make(ChanWriter)
+var data = make(gist6096872.ChanWriter)
 
 var state = struct {
 	Statuses      map[*websocket.Conn]struct{}
@@ -27,6 +26,9 @@ var state = struct {
 }{Statuses: make(map[*websocket.Conn]struct{})}
 
 func output(c *websocket.Conn) {
+	// TODO: See if maybe this would help? It wasn't here when I wrote the code originally.
+	c.PayloadType = websocket.BinaryFrame
+
 	state.Lock()
 	state.Statuses[c] = struct{}{}
 	println("New handler #", len(state.Statuses))
