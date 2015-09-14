@@ -18,7 +18,6 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/shurcooL/go/gopherjs_http/jsutil"
 	"github.com/shurcooL/play/148/pages"
-
 	"honnef.co/go/js/dom"
 )
 
@@ -48,7 +47,7 @@ func SwitchTab(event dom.Event, element dom.HTMLElement) {
 	rawQuery := strings.TrimPrefix(element.(*dom.HTMLAnchorElement).Search, "?")
 	query, _ := url.ParseQuery(rawQuery)
 
-	document.GetElementByID("nav").SetInnerHTML(string(pages.Tabs(query)))
+	document.GetElementByID("tabs").SetInnerHTML(string(pages.Tabs(query)))
 
 	// TODO: dom.GetWindow().History().PushState(...)
 	// TODO: Use existing dom.GetWindow().Location().Search, just change "tab" query.
