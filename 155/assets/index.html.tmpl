@@ -1,0 +1,23 @@
+<html>
+	<head>
+		<style>
+body {
+	font-family: Arial;
+}
+		</style>
+		<script src="/assets/script/script.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<h1>Server-Sent Events</h1>
+		<p id="out">Server-Sent Events:</p>
+		<!--script type="text/javascript">
+			var source = new EventSource("/events");
+
+			source.onmessage = function(event) {
+				console.log(event.origin);
+
+				document.getElementById("out").innerHTML += "<br>\"" + event.data + "\"";
+			};
+		</script-->
+	</body>
+</html>
