@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/shurcooL/eventsource"
 	"honnef.co/go/js/dom"
 )
 
@@ -20,9 +21,9 @@ func init() {
 }
 
 func setup() {
-	var source = js.Global.Get("EventSource").New("/events")
+	source := eventsource.New("/events")
 
-	source.Call("addEventListener", "message", func(event *js.Object) {
+	source.AddEventListener("message", false, func(event *js.Object) {
 		fmt.Println(event.Get("origin").String())
 
 		html := document.GetElementByID("out").InnerHTML()
