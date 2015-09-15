@@ -1,4 +1,4 @@
-// Walk the given filesystem path.
+// Walk the given filesystem path, search for filenames containing "conflicted".
 package main
 
 import (
