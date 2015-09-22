@@ -5,8 +5,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/gopherjs/eventsource"
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/shurcooL/eventsource"
 	"honnef.co/go/js/dom"
 )
 
