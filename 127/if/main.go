@@ -33,5 +33,5 @@ func main() {
 	fmt.Printf("approximating pi with %v iterations.\n", n)
 	fmt.Println(pi(n))
 
-	fmt.Printf("total time taken is: %v\n", time.Since(started))
+	fmt.Println("total time taken is:", time.Since(started))
 }
