@@ -35,7 +35,7 @@ func main() {
 	}
 
 	authTransport := &oauth2.Transport{
-		Token: &oauth2.Token{AccessToken: string(token)},
+		Source: oauth2.StaticTokenSource(&oauth2.Token{AccessToken: string(token)}),
 	}
 
 	memoryCacheTransport := httpcache.NewMemoryCacheTransport()
