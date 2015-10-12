@@ -22,7 +22,7 @@ func main() {
 		panic(err)
 	}*/
 	var input []byte
-	switch 6 {
+	switch 7 {
 	case 0:
 		input = []byte(`1.	Item 1
 2.	Item 2
@@ -61,6 +61,8 @@ func main() {
 		input = []byte(`Overall, it's possible to escape \\, \` + "`" + `, *, _, {, }, [, ], (, ), #, +, -, ., !, and \<, \>.`)
 	case 6:
 		input = []byte(`Overall, it's possible to escape \\, \` + "`" + `, \*, \_, \{, \}, \[, \], \(, \), \#, \+, \-, \., \!, and \<, \>.`)
+	case 7:
+		input = []byte(`![local image](rattlesnake image.jpg)`)
 	}
 
 	htmlFlags := 0
