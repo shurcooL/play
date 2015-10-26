@@ -41,6 +41,9 @@ func mainHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func eventsHandler(w http.ResponseWriter, req *http.Request) {
+	log.Println("Client connection joined:", &w)
+	defer log.Println("Client connection gone away:", &w)
+
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		log.Println("Streaming unsupported")
@@ -48,19 +51,37 @@ func eventsHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	closeNotifier, ok := w.(http.CloseNotifier)
+	if !ok {
+		log.Println("CloseNotifier unsupported")
+		http.Error(w, "CloseNotifier unsupported.", http.StatusInternalServerError)
+		return
+	}
+	closeChan := closeNotifier.CloseNotify()
+
 	w.Header().Set("Content-Type", "text/event-stream")
 	/*w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Access-Control-Allow-Origin", "*")*/
 
 	for {
-		fmt.Fprintf(w, "data: %s\n\n", time.Now().String())
+		_, err := fmt.Fprintf(w, "data: %s\n\n", time.Now().String())
+		if err != nil {
+			log.Println("(via write error:", err)
+			return
+		}
 
 		flusher.Flush()
 
-		time.Sleep(time.Second)
+		select {
+		case <-closeChan:
+			log.Println("(via CloseNotifier)")
+			return
+		case <-time.After(10 * time.Second):
+		}
 	}
 }
+
 func main() {
 	flag.Parse()
 
