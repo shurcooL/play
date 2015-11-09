@@ -1,25 +1,25 @@
 package task
 
 // Data<T> where T is int.
-type DataᐸIntᐳ interface {
+type Dataᐸintᐳ interface {
 	IsCollection() bool
-	GetCollection() CollectionᐸDataᐸIntᐳᐳ
+	GetCollection() CollectionᐸDataᐸintᐳᐳ
 	GetElement() int
 }
 
 // Java's Collection<E> interface (partial).
 
 // Collection<E> where E is Data<int>.
-type CollectionᐸDataᐸIntᐳᐳ interface {
+type CollectionᐸDataᐸintᐳᐳ interface {
 	IsEmpty() bool
-	Iterator() IteratorᐸDataᐸIntᐳᐳ
+	Iterator() IteratorᐸDataᐸintᐳᐳ
 	Size() int
 	// ... more methods are available in the real Java Collection<E> interface,
 	// see http://docs.oracle.com/javase/7/docs/api/java/util/Collection.html.
 }
 
 // Iterator<E> where E is Data<int>.
-type IteratorᐸDataᐸIntᐳᐳ interface {
+type IteratorᐸDataᐸintᐳᐳ interface {
 	HasNext() bool
-	Next() DataᐸIntᐳ
+	Next() Dataᐸintᐳ
 }

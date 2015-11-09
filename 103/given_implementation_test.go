@@ -3,7 +3,23 @@ package task
 import "fmt"
 
 func ExampleNormalIterator() {
-	c := collectionᐸDataᐸIntᐳᐳ{e(1), c{e(2), e(3), e(4)}, e(5), c{e(6), c{e(7), c{e(8)}}}, e(9)}
+	c := collectionᐸDataᐸintᐳᐳ{
+		e(1),
+		c{
+			e(2), e(3), e(4),
+		},
+		e(5),
+		c{
+			e(6),
+			c{
+				e(7),
+				c{
+					e(8),
+				},
+			},
+		},
+		e(9),
+	}
 
 	normalIterator := c.Iterator()
 	for normalIterator.HasNext() {

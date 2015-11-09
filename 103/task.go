@@ -1,7 +1,7 @@
 package task
 
 // DeepIterator<T> where T is int. Performs depth-first iteration over all inner elements of Data<T>.
-type DeepIteratorᐸIntᐳ interface {
+type DeepIteratorᐸintᐳ interface {
 	HasNext() bool
 	Next() int
 }

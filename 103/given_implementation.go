@@ -6,36 +6,36 @@ package task
 type e int
 
 func (_ e) IsCollection() bool                   { return false }
-func (_ e) GetCollection() CollectionᐸDataᐸIntᐳᐳ { panic("not collection") }
+func (_ e) GetCollection() CollectionᐸDataᐸintᐳᐳ { panic("not collection") }
 func (e e) GetElement() int                      { return int(e) }
 
 // c implements Data<int> interface for a collection of Data<int>.
-type c collectionᐸDataᐸIntᐳᐳ
+type c collectionᐸDataᐸintᐳᐳ
 
 func (_ c) IsCollection() bool                   { return true }
-func (c c) GetCollection() CollectionᐸDataᐸIntᐳᐳ { return collectionᐸDataᐸIntᐳᐳ(c) }
+func (c c) GetCollection() CollectionᐸDataᐸintᐳᐳ { return collectionᐸDataᐸintᐳᐳ(c) }
 func (_ c) GetElement() int                      { panic("not element") }
 
-// collectionᐸDataᐸIntᐳᐳ implements Collection<E> where E is Data<int>.
-type collectionᐸDataᐸIntᐳᐳ []DataᐸIntᐳ
+// collectionᐸDataᐸintᐳᐳ implements Collection<E> where E is Data<int>.
+type collectionᐸDataᐸintᐳᐳ []Dataᐸintᐳ
 
-func (c collectionᐸDataᐸIntᐳᐳ) IsEmpty() bool { return len(c) == 0 }
-func (c collectionᐸDataᐸIntᐳᐳ) Iterator() IteratorᐸDataᐸIntᐳᐳ {
-	return &collectionIteratorᐸDataᐸIntᐳᐳ{C: c}
+func (c collectionᐸDataᐸintᐳᐳ) IsEmpty() bool { return len(c) == 0 }
+func (c collectionᐸDataᐸintᐳᐳ) Iterator() IteratorᐸDataᐸintᐳᐳ {
+	return &collectionIteratorᐸDataᐸintᐳᐳ{C: c}
 }
-func (c collectionᐸDataᐸIntᐳᐳ) Size() int { return len(c) }
+func (c collectionᐸDataᐸintᐳᐳ) Size() int { return len(c) }
 
-// collectionIteratorᐸDataᐸIntᐳᐳ implements Iterator<E> where E is Data<int> for Collection<E>.
-type collectionIteratorᐸDataᐸIntᐳᐳ struct {
-	C     collectionᐸDataᐸIntᐳᐳ // Collection being iterated.
+// collectionIteratorᐸDataᐸintᐳᐳ implements Iterator<E> where E is Data<int> for Collection<E>.
+type collectionIteratorᐸDataᐸintᐳᐳ struct {
+	C     collectionᐸDataᐸintᐳᐳ // Collection being iterated.
 	index int                   // Index of the next element.
 }
 
-func (it *collectionIteratorᐸDataᐸIntᐳᐳ) HasNext() bool {
+func (it *collectionIteratorᐸDataᐸintᐳᐳ) HasNext() bool {
 	return it.index < len(it.C)
 }
 
-func (it *collectionIteratorᐸDataᐸIntᐳᐳ) Next() DataᐸIntᐳ {
+func (it *collectionIteratorᐸDataᐸintᐳᐳ) Next() Dataᐸintᐳ {
 	e := it.C[it.index]
 	it.index++
 	return e
