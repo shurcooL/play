@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/shurcooL/go/gzip_file_server"
-	"github.com/shurcooL/go/vfs/httpfs/vfsutil"
+	"github.com/shurcooL/httpfs/vfsutil"
 )
 
 // File implements http.FileSystem using the native file system restricted to a

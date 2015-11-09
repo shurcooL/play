@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/shurcooL/go/vfs/httpfs/vfsutil"
+	"github.com/shurcooL/httpfs/vfsutil"
 )
 
 func main() {

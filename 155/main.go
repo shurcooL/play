@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/shurcooL/go/gzip_file_server"
-	"github.com/shurcooL/go/vfs/httpfs/html/vfstemplate"
+	"github.com/shurcooL/httpfs/html/vfstemplate"
 )
 
 var httpFlag = flag.String("http", ":8080", "Listen for HTTP connections on this address.")

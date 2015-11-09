@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/shurcooL/go/gzip_file_server"
-	"github.com/shurcooL/go/vfs/httpfs/html/vfstemplate"
+	"github.com/shurcooL/httpfs/html/vfstemplate"
 	"github.com/shurcooL/play/148/pages"
 )
 
