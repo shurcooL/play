@@ -1,6 +1,6 @@
 package task
 
-// deepIteratorInt is a basic implementation of DeepIterator<T> where T is int.
+// deepIteratorᐸintᐳ is a basic implementation of DeepIteratorᐸTᐳ where T is int.
 type deepIteratorᐸintᐳ struct {
 	its []IteratorᐸDataᐸintᐳᐳ
 }
