@@ -6,25 +6,37 @@ import (
 	"strings"
 )
 
+// Word is an single element of a sentence.
 type Word interface {
-	String() string
-	Title() string
+	String() string // Normal word representation.
+	Title() string  // Title word representation, used for first word in sentence.
 }
 
+// word is a simlpe English word. It's always represented using lowercase letters.
 type word string
 
 func (w word) String() string { return string(w) }
 func (w word) Title() string  { return strings.Title(string(w)) }
 
+// link is a URL.
 type link struct {
 	url.URL
 }
 
 func (u link) String() string { return u.URL.String() }
-func (u link) Title() string  { return u.URL.String() }
+func (u link) Title() string  { return u.String() }
 
+// mention a username.
+type mention struct {
+	username string
+}
+
+func (m mention) String() string { return "@" + m.username }
+func (m mention) Title() string  { return m.String() }
+
+// sentence is a collection of words.
 type sentence struct {
-	words []Word
+	words []Word // Must contain at least 1 entry.
 }
 
 func (s sentence) String() string {
@@ -53,7 +65,14 @@ func main() {
 
 	{
 		s := sentence{
-			words: []Word{link{url.URL{Scheme: "https", Host: "www.example.com", Path: "/that/file.zip"}}, word("has"), word("interesting"), word("content")},
+			words: []Word{link{url.URL{Scheme: "https", Host: "www.example.com", Path: "/that/page.html"}}, word("has"), word("interesting"), word("content")},
+		}
+		fmt.Println(s.String())
+	}
+
+	{
+		s := sentence{
+			words: []Word{mention{"shurcooL"}, word("is"), word("considering"), word("the"), word("implications")},
 		}
 		fmt.Println(s.String())
 	}
