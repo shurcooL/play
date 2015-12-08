@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package stream;
+
+service GitTransport {
+	rpc ReceivePackStream(stream Packet) returns (stream Packet);
+	rpc UploadPackStream(stream Packet) returns (stream Packet);
+}
+
+message Packet {
+	bytes data = 1;
+}
