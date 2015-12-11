@@ -14,13 +14,13 @@ import (
 )
 
 func main() {
-	printCharacters()
-	//dumpMarks()
+	//printCharacters()
+	dumpMarks()
 	//convertToAlphaTexture()
 }
 
 func convertToAlphaTexture() {
-	f, err := os.Open("/Users/Dmitri/Dropbox/Work/2015/Bitmap Fonts/Helvetica Neue 1.png")
+	f, err := os.Open("/Users/Dmitri/Dropbox/Work/2015/Bitmap Fonts/Menlo 1.png")
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +56,7 @@ func convertToAlphaTexture() {
 		}
 	}
 
-	w, err := os.OpenFile("/Users/Dmitri/Dropbox/Work/2015/Bitmap Fonts/Helvetica Neue.png", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	w, err := os.OpenFile("/Users/Dmitri/Dropbox/Work/2015/Bitmap Fonts/Menlo.png", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		panic(err)
 	}

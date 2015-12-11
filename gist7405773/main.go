@@ -8,11 +8,10 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/shurcooL/go-goon"
-	. "github.com/shurcooL/go/gists/gist4737109"
+	"github.com/shurcooL/go/gists/gist4737109"
 )
 
 // ---
@@ -39,7 +38,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		gistId := elements[2][:len(elements[2])-len(gistIdSuffix)]
 
-		if username, err := GistIdToUsername(gistId); err == nil && username == "shurcooL" {
+		if username, err := gist4737109.GistIdToUsername(gistId); err == nil && username == "shurcooL" {
 			cmd := exec.Command("go", "get", "-u", "gist.github.com/"+gistId+gistIdSuffix)
 			//cmd.Env = []string{"PATH=" + os.Getenv("PATH"), "GOPATH=/root/GoAuto"}
 			out, err := cmd.CombinedOutput()
@@ -66,7 +65,6 @@ var httpFlag = flag.String("http", ":8080", "Listen for HTTP connections on this
 
 func main() {
 	flag.Parse()
-	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	err := os.Setenv("GOPATH", "/root/GoAuto")
 	if err != nil {

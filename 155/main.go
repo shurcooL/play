@@ -77,7 +77,7 @@ func eventsHandler(w http.ResponseWriter, req *http.Request) {
 		case <-closeChan:
 			log.Println("(via CloseNotifier)")
 			return
-		case <-time.After(10 * time.Second):
+		case <-time.After(3 * time.Second):
 		}
 	}
 }
