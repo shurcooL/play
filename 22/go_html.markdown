@@ -1,4 +1,4 @@
-```html
+```HTML
 <html>
 	<head>
 		<title>Go Package Store</title>
@@ -41,7 +41,7 @@ Html(
 
 ---
 
-```html
+```HTML
 <html>
 	<body>
 		<h1>Page</h1>

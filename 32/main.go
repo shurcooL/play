@@ -1,4 +1,4 @@
-// Play with net/rpc, compare performance of local calculations vs. rpc calculations on localhost.
+// Play with net/rpc, compare performance of local calculations vs rpc calculations on localhost.
 package main
 
 import (
