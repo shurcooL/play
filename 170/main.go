@@ -6,9 +6,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/shurcooL/htmlg"
-	"golang.org/x/net/html"
 )
 
 type handler struct {
@@ -16,21 +16,20 @@ type handler struct {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	io.WriteString(w, string(htmlg.Render(h.Render(req)...)))
-}
-
-func (h handler) Render(req *http.Request) []*html.Node {
-	return []*html.Node{
-		htmlg.Div(
-			htmlg.Text(req.URL.Path),
-		),
-		htmlg.Div(
-			htmlg.A("Home Link", "/home"),
-		),
-		htmlg.Div(
-			htmlg.Strong(h.Message),
-		),
+	nodes, err := h.Render(req)
+	switch {
+	case os.IsNotExist(err):
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+	case os.IsPermission(err):
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+	case err != nil:
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	default:
+		w.Header().Set("Content-Type", "text/html")
+		io.WriteString(w, string(htmlg.Render(nodes...)))
 	}
 }
 
