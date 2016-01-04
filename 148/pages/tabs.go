@@ -30,7 +30,7 @@ func Tabs(query url.Values) template.HTML {
 			}
 			a.Attr = []html.Attribute{
 				{Key: atom.Href.String(), Val: u.String()},
-				{Key: "onclick", Val: "SwitchTab(event, this);"},
+				{Key: atom.Onclick.String(), Val: "SwitchTab(event, this);"},
 			}
 		}
 		a.AppendChild(htmlg.Text(tab.name))

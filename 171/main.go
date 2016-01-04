@@ -4,7 +4,10 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"strconv"
 
+	"github.com/gopherjs/gopherjs/js"
+	"github.com/shurcooL/go/gopherjs_http/jsutil"
 	"github.com/shurcooL/go/u/u9"
 	"github.com/shurcooL/htmlg"
 	"honnef.co/go/js/dom"
@@ -13,9 +16,10 @@ import (
 var document = dom.GetWindow().Document().(dom.HTMLDocument)
 
 var source *dom.HTMLTextAreaElement
+var highlighted dom.HTMLElement
 var elements dom.HTMLElement
 
-var initial = `package main
+var _, initial = `package main
 
 import (
 	"flag"
@@ -76,6 +80,17 @@ func pHandler(w http.ResponseWriter, req *http.Request) {
 func main() {
 	flag.Parse()
 }
+`, `package main
+
+func Foo() string {
+	return "Hi."
+}
+
+func main() {
+	if 5 == 2+3 {
+		fmt.Println(Foo())
+	}
+}
 `
 
 func run(_ dom.Event) {
@@ -86,13 +101,17 @@ func run(_ dom.Event) {
 		return
 	}
 
-	v := &visitor{}
+	highlighted.SetTextContent(source.Value)
+
+	v := NewVisitor()
 	ast.Walk(v, fileAST)
-	elements.SetInnerHTML(string(htmlg.Render(v.nodes...)))
+	nodes := visit(v.Root.Children[0])
+	elements.SetInnerHTML(string(htmlg.Render(nodes...)))
 }
 
 func setup() {
 	source = document.GetElementByID("source").(*dom.HTMLTextAreaElement)
+	highlighted = document.GetElementByID("highlighted").(dom.HTMLElement)
 	elements = document.GetElementByID("elements").(dom.HTMLElement)
 
 	u9.AddTabSupport(source)
@@ -104,7 +123,20 @@ func setup() {
 	run(nil)
 }
 
+func MouseOver(this dom.HTMLElement) {
+	div := this.(*dom.HTMLDivElement)
+	pos, _ := strconv.Atoi(div.GetAttribute("data-pos"))
+	end, _ := strconv.Atoi(div.GetAttribute("data-end"))
+	highlighted.SetInnerHTML(string(htmlg.Render(
+		htmlg.Text(source.Value[:pos]),
+		htmlg.SpanClass("h", htmlg.Text(source.Value[pos:end])),
+		htmlg.Text(source.Value[end:]),
+	)))
+}
+
 func main() {
+	js.Global.Set("MouseOver", jsutil.Wrap(MouseOver))
+
 	document.AddEventListener("DOMContentLoaded", false, func(dom.Event) { setup() })
 }
 
