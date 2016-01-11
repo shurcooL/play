@@ -103,6 +103,7 @@ func nodeDiv(node Node, triangle bool, nodes ...*html.Node) *html.Node {
 			{Key: atom.Class.String(), Val: "node"},
 			{Key: atom.Style.String(), Val: fmt.Sprintf("padding-left: %vpx;", padding)},
 			{Key: atom.Onmouseover.String(), Val: "MouseOver(this);"},
+			{Key: atom.Onmouseout.String(), Val: "MouseOut();"},
 			{Key: "data-pos", Val: fmt.Sprint(node.Node.Pos() - 1)},
 			{Key: "data-end", Val: fmt.Sprint(node.Node.End() - 1)},
 		},

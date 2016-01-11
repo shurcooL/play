@@ -134,8 +134,13 @@ func MouseOver(this dom.HTMLElement) {
 	)))
 }
 
+func MouseOut() {
+	highlighted.SetTextContent(source.Value)
+}
+
 func main() {
 	js.Global.Set("MouseOver", jsutil.Wrap(MouseOver))
+	js.Global.Set("MouseOut", MouseOut)
 
 	document.AddEventListener("DOMContentLoaded", false, func(dom.Event) { setup() })
 }
