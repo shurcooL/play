@@ -4,7 +4,6 @@ package wordpress
 import (
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"regexp"
@@ -194,15 +193,15 @@ func (s service) Search(_ context.Context, opt issues.SearchOptions) (issues.Sea
 }
 
 func (service) CurrentUser(_ context.Context) (*issues.User, error) {
-	user := issues.UserSpec{ID: uint64(0)}
+	return nil, nil
+	/*user := issues.UserSpec{ID: uint64(0)}
 	u := issues.User{
 		UserSpec:  user,
 		Login:     fmt.Sprintf("Anonymous %v", user.ID),
 		AvatarURL: "https://secure.gravatar.com/avatar?d=mm&f=y&s=96",
 		HTMLURL:   "",
 	}
-	return &u, nil
-	//return nil, nil
+	return &u, nil*/
 }
 
 func simplifyToASCII(s string) string {
