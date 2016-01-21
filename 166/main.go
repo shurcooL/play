@@ -55,3 +55,15 @@ func main() {
 		log.Fatalln(err)
 	}
 }
+
+/*func main() {
+	src, err := wordpress.NewService("/Users/Dmitri/Dropbox/Work/2013/Mini Projects/shurcool.wordpress.com/shurcool039sblog.wordpress.2014-02-21.xml")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = fs.NewService("/Users/Dmitri/Desktop/foo").(issues.CopierFrom).CopyFrom(src, issues.RepoSpec{URI: "shurcooL/vfsgen"})
+	if err != nil {
+		log.Fatalln(err)
+	}
+}*/
