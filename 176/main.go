@@ -1,0 +1,41 @@
+// Play with an experimental web server that generates HTML pages in a type safe way
+// on the backend only.
+package main
+
+import (
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/shurcooL/htmlg"
+)
+
+type handler struct{}
+
+func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	nodes, err := h.Render(req)
+	switch {
+	case os.IsNotExist(err):
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+	case os.IsPermission(err):
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+	case err != nil:
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	default:
+		w.Header().Set("Content-Type", "text/html")
+		io.WriteString(w, string(htmlg.Render(nodes...)))
+	}
+}
+
+func main() {
+	fmt.Println("Started.")
+	err := http.ListenAndServe(":8080", handler{})
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
