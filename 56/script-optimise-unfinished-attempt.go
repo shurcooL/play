@@ -23,7 +23,7 @@ func main() {
 
 	element2 := document.CreateElement("div")
 	overlay.AppendChild(element2)
-	element2.Underlying().Set("outerHTML", `<div><input id="command"></input><div id="results"></div></div>`)
+	element2.SetOuterHTML(`<div><input id="command"></input><div id="results"></div></div>`)
 
 	document.(dom.HTMLDocument).Body().AppendChild(overlay)
 

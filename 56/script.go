@@ -30,7 +30,7 @@ func main() {
 
 	container := document.CreateElement("div")
 	overlay.AppendChild(container)
-	container.Underlying().Set("outerHTML", `<div><input id="gts-command"></input><div id="gts-results"></div></div>`)
+	container.SetOuterHTML(`<div><input id="gts-command"></input><div id="gts-results"></div></div>`)
 
 	document.Body().AppendChild(overlay)
 
