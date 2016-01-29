@@ -10,8 +10,8 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-// Render returns rendered HTML for the given request or an error.
-func (h handler) Render(req *http.Request) ([]*html.Node, error) {
+// render returns rendered HTML for the given request or an error.
+func render(req *http.Request) ([]*html.Node, error) {
 	// Simple switch-based router for now. For a larger project, a more sophisticated router should be used.
 	query := req.URL.Query()
 	switch req.URL.Path {

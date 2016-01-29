@@ -10,12 +10,15 @@ import (
 	"os"
 
 	"github.com/shurcooL/htmlg"
+	"golang.org/x/net/html"
 )
 
-type handler struct{}
+type handler struct {
+	render func(req *http.Request) ([]*html.Node, error)
+}
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	nodes, err := h.Render(req)
+	nodes, err := h.render(req)
 	switch {
 	case os.IsNotExist(err):
 		log.Println(err)
@@ -34,7 +37,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 	fmt.Println("Started.")
-	err := http.ListenAndServe(":8080", handler{})
+	err := http.ListenAndServe(":8080", handler{render: render})
 	if err != nil {
 		log.Fatalln(err)
 	}
