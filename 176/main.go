@@ -18,6 +18,11 @@ type handler struct {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "GET" {
+		w.Header().Set("Allow", "GET")
+		http.Error(w, "method should be GET", http.StatusMethodNotAllowed)
+		return
+	}
 	nodes, err := h.render(req)
 	switch {
 	case os.IsNotExist(err):
@@ -30,7 +35,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	default:
-		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		io.WriteString(w, string(htmlg.Render(nodes...)))
 	}
 }
