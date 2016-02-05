@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -19,7 +20,7 @@ var source *dom.HTMLTextAreaElement
 var highlighted dom.HTMLElement
 var elements dom.HTMLElement
 
-var _, initial = `package main
+var _, _, initial = `package main
 
 import (
 	"flag"
@@ -91,9 +92,13 @@ func main() {
 		fmt.Println(Foo())
 	}
 }
+`, `package main
+func main() {
+	i << 8 & j
+}
 `
 
-func run(_ dom.Event) {
+/*func run(_ dom.Event) {
 	fset := token.NewFileSet()
 	fileAST, err := parser.ParseFile(fset, "", source.Value, parser.ParseComments|parser.AllErrors)
 	if err != nil {
@@ -107,6 +112,22 @@ func run(_ dom.Event) {
 	ast.Walk(v, fileAST)
 	nodes := visit(v.Root.Children[0])
 	elements.SetInnerHTML(string(htmlg.Render(nodes...)))
+}*/
+
+func run(_ dom.Event) {
+	fset := token.NewFileSet()
+	fileAST, err := parser.ParseFile(fset, "", source.Value, parser.ParseComments|parser.AllErrors)
+	if err != nil {
+		elements.SetTextContent(err.Error())
+		return
+	}
+
+	var buf bytes.Buffer
+	err = ast.Fprint(&buf, fset, fileAST, nil)
+	if err != nil {
+		panic(err)
+	}
+	elements.SetTextContent(buf.String())
 }
 
 func setup() {

@@ -46,6 +46,16 @@ func (v *visitor) Visit(node ast.Node) ast.Visitor {
 
 		v.nodes = append(v.nodes, n)*/
 
+		if len(v.ptr.Children) == 0 {
+			if be, ok := node.(*ast.BinaryExpr); ok {
+				v.ptr.Children = append(v.ptr.Children, Node{
+					Parent: v.ptr,
+					Node:   &ast.Ident{Name: fmt.Sprintf("%v", be.Op)},
+					Depth:  v.depth,
+				})
+			}
+		}
+
 		v.ptr.Children = append(v.ptr.Children, Node{
 			Parent: v.ptr,
 			Node:   node,
