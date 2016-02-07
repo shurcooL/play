@@ -43,21 +43,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	var u *user
-	if c, err := req.Cookie(accessTokenCookieName); err == nil {
-		decodedAccessToken, err := base64.RawURLEncoding.DecodeString(c.Value)
-		if err != nil {
-			panic(err) // TODO: Handle gracefully.
-		}
-		accessToken := string(decodedAccessToken)
-		sessions.mu.Lock()
-		if username, ok := sessions.sessions[accessToken]; ok {
-			u = new(user)
-			u.Login = username
-			u.accessToken = accessToken
-		}
-		sessions.mu.Unlock()
-	}
+	u := getUser(req)
 
 	switch req.URL.Path { // HACK.
 	case "/login":
@@ -72,7 +58,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 			// TODO: Is base64 the best encoding for cookie values? Factor it out maybe?
 			encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
-			http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, Value: encodedAccessToken})
+			http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
 			http.Redirect(w, req, "/", http.StatusFound)
 			return
 		}
@@ -108,6 +94,28 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 type user struct {
 	accessToken string
 	Login       string
+}
+
+func getUser(req *http.Request) *user {
+	cookie, err := req.Cookie(accessTokenCookieName)
+	if err != nil {
+		return nil
+	}
+	decodedAccessToken, err := base64.RawURLEncoding.DecodeString(cookie.Value)
+	if err != nil {
+		return nil
+	}
+	accessToken := string(decodedAccessToken)
+	var u *user
+	sessions.mu.Lock()
+	if username, ok := sessions.sessions[accessToken]; ok {
+		u = &user{
+			Login:       username,
+			accessToken: accessToken,
+		}
+	}
+	sessions.mu.Unlock()
+	return u
 }
 
 func main() {
