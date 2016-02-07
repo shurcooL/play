@@ -36,7 +36,9 @@ func render(user *user, req *http.Request) ([]*html.Node, error) {
 				htmlg.Div(
 					htmlg.Text(fmt.Sprintf("Logged in as: %q", user.Login)),
 					htmlg.Text(" "),
-					htmlg.A("Logout", "/logout"),
+					form("post", "/logout",
+						input("submit", "", "Logout"),
+					),
 				),
 			)
 		}
@@ -49,9 +51,9 @@ func render(user *user, req *http.Request) ([]*html.Node, error) {
 					form("post", "/login",
 						htmlg.Text("Username:"),
 						htmlg.Text(" "),
-						input("text", "login"),
+						input("text", "login", ""),
 						htmlg.Text(" "),
-						input("submit", ""),
+						input("submit", "", "Login"),
 					),
 				),
 			}, nil
@@ -64,20 +66,18 @@ func render(user *user, req *http.Request) ([]*html.Node, error) {
 		default:
 			panic("unreachable")
 		}
-	case "/logout":
-		// TODO.
-		panic("not impl")
 	default:
 		return nil, &os.PathError{Op: "open", Path: req.URL.String(), Err: os.ErrNotExist}
 	}
 }
 
-func input(typ, name string, nodes ...*html.Node) *html.Node {
+func input(typ, name, value string, nodes ...*html.Node) *html.Node {
 	input := &html.Node{
 		Type: html.ElementNode, Data: atom.Input.String(),
 		Attr: []html.Attribute{
 			{Key: atom.Type.String(), Val: typ},
 			{Key: atom.Name.String(), Val: name},
+			{Key: atom.Value.String(), Val: value},
 		},
 	}
 	for _, n := range nodes {

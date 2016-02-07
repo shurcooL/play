@@ -43,6 +43,16 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			http.Redirect(w, req, "/", http.StatusFound)
 			return
 		}
+	case "/logout":
+		if req.Method != "POST" {
+			w.Header().Set("Allow", "POST")
+			http.Error(w, "method should be POST", http.StatusMethodNotAllowed)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{Name: loginCookieName, MaxAge: -1})
+		http.Redirect(w, req, "/", http.StatusFound)
+		return
 	}
 
 	if c, err := req.Cookie(loginCookieName); err == nil {
