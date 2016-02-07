@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	loginCookieName = "login"
+	accessTokenCookieName = "accessToken"
 )
 
 type handler struct {
@@ -21,7 +22,6 @@ type handler struct {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	var u *user
 	switch req.URL.Path { // HACK.
 	default:
 		if req.Method != "GET" {
@@ -35,29 +35,57 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "method should be GET or POST", http.StatusMethodNotAllowed)
 			return
 		}
-
-		if req.Method == "POST" { // HACK.
-			req.ParseForm()
-			login := req.PostForm.Get("login")
-			http.SetCookie(w, &http.Cookie{Name: loginCookieName, Value: login})
-			http.Redirect(w, req, "/", http.StatusFound)
-			return
-		}
 	case "/logout":
 		if req.Method != "POST" {
 			w.Header().Set("Allow", "POST")
 			http.Error(w, "method should be POST", http.StatusMethodNotAllowed)
 			return
 		}
-
-		http.SetCookie(w, &http.Cookie{Name: loginCookieName, MaxAge: -1})
-		http.Redirect(w, req, "/", http.StatusFound)
-		return
 	}
 
-	if c, err := req.Cookie(loginCookieName); err == nil {
-		u = new(user)
-		u.Login = c.Value
+	var u *user
+	if c, err := req.Cookie(accessTokenCookieName); err == nil {
+		decodedAccessToken, err := base64.RawURLEncoding.DecodeString(c.Value)
+		if err != nil {
+			panic(err) // TODO: Handle gracefully.
+		}
+		accessToken := string(decodedAccessToken)
+		sessions.mu.Lock()
+		if username, ok := sessions.sessions[accessToken]; ok {
+			u = new(user)
+			u.Login = username
+			u.accessToken = accessToken
+		}
+		sessions.mu.Unlock()
+	}
+
+	switch req.URL.Path { // HACK.
+	case "/login":
+		if req.Method == "POST" { // HACK.
+			req.ParseForm()
+			login := req.PostForm.Get("login")
+
+			accessToken := newAccessToken()
+			sessions.mu.Lock()
+			sessions.sessions[accessToken] = login
+			sessions.mu.Unlock()
+
+			// TODO: Is base64 the best encoding for cookie values? Factor it out maybe?
+			encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
+			http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, Value: encodedAccessToken})
+			http.Redirect(w, req, "/", http.StatusFound)
+			return
+		}
+	case "/logout":
+		if u != nil {
+			sessions.mu.Lock()
+			delete(sessions.sessions, u.accessToken)
+			sessions.mu.Unlock()
+		}
+
+		http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, MaxAge: -1})
+		http.Redirect(w, req, "/", http.StatusFound)
+		return
 	}
 
 	nodes, err := h.render(u, req)
@@ -78,7 +106,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 type user struct {
-	Login string
+	accessToken string
+	Login       string
 }
 
 func main() {

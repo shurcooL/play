@@ -66,6 +66,21 @@ func render(user *user, req *http.Request) ([]*html.Node, error) {
 		default:
 			panic("unreachable")
 		}
+	case "/sessions":
+		var nodes []*html.Node
+		sessions.mu.Lock()
+		for _, username := range sessions.sessions {
+			nodes = append(nodes,
+				htmlg.Div(htmlg.Text(username)),
+			)
+		}
+		if len(sessions.sessions) == 0 {
+			nodes = append(nodes,
+				htmlg.Div(htmlg.Text("-")),
+			)
+		}
+		sessions.mu.Unlock()
+		return nodes, nil
 	default:
 		return nil, &os.PathError{Op: "open", Path: req.URL.String(), Err: os.ErrNotExist}
 	}
