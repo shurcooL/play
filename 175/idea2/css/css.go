@@ -10,13 +10,28 @@ type CSS interface {
 	CSS() string
 }
 
+// Render ...
+func Render(n interface{}) string {
+	out := "{\n"
+	v := reflect.ValueOf(n)
+	if v.Kind() != reflect.Struct {
+		panic("not struct")
+	}
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Field(i)
+		out += "\t" + f.Interface().(CSS).CSS() + "\n"
+	}
+	out += "}\n"
+	return out
+}
+
 // Size ...
 type Size interface {
 	CSS
 }
 
 // Px ...
-type Px int
+type Px uint
 
 func (s Px) CSS() string {
 	return fmt.Sprint(s, "px")
@@ -39,7 +54,7 @@ type Color interface {
 //func RGB(r, g, b int) Color {}
 
 type RGB struct {
-	R, G, B int
+	R, G, B uint8
 }
 
 func (c RGB) CSS() string {
@@ -53,19 +68,4 @@ type BackgroundColor struct {
 
 func (bc BackgroundColor) CSS() string {
 	return fmt.Sprint("background-color: ", bc.Color.CSS(), ";")
-}
-
-// Render ...
-func Render(n interface{}) string {
-	out := "{\n"
-	v := reflect.ValueOf(n)
-	if v.Kind() != reflect.Struct {
-		panic("not struct")
-	}
-	for i := 0; i < v.NumField(); i++ {
-		f := v.Field(i)
-		out += "\t" + f.Interface().(CSS).CSS() + "\n"
-	}
-	out += "}\n"
-	return out
 }
