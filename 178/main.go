@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"crypto/subtle"
 	"os"
 
 	"github.com/shurcooL/htmlg"
@@ -50,6 +51,14 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if req.Method == "POST" { // HACK.
 			req.ParseForm()
 			login := req.PostForm.Get("login")
+			password := req.PostForm.Get("password")
+			switch login {
+			case "shurcooL":
+				if subtle.ConstantTimeCompare([]byte(password), []byte("abc")) != 1 {
+					http.Redirect(w, req, "/login", http.StatusFound)
+					return
+				}
+			}
 
 			accessToken := newAccessToken()
 			sessions.mu.Lock()
