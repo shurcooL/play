@@ -46,6 +46,15 @@ func (fs FontSize) CSS() string {
 	return fmt.Sprint("font-size: ", fs.Size.CSS(), ";")
 }
 
+// LineHeight ...
+type LineHeight struct {
+	Size
+}
+
+func (lh LineHeight) CSS() string {
+	return fmt.Sprint("line-height: ", lh.Size.CSS(), ";")
+}
+
 // Color ...
 type Color interface {
 	CSS
@@ -59,6 +68,14 @@ type RGB struct {
 
 func (c RGB) CSS() string {
 	return fmt.Sprintf("rgb(%v, %v, %v)", c.R, c.G, c.B)
+}
+
+type Hex struct {
+	RGB uint32
+}
+
+func (c Hex) CSS() string {
+	return fmt.Sprintf("#%x", c.RGB)
 }
 
 // BackgroundColor ...
