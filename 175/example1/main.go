@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/shurcooL/htmlg"
+	"github.com/shurcooL/octicons"
 	"github.com/shurcooL/play/175/idea2/css"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -85,6 +86,7 @@ func genStyleHandler(w http.ResponseWriter, req *http.Request) {
 func main() {
 	fmt.Println("Started.")
 	http.Handle("/raw/", http.StripPrefix("/raw/", http.FileServer(http.Dir("raw"))))
+	http.Handle("/raw/octicons/", http.StripPrefix("/raw/octicons/", http.FileServer(octicons.Assets)))
 	http.HandleFunc("/gen/", genHandler)
 	http.HandleFunc("/gen/style.css", genStyleHandler)
 	err := http.ListenAndServe(":8080", nil)
