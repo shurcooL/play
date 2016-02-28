@@ -125,6 +125,29 @@ func NewService(path string) (issues.Service, error) {
 				}
 			}
 			cs = append(cs, comment)
+
+			// Manual migration of a single comment from a temporary gist mirror of this blog post.
+			if i.ID == 11 {
+				// TODO: Get via a githubapi users.Service so that avatar and html urls are up to date? But with caching/mirroring?
+				//       Maybe not needed since both only refer to ID and login which are immutable at this time...
+				// https://api.github.com/users/pbakaus
+				pbakaus := issues.User{
+					Login:     "pbakaus",
+					AvatarURL: template.URL("https://avatars.githubusercontent.com/u/43004?v=3"),
+					HTMLURL:   template.URL("https://github.com/pbakaus"),
+				}
+				commentDate, err := time.Parse(time.RFC3339, "2014-03-27T09:01:58Z")
+				if err != nil {
+					return nil, err
+				}
+				commentByPbakaus := issues.Comment{
+					ID:        28,
+					CreatedAt: commentDate.UTC(),
+					Body:      "So the biggest reason, I suspect, as to why your 120 Hz CRT looks so much better is eye induced motion blur. Here are two great articles that talk about the difference in CRTs and LCDs regarding motion blur: http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/LievenVerslegers/LCD_Motion_Blur_Lieven_Verslegers.htm and http://msdn.microsoft.com/en-us/library/windows/hardware/gg463407.aspx. Especially the second is very worthwhile and much of it is the base for my conference talk on FPS!",
+					User:      pbakaus,
+				}
+				cs = append(cs, commentByPbakaus)
+			}
 		}
 
 		i.Replies = len(cs)
