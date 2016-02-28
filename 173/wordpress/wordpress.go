@@ -59,6 +59,7 @@ func NewService(path string) (issues.Service, error) {
 	shurcooL := issues.User{
 		Login:     "shurcooL",
 		AvatarURL: template.URL("https://dmitri.shuralyov.com/avatar.jpg"),
+		HTMLURL:   template.URL("https://dmitri.shuralyov.com"),
 	}
 
 	s := &service{}
@@ -120,6 +121,7 @@ func NewService(path string) (issues.Service, error) {
 				comment.User = issues.User{
 					Login:     c.AuthorName,
 					AvatarURL: template.URL("https://secure.gravatar.com/avatar?d=mm&f=y&s=96"),
+					HTMLURL:   template.URL("mailto:" + c.AuthorEmail),
 				}
 			}
 			cs = append(cs, comment)
@@ -180,8 +182,8 @@ func (s service) CreateComment(_ context.Context, repo issues.RepoSpec, id uint6
 	return issues.Comment{}, errors.New("CreateComment endpoint not implemented in wordpress service implementation")
 }
 
-func (s service) Edit(_ context.Context, repo issues.RepoSpec, id uint64, ir issues.IssueRequest) (issues.Issue, error) {
-	return issues.Issue{}, errors.New("Edit endpoint not implemented in wordpress service implementation")
+func (s service) Edit(_ context.Context, repo issues.RepoSpec, id uint64, ir issues.IssueRequest) (issues.Issue, []issues.Event, error) {
+	return issues.Issue{}, nil, errors.New("Edit endpoint not implemented in wordpress service implementation")
 }
 
 func (s service) EditComment(_ context.Context, repo issues.RepoSpec, id uint64, cr issues.CommentRequest) (issues.Comment, error) {
