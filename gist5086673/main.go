@@ -4,24 +4,15 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"runtime"
 	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-	. "github.com/shurcooL/go/gists/gist5092053"
-	. "github.com/shurcooL/go/gists/gist5259939"
-	. "github.com/shurcooL/go/gists/gist5286084"
+	"github.com/shurcooL/go/gists/gist5092053"
 )
 
-var _ = strings.Fields
-var _ = strconv.Itoa
-var _ = ioutil.ReadFile
-var _ = SortMapByValue
-var _ = spew.Dump
-var _ = GetThisGoSourceFilepath()
-
 func main() {
-	filepath := GetThisGoSourceFilepath()
+	filepath := thisGoSourceFile()
 	//filepath := "/Users/Dmitri/Dropbox/Work/2013/yelp/Yelp/Gen/5star_text.txt"
 
 	Process(filepath)
@@ -29,7 +20,9 @@ func main() {
 
 func Process(filepath string) {
 	b, err := ioutil.ReadFile(filepath)
-	CheckError(err)
+	if err != nil {
+		panic(err)
+	}
 
 	if true {
 		// Prints frequencies of individual words
@@ -47,7 +40,7 @@ func Process(filepath string) {
 			m[v]++
 		}
 		fmt.Printf("Total unique words: %v\n\n", len(m))
-		sm := SortMapByValue(m)
+		sm := gist5092053.SortMapByValue(m)
 		//for i := len(sm) - 1; i >= 0; i-- { v := sm[i]
 		for _, v := range sm {
 			x := float64(v.Value) / float64(len(w)) * 100
@@ -65,7 +58,7 @@ func Process(filepath string) {
 			m[x]++
 		}
 		fmt.Printf("Total unique words: %v\n\n", len(m))
-		sm := SortMapByValue(m)
+		sm := gist5092053.SortMapByValue(m)
 		for _, v := range sm {
 			fmt.Printf("%v\t%#v\n", v.Value, v.Key)
 		}
@@ -86,7 +79,7 @@ func Process(filepath string) {
 			}
 			fmt.Printf("Total hits for %#v: %v\n", target, total)
 		}
-		sm := SortMapByValue(m[target])
+		sm := gist5092053.SortMapByValue(m[target])
 		for _, v := range sm {
 			fmt.Printf("%v\t%#v\n", v.Value, v.Key)
 		}
@@ -100,4 +93,10 @@ func add(m map[string]map[string]int, r1, r2 string) {
 		m[r1] = mm
 	}
 	mm[r2]++
+}
+
+// thisGoSourceFile returns the full path of the Go source file where this function was called from.
+func thisGoSourceFile() string {
+	_, file, _, _ := runtime.Caller(1)
+	return file
 }
