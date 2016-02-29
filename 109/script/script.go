@@ -28,9 +28,13 @@ func init() {
 
 	js.Global.Set("Open", jsutil.Wrap(Open))
 
-	document.AddEventListener("DOMContentLoaded", false, func(_ dom.Event) {
+	if document.Body() != nil {
 		Open(nil, nil)
-	})
+	} else {
+		document.AddEventListener("DOMContentLoaded", false, func(_ dom.Event) {
+			Open(nil, nil)
+		})
+	}
 }
 
 //func Open(event dom.Event, anchor *dom.HTMLAnchorElement) {
