@@ -15,6 +15,7 @@ import (
 
 const (
 	accessTokenCookieName = "accessToken"
+	stateCookieName       = "state"
 )
 
 type handler struct {

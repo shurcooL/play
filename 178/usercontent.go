@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/sha1"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
@@ -71,9 +70,8 @@ func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// GitHub doesn't handle all non-ascii bytes in state, so use base64.
-		state := base64.RawURLEncoding.EncodeToString(cryptoRandBytes())
-		fmt.Printf("state: % x\n", sha1.Sum([]byte(state)))
+		state := base64.RawURLEncoding.EncodeToString(cryptoRandBytes()) // GitHub doesn't handle all non-ascii bytes in state, so use base64.
+		http.SetCookie(w, &http.Cookie{Path: "/callback/github", Name: stateCookieName, Value: state, HttpOnly: true})
 
 		url := gitHubConfig.AuthCodeURL(state)
 		http.Redirect(w, req, url, http.StatusFound)
@@ -83,10 +81,17 @@ func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// TODO: Validate state.
 		ghUser, err := func() (*github.User, error) {
+			// Validate state (to prevent CSRF).
+			cookie, err := req.Cookie(stateCookieName)
+			if err != nil {
+				return nil, err
+			}
+			http.SetCookie(w, &http.Cookie{Path: "/callback/github", Name: stateCookieName, MaxAge: -1})
 			state := req.FormValue("state")
-			fmt.Printf("state: % x\n", sha1.Sum([]byte(state)))
+			if cookie.Value != state {
+				return nil, errors.New("state doesn't match")
+			}
 
 			token, err := gitHubConfig.Exchange(oauth2.NoContext, req.FormValue("code"))
 			if err != nil {
