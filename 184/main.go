@@ -4,23 +4,25 @@ package main
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
-	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/shurcooL/go-goon"
 	"golang.org/x/oauth2"
+	githuboauth2 "golang.org/x/oauth2/github"
 )
 
 var (
-	clientID = os.Getenv("GH_BASIC_CLIENT_ID")
-	secretID = os.Getenv("GH_BASIC_SECRET_ID")
+	conf = &oauth2.Config{
+		ClientID:     os.Getenv("GH_BASIC_CLIENT_ID"),
+		ClientSecret: os.Getenv("GH_BASIC_SECRET_ID"),
+		Scopes:       nil,
+		Endpoint:     githuboauth2.Endpoint,
+	}
 )
 
 func main() {
@@ -58,57 +60,20 @@ func handleLogin(w http.ResponseWriter, req *http.Request) {
 	state := cryptoRandBase64String()
 	goon.DumpExpr(state)
 
-	u := url.URL{
-		Scheme: "https",
-		Host:   "github.com",
-		Path:   "/login/oauth/authorize",
-		RawQuery: url.Values{
-			"client_id": {clientID},
-			"state":     {state},
-		}.Encode(),
-	}
-	http.Redirect(w, req, u.String(), http.StatusFound)
+	url := conf.AuthCodeURL(state)
+	http.Redirect(w, req, url, http.StatusFound)
 }
 
 func handleCallback(w http.ResponseWriter, req *http.Request) {
-	code := req.URL.Query().Get("code")
-	goon.DumpExpr(code)
-
-	state := req.URL.Query().Get("state")
+	// TODO: Validate state.
+	state := req.FormValue("state")
 	goon.DumpExpr(state)
 
-	req2, err := http.NewRequest("POST", "https://github.com/login/oauth/access_token", strings.NewReader(url.Values{
-		"client_id":     {clientID},
-		"client_secret": {secretID},
-		"code":          {code},
-	}.Encode()))
+	token, err := conf.Exchange(oauth2.NoContext, req.FormValue("code"))
 	if err != nil {
 		panic(err)
 	}
-	req2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req2.Header.Set("Accept", "application/json")
-	resp, err := http.DefaultClient.Do(req2)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	goon.DumpExpr(resp.Status)
-
-	w.Header().Set("Content-Type", "text/plain")
-
-	var token struct {
-		AccessToken string `json:"access_token"`
-	}
-	err = json.NewDecoder(resp.Body).Decode(&token)
-	if err != nil {
-		panic(err)
-	}
-
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token.AccessToken},
-	)
-	tc := oauth2.NewClient(oauth2.NoContext, ts)
+	tc := conf.Client(oauth2.NoContext, token)
 	gh := github.NewClient(tc)
 
 	user, _, err := gh.Users.Get("")
