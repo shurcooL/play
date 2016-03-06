@@ -14,11 +14,11 @@ func init() {
 	sessions.sessions = make(map[string]user)
 }
 
-func cryptoRandString() string {
+func cryptoRandBytes() []byte {
 	b := make([]byte, 256)
 	_, err := rand.Read(b)
 	if err != nil {
 		panic(err)
 	}
-	return string(b)
+	return b
 }

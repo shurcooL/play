@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha1"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
@@ -11,7 +12,6 @@ import (
 	"os"
 
 	"github.com/google/go-github/github"
-	"github.com/shurcooL/go-goon"
 	"github.com/shurcooL/htmlg"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -37,7 +37,7 @@ func handlePost(u *user, w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		accessToken := cryptoRandString()
+		accessToken := string(cryptoRandBytes())
 		sessions.mu.Lock()
 		sessions.sessions[accessToken] = user{
 			Login:       login,
@@ -48,7 +48,7 @@ func handlePost(u *user, w http.ResponseWriter, req *http.Request) {
 
 		// TODO: Is base64 the best encoding for cookie values? Factor it out maybe?
 		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
-		http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
+		http.SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
 		http.Redirect(w, req, "/", http.StatusFound)
 	case "/logout":
 		if u != nil {
@@ -57,7 +57,7 @@ func handlePost(u *user, w http.ResponseWriter, req *http.Request) {
 			sessions.mu.Unlock()
 		}
 
-		http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, MaxAge: -1})
+		http.SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, MaxAge: -1})
 		http.Redirect(w, req, "/", http.StatusFound)
 	}
 }
@@ -71,8 +71,9 @@ func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		state := cryptoRandString()
-		goon.DumpExpr(state)
+		// GitHub doesn't handle all non-ascii bytes in state, so use base64.
+		state := base64.RawURLEncoding.EncodeToString(cryptoRandBytes())
+		fmt.Printf("state: % x\n", sha1.Sum([]byte(state)))
 
 		url := gitHubConfig.AuthCodeURL(state)
 		http.Redirect(w, req, url, http.StatusFound)
@@ -85,7 +86,7 @@ func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
 		// TODO: Validate state.
 		ghUser, err := func() (*github.User, error) {
 			state := req.FormValue("state")
-			goon.DumpExpr(state)
+			fmt.Printf("state: % x\n", sha1.Sum([]byte(state)))
 
 			token, err := gitHubConfig.Exchange(oauth2.NoContext, req.FormValue("code"))
 			if err != nil {
@@ -112,7 +113,7 @@ func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		accessToken := cryptoRandString()
+		accessToken := string(cryptoRandBytes())
 		sessions.mu.Lock()
 		sessions.sessions[accessToken] = user{
 			Login:       *ghUser.Login,
@@ -123,7 +124,7 @@ func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
 
 		// TODO: Is base64 the best encoding for cookie values? Factor it out maybe?
 		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
-		http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
+		http.SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
 		http.Redirect(w, req, "/", http.StatusFound)
 	}
 }
