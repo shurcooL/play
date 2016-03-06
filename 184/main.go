@@ -2,8 +2,11 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -22,6 +25,7 @@ var (
 
 func main() {
 	http.HandleFunc("/", handleMain)
+	http.HandleFunc("/github-login", handleLogin)
 	http.HandleFunc("/github-callback", handleCallback)
 
 	fmt.Println("Starting.")
@@ -32,7 +36,7 @@ func main() {
 }
 
 func handleMain(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, `<html>
+	io.WriteString(w, `<html>
 	<head>
 	</head>
 	<body>
@@ -41,18 +45,37 @@ func handleMain(w http.ResponseWriter, req *http.Request) {
 		</p>
 		<p>
 			We're going to now talk to the GitHub API. Ready?
-			<a href="https://github.com/login/oauth/authorize?scope=&client_id=%s">Click here</a> to begin!</a>
+			<a href="/github-login">Sign in with GitHub</a>
 		</p>
 		<p>
 			If that link doesn't work, remember to provide your own <a href="https://developer.github.com/v3/oauth/#web-application-flow">Client ID</a>!
 		</p>
 	</body>
-</html>`, clientID)
+</html>`)
+}
+
+func handleLogin(w http.ResponseWriter, req *http.Request) {
+	state := cryptoRandBase64String()
+	goon.DumpExpr(state)
+
+	u := url.URL{
+		Scheme: "https",
+		Host:   "github.com",
+		Path:   "/login/oauth/authorize",
+		RawQuery: url.Values{
+			"client_id": {clientID},
+			"state":     {state},
+		}.Encode(),
+	}
+	http.Redirect(w, req, u.String(), http.StatusFound)
 }
 
 func handleCallback(w http.ResponseWriter, req *http.Request) {
 	code := req.URL.Query().Get("code")
 	goon.DumpExpr(code)
+
+	state := req.URL.Query().Get("state")
+	goon.DumpExpr(state)
 
 	req2, err := http.NewRequest("POST", "https://github.com/login/oauth/access_token", strings.NewReader(url.Values{
 		"client_id":     {clientID},
@@ -93,4 +116,13 @@ func handleCallback(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 	goon.FdumpExpr(w, user)
+}
+
+func cryptoRandBase64String() string {
+	b := make([]byte, 256)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
+	return base64.RawURLEncoding.EncodeToString(b)
 }
