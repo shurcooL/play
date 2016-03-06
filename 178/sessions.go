@@ -7,11 +7,11 @@ import (
 
 var sessions struct {
 	mu       sync.Mutex
-	sessions map[string]string // Access Token -> Username.
+	sessions map[string]user // Access Token -> User.
 }
 
 func init() {
-	sessions.sessions = make(map[string]string)
+	sessions.sessions = make(map[string]user)
 }
 
 func cryptoRandString() string {

@@ -21,6 +21,9 @@ type handler struct {
 	// handlePost is a POST-only handler. All requests are guaranteed to be POST.
 	handlePost func(user *user, w http.ResponseWriter, req *http.Request)
 
+	// handleGet is a GET-only handler. All requests are guaranteed to be GET.
+	handleGet func(user *user, w http.ResponseWriter, req *http.Request)
+
 	// renderGet is a GET-only handler. All requests are guaranteed to be GET.
 	renderGet func(user *user, req *http.Request) ([]*html.Node, error)
 }
@@ -53,6 +56,12 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	case "POST":
 		h.handlePost(u, w, req)
 	case "GET":
+		switch req.URL.Path { // HACK, TODO: Get rid of this hardcoded special case. Use normal `http.Handle`s?
+		case "/login/github", "/callback/github":
+			h.handleGet(u, w, req)
+			return
+		}
+
 		nodes, err := h.renderGet(u, req)
 		switch {
 		case os.IsNotExist(err):
@@ -92,12 +101,8 @@ func getUser(req *http.Request) *user {
 	accessToken := string(decodedAccessToken)
 	var u *user
 	sessions.mu.Lock()
-	if username, ok := sessions.sessions[accessToken]; ok {
-		u = &user{
-			Login:       username,
-			Domain:      "",
-			accessToken: accessToken,
-		}
+	if user, ok := sessions.sessions[accessToken]; ok {
+		u = &user
 	}
 	sessions.mu.Unlock()
 	return u
@@ -105,8 +110,9 @@ func getUser(req *http.Request) *user {
 
 func main() {
 	fmt.Println("Started.")
-	err := http.ListenAndServe(":8080", handler{
+	err := http.ListenAndServe(":8090", handler{
 		handlePost: handlePost,
+		handleGet:  handleGet,
 		renderGet:  renderGet,
 	})
 	if err != nil {
