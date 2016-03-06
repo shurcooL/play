@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/subtle"
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -11,8 +13,44 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-// render returns rendered HTML for the given request or an error.
-func render(user *user, req *http.Request) ([]*html.Node, error) {
+func handlePost(user *user, w http.ResponseWriter, req *http.Request) {
+	// Simple switch-based router for now. For a larger project, a more sophisticated router should be used.
+	switch req.URL.Path {
+	case "/login":
+		req.ParseForm()
+		login := req.PostForm.Get("login")
+		password := req.PostForm.Get("password")
+		switch login {
+		case "shurcooL":
+			if subtle.ConstantTimeCompare([]byte(password), []byte("abc")) != 1 {
+				http.Redirect(w, req, "/login", http.StatusFound)
+				return
+			}
+		}
+
+		accessToken := cryptoRandString()
+		sessions.mu.Lock()
+		sessions.sessions[accessToken] = login
+		sessions.mu.Unlock()
+
+		// TODO: Is base64 the best encoding for cookie values? Factor it out maybe?
+		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
+		http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
+		http.Redirect(w, req, "/", http.StatusFound)
+	case "/logout":
+		if user != nil {
+			sessions.mu.Lock()
+			delete(sessions.sessions, user.accessToken)
+			sessions.mu.Unlock()
+		}
+
+		http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, MaxAge: -1})
+		http.Redirect(w, req, "/", http.StatusFound)
+	}
+}
+
+// renderGet returns rendered HTML for the given request or an error.
+func renderGet(user *user, req *http.Request) ([]*html.Node, error) {
 	// Simple switch-based router for now. For a larger project, a more sophisticated router should be used.
 	switch req.URL.Path {
 	case "/":
@@ -34,7 +72,7 @@ func render(user *user, req *http.Request) ([]*html.Node, error) {
 		default:
 			nodes = append(nodes,
 				htmlg.Div(
-					htmlg.Text(fmt.Sprintf("Logged in as: %q", user.Login)),
+					htmlg.Text(fmt.Sprintf("Logged in as: %q (from domain %q)", user.Login, user.Domain)),
 					htmlg.Text(" "),
 					form("post", "/logout",
 						input("submit", "", "Logout"),
@@ -44,32 +82,21 @@ func render(user *user, req *http.Request) ([]*html.Node, error) {
 		}
 		return nodes, nil
 	case "/login":
-		switch req.Method { // HACK.
-		case "GET":
-			return []*html.Node{
-				htmlg.Div(
-					form("post", "/login",
-						htmlg.Text("Username:"),
-						htmlg.Text(" "),
-						input("text", "login", ""),
-						htmlg.Text(" "),
-						htmlg.Text("Password:"),
-						htmlg.Text(" "),
-						input("password", "password", ""),
-						htmlg.Text(" "),
-						input("submit", "", "Login"),
-					),
+		return []*html.Node{
+			htmlg.Div(
+				form("post", "/login",
+					htmlg.Text("Username:"),
+					htmlg.Text(" "),
+					input("text", "login", ""),
+					htmlg.Text(" "),
+					htmlg.Text("Password:"),
+					htmlg.Text(" "),
+					input("password", "password", ""),
+					htmlg.Text(" "),
+					input("submit", "", "Login"),
 				),
-			}, nil
-		case "POST":
-			return []*html.Node{
-				htmlg.Div(
-					htmlg.Text(fmt.Sprintf("Thanks for signing in: %q", user.Login)),
-				),
-			}, nil
-		default:
-			panic("unreachable")
-		}
+			),
+		}, nil
 	case "/sessions":
 		var nodes []*html.Node
 		sessions.mu.Lock()

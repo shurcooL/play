@@ -2,7 +2,6 @@
 package main
 
 import (
-	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -19,7 +18,11 @@ const (
 )
 
 type handler struct {
-	render func(user *user, req *http.Request) ([]*html.Node, error)
+	// handlePost is a POST-only handler. All requests are guaranteed to be POST.
+	handlePost func(user *user, w http.ResponseWriter, req *http.Request)
+
+	// renderGet is a GET-only handler. All requests are guaranteed to be GET.
+	renderGet func(user *user, req *http.Request) ([]*html.Node, error)
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -46,63 +49,35 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	u := getUser(req)
 
-	switch req.URL.Path { // HACK.
-	case "/login":
-		if req.Method == "POST" { // HACK.
-			req.ParseForm()
-			login := req.PostForm.Get("login")
-			password := req.PostForm.Get("password")
-			switch login {
-			case "shurcooL":
-				if subtle.ConstantTimeCompare([]byte(password), []byte("abc")) != 1 {
-					http.Redirect(w, req, "/login", http.StatusFound)
-					return
-				}
-			}
-
-			accessToken := cryptoRandString()
-			sessions.mu.Lock()
-			sessions.sessions[accessToken] = login
-			sessions.mu.Unlock()
-
-			// TODO: Is base64 the best encoding for cookie values? Factor it out maybe?
-			encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
-			http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
-			http.Redirect(w, req, "/", http.StatusFound)
-			return
+	switch req.Method {
+	case "POST":
+		h.handlePost(u, w, req)
+	case "GET":
+		nodes, err := h.renderGet(u, req)
+		switch {
+		case os.IsNotExist(err):
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusNotFound)
+		case os.IsPermission(err):
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+		case err != nil:
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		default:
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			io.WriteString(w, string(htmlg.Render(nodes...)))
 		}
-	case "/logout":
-		if u != nil {
-			sessions.mu.Lock()
-			delete(sessions.sessions, u.accessToken)
-			sessions.mu.Unlock()
-		}
-
-		http.SetCookie(w, &http.Cookie{Name: accessTokenCookieName, MaxAge: -1})
-		http.Redirect(w, req, "/", http.StatusFound)
-		return
-	}
-
-	nodes, err := h.render(u, req)
-	switch {
-	case os.IsNotExist(err):
-		log.Println(err)
-		http.Error(w, err.Error(), http.StatusNotFound)
-	case os.IsPermission(err):
-		log.Println(err)
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-	case err != nil:
-		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 	default:
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		io.WriteString(w, string(htmlg.Render(nodes...)))
+		panic("unreachable") // Shouldn't happen because of method/route verification at the top.
 	}
 }
 
 type user struct {
-	accessToken string
-	Login       string
+	Login  string
+	Domain string // Domain of user. Empty string means own domain.
+
+	accessToken string // Internal access token. Needed to be able to clear session when this user signs out.
 }
 
 func getUser(req *http.Request) *user {
@@ -120,6 +95,7 @@ func getUser(req *http.Request) *user {
 	if username, ok := sessions.sessions[accessToken]; ok {
 		u = &user{
 			Login:       username,
+			Domain:      "",
 			accessToken: accessToken,
 		}
 	}
@@ -129,7 +105,10 @@ func getUser(req *http.Request) *user {
 
 func main() {
 	fmt.Println("Started.")
-	err := http.ListenAndServe(":8080", handler{render: render})
+	err := http.ListenAndServe(":8080", handler{
+		handlePost: handlePost,
+		renderGet:  renderGet,
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}
