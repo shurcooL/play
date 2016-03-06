@@ -14,6 +14,8 @@ import (
 )
 
 type handler struct {
+	// handler is a GET-only handler for serving text/plain content.
+	// It verifies that req.Method is GET, and rejects the request otherwise.
 	render func(req *http.Request) ([]*html.Node, error)
 }
 
