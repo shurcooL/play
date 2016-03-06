@@ -14,7 +14,7 @@ func init() {
 	sessions.sessions = make(map[string]string)
 }
 
-func newAccessToken() string {
+func cryptoRandString() string {
 	b := make([]byte, 256)
 	_, err := rand.Read(b)
 	if err != nil {

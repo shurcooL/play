@@ -2,12 +2,12 @@
 package main
 
 import (
+	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"crypto/subtle"
 	"os"
 
 	"github.com/shurcooL/htmlg"
@@ -60,7 +60,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				}
 			}
 
-			accessToken := newAccessToken()
+			accessToken := cryptoRandString()
 			sessions.mu.Lock()
 			sessions.sessions[accessToken] = login
 			sessions.mu.Unlock()
