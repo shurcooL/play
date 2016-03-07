@@ -1,3 +1,4 @@
+// Play with crypto/rand in frontend.
 package main
 
 import (
