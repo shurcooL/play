@@ -4,6 +4,7 @@ package wordpress
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"regexp"
@@ -11,17 +12,20 @@ import (
 	"time"
 
 	"github.com/shurcooL/go/gists/gist5439318"
+	"github.com/shurcooL/users"
 	"golang.org/x/net/context"
 	"src.sourcegraph.com/apps/tracker/issues"
 )
 
 type service struct {
+	users users.Service
+
 	is  []issues.Issue
 	ics [][]issues.Comment
 }
 
 // NewService creates a new service with path to XML file.
-func NewService(path string) (issues.Service, error) {
+func NewService(path string, users users.Service) (issues.Service, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -56,13 +60,11 @@ func NewService(path string) (issues.Service, error) {
 		return nil, err
 	}
 
-	shurcooL := issues.User{
-		Login:     "shurcooL",
-		AvatarURL: template.URL("https://dmitri.shuralyov.com/avatar.jpg"),
-		HTMLURL:   template.URL("https://dmitri.shuralyov.com"),
+	s := &service{
+		users: users,
 	}
 
-	s := &service{}
+	shurcooL := s.issuesUser(context.TODO(), issues.UserSpec{ID: 1924134, Domain: "github.com"})
 
 	//for i := len(v.Channel.Item) - 1; i >= 0; i-- {
 	for _, x := range v.Channel.Item {
@@ -114,15 +116,27 @@ func NewService(path string) (issues.Service, error) {
 				CreatedAt: commentDate.UTC(),
 				Body:      c.Content,
 			}
-			switch c.AuthorEmail {
-			case "shurcool@gmail.com":
+			switch c.AuthorName {
+			//case "shurcool@gmail.com":
+			case "shurcooL`":
 				comment.User = shurcooL
+			case "Mee":
+				comment.User = s.issuesUser(context.TODO(), issues.UserSpec{ID: 4332971, Domain: "github.com"})
+			case "Bernardo":
+				comment.User = s.issuesUser(context.TODO(), issues.UserSpec{ID: 2, Domain: "dmitri.shuralyov.com"})
+			case "Michal Marcinkowski":
+				comment.User = s.issuesUser(context.TODO(), issues.UserSpec{ID: 3, Domain: "dmitri.shuralyov.com"})
+			case "Anders Elfgren":
+				comment.User = s.issuesUser(context.TODO(), issues.UserSpec{ID: 4, Domain: "dmitri.shuralyov.com"})
+			case "benp":
+				comment.User = s.issuesUser(context.TODO(), issues.UserSpec{ID: 5, Domain: "dmitri.shuralyov.com"})
 			default:
 				comment.User = issues.User{
 					Login:     c.AuthorName,
 					AvatarURL: template.URL("https://secure.gravatar.com/avatar?d=mm&f=y&s=96"),
 					HTMLURL:   template.URL("mailto:" + c.AuthorEmail),
 				}
+				panic(c.AuthorName)
 			}
 			cs = append(cs, comment)
 
@@ -131,11 +145,7 @@ func NewService(path string) (issues.Service, error) {
 				// TODO: Get via a githubapi users.Service so that avatar and html urls are up to date? But with caching/mirroring?
 				//       Maybe not needed since both only refer to ID and login which are immutable at this time...
 				// https://api.github.com/users/pbakaus
-				pbakaus := issues.User{
-					Login:     "pbakaus",
-					AvatarURL: template.URL("https://avatars.githubusercontent.com/u/43004?v=3"),
-					HTMLURL:   template.URL("https://github.com/pbakaus"),
-				}
+				pbakaus := s.issuesUser(context.TODO(), issues.UserSpec{ID: 43004, Domain: "github.com"})
 				commentDate, err := time.Parse(time.RFC3339, "2014-03-27T09:01:58Z")
 				if err != nil {
 					return nil, err
@@ -218,15 +228,14 @@ func (s service) Search(_ context.Context, opt issues.SearchOptions) (issues.Sea
 }
 
 func (service) CurrentUser(_ context.Context) (*issues.User, error) {
-	return nil, nil
-	/*user := issues.UserSpec{ID: uint64(0)}
+	user := issues.UserSpec{ID: uint64(0)}
 	u := issues.User{
 		UserSpec:  user,
 		Login:     fmt.Sprintf("Anonymous %v", user.ID),
 		AvatarURL: "https://secure.gravatar.com/avatar?d=mm&f=y&s=96",
 		HTMLURL:   "",
 	}
-	return &u, nil*/
+	return &u, nil
 }
 
 func simplifyToASCII(s string) string {
@@ -256,4 +265,22 @@ func rewriteWordPress(s string) string {
 	s = re.ReplaceAllStringFunc(s, repl)
 
 	return s
+}
+
+func (s service) issuesUser(ctx context.Context, user issues.UserSpec) issues.User {
+	u, err := s.users.Get(ctx, users.UserSpec{ID: user.ID, Domain: user.Domain})
+	if err != nil {
+		return issues.User{
+			UserSpec:  user,
+			Login:     fmt.Sprintf("Anonymous %v", user.ID),
+			AvatarURL: "https://secure.gravatar.com/avatar?d=mm&f=y&s=96",
+			HTMLURL:   "",
+		}
+	}
+	return issues.User{
+		UserSpec:  issues.UserSpec{ID: u.ID, Domain: u.Domain},
+		Login:     u.Login,
+		AvatarURL: u.AvatarURL,
+		HTMLURL:   u.HTMLURL,
+	}
 }
