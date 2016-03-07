@@ -151,7 +151,7 @@ func NewService(path string, users users.Service) (issues.Service, error) {
 					return nil, err
 				}
 				commentByPbakaus := issues.Comment{
-					ID:        28,
+					ID:        2,
 					CreatedAt: commentDate.UTC(),
 					Body:      "So the biggest reason, I suspect, as to why your 120 Hz CRT looks so much better is eye induced motion blur. Here are two great articles that talk about the difference in CRTs and LCDs regarding motion blur: http://scien.stanford.edu/pages/labsite/2010/psych221/projects/2010/LievenVerslegers/LCD_Motion_Blur_Lieven_Verslegers.htm and http://msdn.microsoft.com/en-us/library/windows/hardware/gg463407.aspx. Especially the second is very worthwhile and much of it is the base for my conference talk on FPS!",
 					User:      pbakaus,
