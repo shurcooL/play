@@ -61,24 +61,22 @@ func handlePost(u *user, w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
+func handleGet(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 	// Simple switch-based router for now. For a larger project, a more sophisticated router should be used.
 	switch req.URL.Path {
 	case "/login/github":
 		if u != nil {
-			http.Redirect(w, req, "/", http.StatusFound)
-			return
+			return nil, Redirect{URL: "/"}
 		}
 
 		state := base64.RawURLEncoding.EncodeToString(cryptoRandBytes()) // GitHub doesn't handle all non-ascii bytes in state, so use base64.
-		http.SetCookie(w, &http.Cookie{Path: "/callback/github", Name: stateCookieName, Value: state, HttpOnly: true})
+		SetCookie(w, &http.Cookie{Path: "/callback/github", Name: stateCookieName, Value: state, HttpOnly: true})
 
 		url := gitHubConfig.AuthCodeURL(state)
-		http.Redirect(w, req, url, http.StatusFound)
+		return nil, Redirect{URL: url}
 	case "/callback/github":
 		if u != nil {
-			http.Redirect(w, req, "/", http.StatusFound)
-			return
+			return nil, Redirect{URL: "/"}
 		}
 
 		ghUser, err := func() (*github.User, error) {
@@ -87,7 +85,7 @@ func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				return nil, err
 			}
-			http.SetCookie(w, &http.Cookie{Path: "/callback/github", Name: stateCookieName, MaxAge: -1})
+			SetCookie(w, &http.Cookie{Path: "/callback/github", Name: stateCookieName, MaxAge: -1})
 			state := req.FormValue("state")
 			if cookie.Value != state {
 				return nil, errors.New("state doesn't match")
@@ -114,8 +112,7 @@ func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
 		}()
 		if err != nil {
 			log.Println(err)
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
+			return nil, HTTPError{Code: http.StatusUnauthorized, err: err}
 		}
 
 		accessToken := string(cryptoRandBytes())
@@ -129,8 +126,10 @@ func handleGet(u *user, w http.ResponseWriter, req *http.Request) {
 
 		// TODO: Is base64 the best encoding for cookie values? Factor it out maybe?
 		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
-		http.SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
-		http.Redirect(w, req, "/", http.StatusFound)
+		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
+		return nil, Redirect{URL: "/"}
+	default:
+		panic("currently unreachable")
 	}
 }
 

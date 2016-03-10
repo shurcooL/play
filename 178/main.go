@@ -23,7 +23,7 @@ type handler struct {
 	handlePost func(user *user, w http.ResponseWriter, req *http.Request)
 
 	// handleGet is a GET-only handler. All requests are guaranteed to be GET.
-	handleGet func(user *user, w http.ResponseWriter, req *http.Request)
+	handleGet func(user *user, w HeaderWriter, req *http.Request) ([]*html.Node, error)
 
 	// renderGet is a GET-only handler. All requests are guaranteed to be GET.
 	renderGet func(user *user, req *http.Request) ([]*html.Node, error)
@@ -59,7 +59,15 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	case "GET":
 		switch req.URL.Path { // HACK, TODO: Get rid of this hardcoded special case. Use normal `http.Handle`s?
 		case "/login/github", "/callback/github":
-			h.handleGet(u, w, req)
+			_, err := h.handleGet(u, w, req)
+			switch {
+			case IsRedirect(err):
+				http.Redirect(w, req, string(err.(Redirect).URL), http.StatusSeeOther)
+			case IsHTTPError(err):
+				http.Error(w, err.Error(), err.(HTTPError).Code)
+			default:
+				panic("currently unreachable")
+			}
 			return
 		}
 
