@@ -17,54 +17,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func handlePost(u *user, w http.ResponseWriter, req *http.Request) {
+func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 	// Simple switch-based router for now. For a larger project, a more sophisticated router should be used.
-	switch req.URL.Path {
-	case "/login":
-		if u != nil {
-			http.Redirect(w, req, "/", http.StatusFound)
-			return
-		}
-
-		login := req.PostFormValue("login")
-		password := req.PostFormValue("password")
-		switch login {
-		case "shurcooL":
-			if subtle.ConstantTimeCompare([]byte(password), []byte("abc")) != 1 {
-				http.Redirect(w, req, "/login", http.StatusFound)
-				return
-			}
-		}
-
-		accessToken := string(cryptoRandBytes())
-		sessions.mu.Lock()
-		sessions.sessions[accessToken] = user{
-			Login:       login,
-			Domain:      "",
-			accessToken: accessToken,
-		}
-		sessions.mu.Unlock()
-
-		// TODO: Is base64 the best encoding for cookie values? Factor it out maybe?
-		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
-		http.SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
-		http.Redirect(w, req, "/", http.StatusFound)
-	case "/logout":
-		if u != nil {
-			sessions.mu.Lock()
-			delete(sessions.sessions, u.accessToken)
-			sessions.mu.Unlock()
-		}
-
-		http.SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, MaxAge: -1})
-		http.Redirect(w, req, "/", http.StatusFound)
-	}
-}
-
-func handleGet(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
-	// Simple switch-based router for now. For a larger project, a more sophisticated router should be used.
-	switch req.URL.Path {
-	case "/":
+	switch {
+	case req.Method == "GET" && req.URL.Path == "/":
 		nodes := []*html.Node{
 			htmlg.Div(
 				htmlg.Strong("Home"),
@@ -94,7 +50,7 @@ func handleGet(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error)
 			)
 		}
 		return nodes, nil
-	case "/login":
+	case req.Method == "GET" && req.URL.Path == "/login":
 		return []*html.Node{
 			htmlg.Div(
 				form("post", "/login",
@@ -110,7 +66,43 @@ func handleGet(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error)
 				),
 			),
 		}, nil
-	case "/login/github":
+	case req.Method == "POST" && req.URL.Path == "/login":
+		if u != nil {
+			return nil, Redirect{URL: "/"}
+		}
+
+		login := req.PostFormValue("login")
+		password := req.PostFormValue("password")
+		switch login {
+		case "shurcooL":
+			if subtle.ConstantTimeCompare([]byte(password), []byte("abc")) != 1 {
+				return nil, Redirect{URL: "/login"}
+			}
+		}
+
+		accessToken := string(cryptoRandBytes())
+		sessions.mu.Lock()
+		sessions.sessions[accessToken] = user{
+			Login:       login,
+			Domain:      "",
+			accessToken: accessToken,
+		}
+		sessions.mu.Unlock()
+
+		// TODO: Is base64 the best encoding for cookie values? Factor it out maybe?
+		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
+		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
+		return nil, Redirect{URL: "/"}
+	case req.Method == "POST" && req.URL.Path == "/logout":
+		if u != nil {
+			sessions.mu.Lock()
+			delete(sessions.sessions, u.accessToken)
+			sessions.mu.Unlock()
+		}
+
+		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, MaxAge: -1})
+		return nil, Redirect{URL: "/"}
+	case req.Method == "GET" && req.URL.Path == "/login/github": // TODO: Should this be made into a POST?
 		if u != nil {
 			return nil, Redirect{URL: "/"}
 		}
@@ -120,7 +112,7 @@ func handleGet(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error)
 
 		url := gitHubConfig.AuthCodeURL(state)
 		return nil, Redirect{URL: url}
-	case "/callback/github":
+	case req.Method == "GET" && req.URL.Path == "/callback/github":
 		if u != nil {
 			return nil, Redirect{URL: "/"}
 		}
@@ -174,7 +166,7 @@ func handleGet(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error)
 		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
 		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
 		return nil, Redirect{URL: "/"}
-	case "/sessions":
+	case req.Method == "GET" && req.URL.Path == "/sessions":
 		var nodes []*html.Node
 		sessions.mu.Lock()
 		for _, u := range sessions.sessions {

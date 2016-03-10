@@ -19,11 +19,7 @@ const (
 )
 
 type handler struct {
-	// handlePost is a POST-only handler. All requests are guaranteed to be POST.
-	handlePost func(user *user, w http.ResponseWriter, req *http.Request)
-
-	// handleGet is a GET-only handler. All requests are guaranteed to be GET.
-	handleGet func(user *user, w HeaderWriter, req *http.Request) ([]*html.Node, error)
+	handler func(user *user, w HeaderWriter, req *http.Request) ([]*html.Node, error)
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -50,31 +46,24 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	u := getUser(req)
 
-	switch req.Method {
-	case "POST":
-		h.handlePost(u, w, req)
-	case "GET":
-		nodes, err := h.handleGet(u, w, req)
-		switch {
-		case IsRedirect(err):
-			http.Redirect(w, req, string(err.(Redirect).URL), http.StatusSeeOther)
-		case IsHTTPError(err):
-			http.Error(w, err.Error(), err.(HTTPError).Code)
-		case os.IsNotExist(err):
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusNotFound)
-		case os.IsPermission(err):
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-		case err != nil:
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		default:
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			io.WriteString(w, string(htmlg.Render(nodes...)))
-		}
+	nodes, err := h.handler(u, w, req)
+	switch {
+	case IsRedirect(err):
+		http.Redirect(w, req, string(err.(Redirect).URL), http.StatusSeeOther)
+	case IsHTTPError(err):
+		http.Error(w, err.Error(), err.(HTTPError).Code)
+	case os.IsNotExist(err):
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+	case os.IsPermission(err):
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+	case err != nil:
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	default:
-		panic("unreachable") // Shouldn't happen because of method/route verification at the top.
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		io.WriteString(w, string(htmlg.Render(nodes...)))
 	}
 }
 
@@ -107,8 +96,7 @@ func getUser(req *http.Request) *user {
 func main() {
 	fmt.Println("Started.")
 	err := http.ListenAndServe(":8090", handler{
-		handlePost: handlePost,
-		handleGet:  handleGet,
+		handler: Handler,
 	})
 	if err != nil {
 		log.Fatalln(err)
