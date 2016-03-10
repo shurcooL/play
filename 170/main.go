@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -11,13 +12,16 @@ import (
 	"github.com/shurcooL/htmlg"
 )
 
-type handler struct {
-	Message string
-}
+type handler struct{}
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	nodes, err := h.Render(req)
 	switch {
+	default:
+		w.Header().Set("Content-Type", "text/html")
+		io.WriteString(w, string(htmlg.Render(nodes...)))
+	case IsRedirect(err):
+		http.Redirect(w, req, string(err.(Redirect).URL), http.StatusSeeOther)
 	case os.IsNotExist(err):
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -27,15 +31,24 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	case err != nil:
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-	default:
-		w.Header().Set("Content-Type", "text/html")
-		io.WriteString(w, string(htmlg.Render(nodes...)))
 	}
+}
+
+// Redirect is an error type used for representing a simple HTTP redirection.
+type Redirect struct {
+	URL template.URL
+}
+
+func (r Redirect) Error() string { return fmt.Sprintf("redirecting to %s", r.URL) }
+
+func IsRedirect(err error) bool {
+	_, ok := err.(Redirect)
+	return ok
 }
 
 func main() {
 	fmt.Println("Started.")
-	err := http.ListenAndServe(":8080", handler{Message: "Something important."})
+	err := http.ListenAndServe(":8080", handler{})
 	if err != nil {
 		log.Fatalln(err)
 	}
