@@ -24,9 +24,6 @@ type handler struct {
 
 	// handleGet is a GET-only handler. All requests are guaranteed to be GET.
 	handleGet func(user *user, w HeaderWriter, req *http.Request) ([]*html.Node, error)
-
-	// renderGet is a GET-only handler. All requests are guaranteed to be GET.
-	renderGet func(user *user, req *http.Request) ([]*html.Node, error)
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -57,22 +54,12 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	case "POST":
 		h.handlePost(u, w, req)
 	case "GET":
-		switch req.URL.Path { // HACK, TODO: Get rid of this hardcoded special case. Use normal `http.Handle`s?
-		case "/login/github", "/callback/github":
-			_, err := h.handleGet(u, w, req)
-			switch {
-			case IsRedirect(err):
-				http.Redirect(w, req, string(err.(Redirect).URL), http.StatusSeeOther)
-			case IsHTTPError(err):
-				http.Error(w, err.Error(), err.(HTTPError).Code)
-			default:
-				panic("currently unreachable")
-			}
-			return
-		}
-
-		nodes, err := h.renderGet(u, req)
+		nodes, err := h.handleGet(u, w, req)
 		switch {
+		case IsRedirect(err):
+			http.Redirect(w, req, string(err.(Redirect).URL), http.StatusSeeOther)
+		case IsHTTPError(err):
+			http.Error(w, err.Error(), err.(HTTPError).Code)
 		case os.IsNotExist(err):
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -122,7 +109,6 @@ func main() {
 	err := http.ListenAndServe(":8090", handler{
 		handlePost: handlePost,
 		handleGet:  handleGet,
-		renderGet:  renderGet,
 	})
 	if err != nil {
 		log.Fatalln(err)

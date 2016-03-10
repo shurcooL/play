@@ -64,6 +64,52 @@ func handlePost(u *user, w http.ResponseWriter, req *http.Request) {
 func handleGet(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 	// Simple switch-based router for now. For a larger project, a more sophisticated router should be used.
 	switch req.URL.Path {
+	case "/":
+		nodes := []*html.Node{
+			htmlg.Div(
+				htmlg.Strong("Home"),
+			),
+			htmlg.Div(htmlg.Text("-")),
+		}
+		switch u {
+		case nil:
+			nodes = append(nodes,
+				htmlg.Div(
+					htmlg.Text("Not signed in."),
+					htmlg.Text(" "),
+					htmlg.A("Sign in", "/login"),
+					htmlg.Text(" "),
+					htmlg.A("Sign in via GitHub", "/login/github"),
+				),
+			)
+		default:
+			nodes = append(nodes,
+				htmlg.Div(
+					htmlg.Text(fmt.Sprintf("Logged in as: %q (from domain %q)", u.Login, u.Domain)),
+					htmlg.Text(" "),
+					form("post", "/logout",
+						input("submit", "", "Logout"),
+					),
+				),
+			)
+		}
+		return nodes, nil
+	case "/login":
+		return []*html.Node{
+			htmlg.Div(
+				form("post", "/login",
+					htmlg.Text("Username:"),
+					htmlg.Text(" "),
+					input("text", "login", ""),
+					htmlg.Text(" "),
+					htmlg.Text("Password:"),
+					htmlg.Text(" "),
+					input("password", "password", ""),
+					htmlg.Text(" "),
+					input("submit", "", "Login"),
+				),
+			),
+		}, nil
 	case "/login/github":
 		if u != nil {
 			return nil, Redirect{URL: "/"}
@@ -128,61 +174,6 @@ func handleGet(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error)
 		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
 		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
 		return nil, Redirect{URL: "/"}
-	default:
-		panic("currently unreachable")
-	}
-}
-
-// renderGet returns rendered HTML for the given request or an error.
-func renderGet(u *user, req *http.Request) ([]*html.Node, error) {
-	// Simple switch-based router for now. For a larger project, a more sophisticated router should be used.
-	switch req.URL.Path {
-	case "/":
-		nodes := []*html.Node{
-			htmlg.Div(
-				htmlg.Strong("Home"),
-			),
-			htmlg.Div(htmlg.Text("-")),
-		}
-		switch u {
-		case nil:
-			nodes = append(nodes,
-				htmlg.Div(
-					htmlg.Text("Not signed in."),
-					htmlg.Text(" "),
-					htmlg.A("Sign in", "/login"),
-					htmlg.Text(" "),
-					htmlg.A("Sign in via GitHub", "/login/github"),
-				),
-			)
-		default:
-			nodes = append(nodes,
-				htmlg.Div(
-					htmlg.Text(fmt.Sprintf("Logged in as: %q (from domain %q)", u.Login, u.Domain)),
-					htmlg.Text(" "),
-					form("post", "/logout",
-						input("submit", "", "Logout"),
-					),
-				),
-			)
-		}
-		return nodes, nil
-	case "/login":
-		return []*html.Node{
-			htmlg.Div(
-				form("post", "/login",
-					htmlg.Text("Username:"),
-					htmlg.Text(" "),
-					input("text", "login", ""),
-					htmlg.Text(" "),
-					htmlg.Text("Password:"),
-					htmlg.Text(" "),
-					input("password", "password", ""),
-					htmlg.Text(" "),
-					input("submit", "", "Login"),
-				),
-			),
-		}, nil
 	case "/sessions":
 		var nodes []*html.Node
 		sessions.mu.Lock()
