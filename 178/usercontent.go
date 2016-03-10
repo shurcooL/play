@@ -35,7 +35,12 @@ func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 					htmlg.Text(" "),
 					htmlg.A("Sign in", "/login"),
 					htmlg.Text(" "),
-					htmlg.A("Sign in via GitHub", "/login/github"),
+					style(
+						"display: inline-block;",
+						form("post", "/login/github",
+							input("submit", "", "Sign in via GitHub"),
+						),
+					),
 				),
 			)
 		default:
@@ -43,8 +48,11 @@ func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 				htmlg.Div(
 					htmlg.Text(fmt.Sprintf("Logged in as: %q (from domain %q)", u.Login, u.Domain)),
 					htmlg.Text(" "),
-					form("post", "/logout",
-						input("submit", "", "Logout"),
+					style(
+						"display: inline-block;",
+						form("post", "/logout",
+							input("submit", "", "Logout"),
+						),
 					),
 				),
 			)
@@ -62,7 +70,7 @@ func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 					htmlg.Text(" "),
 					input("password", "password", ""),
 					htmlg.Text(" "),
-					input("submit", "", "Login"),
+					input("submit", "", "Sign in"),
 				),
 			),
 		}, nil
@@ -102,7 +110,7 @@ func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 
 		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, MaxAge: -1})
 		return nil, Redirect{URL: "/"}
-	case req.Method == "GET" && req.URL.Path == "/login/github": // TODO: Should this be made into a POST?
+	case req.Method == "POST" && req.URL.Path == "/login/github":
 		if u != nil {
 			return nil, Redirect{URL: "/"}
 		}
@@ -213,4 +221,12 @@ func form(method string, action template.URL, nodes ...*html.Node) *html.Node {
 		form.AppendChild(n)
 	}
 	return form
+}
+
+func style(style string, n *html.Node) *html.Node {
+	if n.Type != html.ElementNode {
+		panic("invalid node type")
+	}
+	n.Attr = append(n.Attr, html.Attribute{Key: atom.Style.String(), Val: style})
+	return n
 }
