@@ -101,15 +101,6 @@ func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
 		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
 		return nil, Redirect{URL: "/"}
-	case req.Method == "POST" && req.URL.Path == "/logout":
-		if u != nil {
-			sessions.mu.Lock()
-			delete(sessions.sessions, u.accessToken)
-			sessions.mu.Unlock()
-		}
-
-		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, MaxAge: -1})
-		return nil, Redirect{URL: "/"}
 	case req.Method == "POST" && req.URL.Path == "/login/github":
 		if u != nil {
 			return nil, Redirect{URL: "/"}
@@ -149,10 +140,10 @@ func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 				return nil, err
 			}
 			if user.ID == nil || *user.ID == 0 {
-				return nil, errors.New("user id is 0")
+				return nil, errors.New("user id is nil/0")
 			}
 			if user.Login == nil || *user.Login == "" {
-				return nil, errors.New("user login is empty")
+				return nil, errors.New("user login is unset/empty")
 			}
 			return user, nil
 		}()
@@ -174,12 +165,26 @@ func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 		encodedAccessToken := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
 		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, Value: encodedAccessToken, HttpOnly: true})
 		return nil, Redirect{URL: "/"}
+	case req.Method == "POST" && req.URL.Path == "/logout":
+		if u != nil {
+			sessions.mu.Lock()
+			delete(sessions.sessions, u.accessToken)
+			sessions.mu.Unlock()
+		}
+
+		SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, MaxAge: -1})
+		return nil, Redirect{URL: "/"}
 	case req.Method == "GET" && req.URL.Path == "/sessions":
+		// Authorization check.
+		if u == nil || u.Login != "shurcooL" || u.Domain != "github.com" {
+			return nil, &os.PathError{Op: "open", Path: req.URL.String(), Err: os.ErrPermission}
+		}
+
 		var nodes []*html.Node
 		sessions.mu.Lock()
 		for _, u := range sessions.sessions {
 			nodes = append(nodes,
-				htmlg.Div(htmlg.Text(fmt.Sprintf("%#v", u))),
+				htmlg.Div(htmlg.Text(fmt.Sprintf("Login: %q Domain: %q accessToken: %q...", u.Login, u.Domain, base64.RawURLEncoding.EncodeToString([]byte(u.accessToken))[:20]))),
 			)
 		}
 		if len(sessions.sessions) == 0 {

@@ -3,6 +3,7 @@ package main
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -50,7 +51,11 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	u := getUser(req)
+	u, err := getUser(req)
+	if err == errBadAccessToken {
+		// TODO: Is it okay if we later set the same cookie again? Or should we avoid doing this here?
+		http.SetCookie(w, &http.Cookie{Path: "/", Name: accessTokenCookieName, MaxAge: -1})
+	}
 
 	nodes, err := h.handler(u, w, req)
 	switch {
@@ -80,14 +85,20 @@ type user struct {
 	accessToken string // Internal access token. Needed to be able to clear session when this user signs out.
 }
 
-func getUser(req *http.Request) *user {
+var errBadAccessToken = errors.New("bad access token")
+
+// getUser either returns a valid user (possibly nil) and nil error, or
+// nil user and errBadAccessToken.
+func getUser(req *http.Request) (*user, error) {
 	cookie, err := req.Cookie(accessTokenCookieName)
-	if err != nil {
-		return nil
+	if err == http.ErrNoCookie {
+		return nil, nil // No user.
+	} else if err != nil {
+		return nil, errBadAccessToken
 	}
 	decodedAccessToken, err := base64.RawURLEncoding.DecodeString(cookie.Value)
 	if err != nil {
-		return nil
+		return nil, errBadAccessToken
 	}
 	accessToken := string(decodedAccessToken)
 	var u *user
@@ -96,7 +107,10 @@ func getUser(req *http.Request) *user {
 		u = &user
 	}
 	sessions.mu.Unlock()
-	return u
+	if u == nil {
+		return nil, errBadAccessToken
+	}
+	return u, nil // Existing user.
 }
 
 func main() {
