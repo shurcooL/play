@@ -2,14 +2,15 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"html"
+	"io"
 	"net/http"
 	"sort"
 	"sync"
 	"time"
 
-	"github.com/shurcooL/go/gists/gist6096872"
 	"github.com/shurcooL/go/gopherjs_http"
 	"golang.org/x/net/websocket"
 )
@@ -48,7 +49,7 @@ func handler(c *websocket.Conn) {
 		state.Unlock()
 	}()
 
-	ch := gist6096872.LineReader(c)
+	ch := lineReader(c)
 	for {
 		select {
 		case b, ok := <-ch:
@@ -126,4 +127,21 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func lineReader(r io.Reader) <-chan []byte {
+	ch := make(chan []byte)
+	go func() {
+		br := bufio.NewReader(r)
+		for {
+			line, err := br.ReadBytes('\n')
+			if err != nil {
+				ch <- line
+				close(ch)
+				return
+			}
+			ch <- line[:len(line)-1] // Trim last newline.
+		}
+	}()
+	return ch
 }
