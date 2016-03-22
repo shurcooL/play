@@ -12,7 +12,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/gregjones/httpcache"
 	"github.com/shurcooL/go-goon"
-	"github.com/shurcooL/go/time_util"
+	"github.com/shurcooL/go/timeutil"
 	"github.com/sourcegraph/apiproxy"
 	"github.com/sourcegraph/apiproxy/service/github"
 	"golang.org/x/oauth2"
@@ -55,7 +55,7 @@ func main() {
 	client := github.NewClient(httpClient)
 
 	for {
-		startOfWeek := time_util.StartOfWeek(time.Now())
+		startOfWeek := timeutil.StartOfWeek(time.Now())
 		opt := &github.IssueListOptions{Filter: "all", State: "closed", Since: startOfWeek}
 		//opt.ListOptions.PerPage = 1
 		var allIssues, closedThisWeekIssues []github.Issue
