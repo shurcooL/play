@@ -23,6 +23,24 @@ func (s state) Render() []*html.Node {
 	)}
 }
 
+type board struct{ ttt.Board }
+
+func (b board) Render() []*html.Node {
+	table := &html.Node{Data: atom.Table.String(), Type: html.ElementNode}
+	for row := 0; row < 3; row++ {
+		tr := &html.Node{Data: atom.Tr.String(), Type: html.ElementNode}
+		for _, cell := range b.Cells[3*row : 3*row+3] {
+			td := &html.Node{Data: atom.Td.String(), Type: html.ElementNode}
+			for _, n := range (state{cell}.Render()) {
+				td.AppendChild(n)
+			}
+			tr.AppendChild(td)
+		}
+		table.AppendChild(tr)
+	}
+	return []*html.Node{table}
+}
+
 func main() {
 	b := ttt.Board{
 		Cells: [9]ttt.State{
@@ -33,8 +51,10 @@ func main() {
 	}
 
 	fmt.Println(b)
-
+	fmt.Println()
 	fmt.Println(htmlg.Render(state{b.Cells[1]}.Render()...))
+	fmt.Println()
+	fmt.Println(htmlg.Render(board{b}.Render()...))
 }
 
 type Component interface {

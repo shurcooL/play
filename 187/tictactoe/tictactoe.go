@@ -55,6 +55,6 @@ func (b Board) String() string {
 	fmt.Fprintln(&buf, "─┼─┼─")
 	fmt.Fprintf(&buf, "%v│%v│%v\n", b.Cells[3], b.Cells[4], b.Cells[5])
 	fmt.Fprintln(&buf, "─┼─┼─")
-	fmt.Fprintf(&buf, "%v│%v│%v\n", b.Cells[6], b.Cells[7], b.Cells[8])
+	fmt.Fprintf(&buf, "%v│%v│%v", b.Cells[6], b.Cells[7], b.Cells[8])
 	return buf.String()
 }
