@@ -10,7 +10,7 @@ import (
 	"github.com/goxjs/gl"
 	"github.com/goxjs/gl/glutil"
 	"github.com/goxjs/glfw"
-	"github.com/shurcooL/go/gists/gist6545684"
+	"github.com/shurcooL/eX0/eX0-go/gpc"
 	"golang.org/x/mobile/exp/f32"
 )
 
@@ -90,7 +90,7 @@ var windowSize = [2]int{1280, 1280}
 
 var cameraX, cameraY float64 = 825, 510
 
-var polygon gist6545684.Polygon
+var polygon gpc.Polygon
 
 func main() {
 	err := glfw.Init(gl.ContextWatcher)
@@ -136,7 +136,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		polygon, err = gist6545684.ReadGpcFromReader(f)
+		polygon, err = gpc.Parse(f)
 		f.Close()
 		if err != nil {
 			panic(err)

@@ -12,7 +12,6 @@ import (
 	"github.com/shurcooL/go-goon"
 	. "github.com/shurcooL/go/gists/gist5504644"
 	. "github.com/shurcooL/go/gists/gist5639599"
-	. "github.com/shurcooL/go/gists/gist7576804"
 	"golang.org/x/tools/go/types"
 
 	//. "github.com/shurcooL/Conception-go"
@@ -106,7 +105,7 @@ func main() {
 	println()
 	for _, n := range tpkg.Scope().Names() {
 		obj := tpkg.Scope().Lookup(n)
-		fmt.Printf("%s: %s", obj.Name(), TypeChainString(obj.Type()))
+		fmt.Printf("%s: %s", obj.Name(), typeChainString(obj.Type()))
 		if constObj, ok := obj.(*types.Const); ok {
 			fmt.Printf(" = %v", constObj.Val())
 		}
@@ -128,4 +127,18 @@ func main() {
 		//goon.Dump(t)
 		//return
 	}
+}
+
+// typeChainString returns the full type chain as a string.
+func typeChainString(t types.Type) string {
+	out := fmt.Sprintf("%s", t)
+	for {
+		if t == t.Underlying() {
+			break
+		} else {
+			t = t.Underlying()
+		}
+		out += fmt.Sprintf(" -> %s", t)
+	}
+	return out
 }
