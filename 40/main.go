@@ -4,7 +4,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/shurcooL/go/u/u1"
+	"github.com/shurcooL/go/gfmutil"
 )
 
 var markdown = []byte(`### GitHub Flavored Markdown rendered locally using go gettable native Go code
@@ -40,10 +40,10 @@ index dc83bf7..5260a7d 100644
 
 func main() {
 	http.HandleFunc("/remote", func(w http.ResponseWriter, req *http.Request) {
-		u1.WriteGitHubFlavoredMarkdownViaGitHub(w, markdown)
+		gfmutil.WriteGitHubFlavoredMarkdownViaGitHub(w, markdown)
 	})
 	http.HandleFunc("/local", func(w http.ResponseWriter, req *http.Request) {
-		u1.WriteGitHubFlavoredMarkdownViaLocal(w, markdown)
+		gfmutil.WriteGitHubFlavoredMarkdownViaLocal(w, markdown)
 	})
 	http.ListenAndServe(":8080", nil)
 }

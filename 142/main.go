@@ -9,7 +9,7 @@ import (
 
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/shurcooL/go-goon"
-	"github.com/shurcooL/go/u/u3"
+	"github.com/shurcooL/go/openutil"
 )
 
 func main() {
@@ -52,7 +52,7 @@ func main2() {
 func main3() {
 	// TODO: This input is causing diff highlighting to fail. Fix that.
 	const in = "@@ -1,585 +0,0 @@\n-<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n-<!--meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /-->\n-<META NAME=\"Keywords\" CONTENT=\"\xe0\xe5\xf0\xe9\xe1\xf8\xf1\xe9\xe8\xe4, \xe4\xe5\xf8\xe0\xe4 \xee\xf8\xe7\xe5\xf7, \xf7\xe5\xf8\xf1\xe9\xed, Distance Learning, E-Learning, University, Education, Open, Courseware, Israel, Higher Education, \n whatever comes next is okay\n"
-	u3.DisplayMarkdownInBrowser([]byte("```diff\n" + in + "```"))
+	openutil.DisplayMarkdownInBrowser([]byte("```diff\n" + in + "```"))
 
 	valid := []byte("Hello, 世界")
 	invalid := []byte{0xff, 0xfe, 0xfd}

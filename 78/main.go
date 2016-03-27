@@ -13,7 +13,7 @@ import (
 
 	"github.com/dgryski/go-trigram"
 	"github.com/dustin/go-humanize"
-	"github.com/shurcooL/go/u/u5"
+	"github.com/shurcooL/go/gddo"
 	"github.com/smartystreets/mafsa"
 )
 
@@ -26,7 +26,7 @@ func main() {
 	}
 	defer f.Close()
 
-	var importers u5.Importers
+	var importers gddo.Importers
 	err = json.NewDecoder(f).Decode(&importers)
 	if err != nil {
 		panic(err)

@@ -11,7 +11,7 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-diff/diff"
 
-	"github.com/shurcooL/go/u/u3"
+	"github.com/shurcooL/go/openutil"
 )
 
 func main() {
@@ -62,7 +62,7 @@ func main() {
 		b += "```\n"
 	}
 
-	u3.DisplayMarkdownInBrowser([]byte(b))
+	openutil.DisplayMarkdownInBrowser([]byte(b))
 }
 
 // fileDiffName returns the name of a FileDiff.

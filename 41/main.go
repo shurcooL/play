@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/shurcooL/go/u/u1"
+	"github.com/shurcooL/go/gfmutil"
 )
 
 func main() {
@@ -64,12 +64,12 @@ index 68ea505..9bbe53e 100644
 		} else if _, github := req.URL.Query()["github"]; github {
 			w.Header().Set("Content-Type", "text/html")
 			started := time.Now()
-			u1.WriteGitHubFlavoredMarkdownViaGitHub(w, markdown)
+			gfmutil.WriteGitHubFlavoredMarkdownViaGitHub(w, markdown)
 			fmt.Println("rendered GFM via GitHub, took", time.Since(started))
 		} else {
 			w.Header().Set("Content-Type", "text/html")
 			started := time.Now()
-			u1.WriteGitHubFlavoredMarkdownViaLocal(w, markdown)
+			gfmutil.WriteGitHubFlavoredMarkdownViaLocal(w, markdown)
 			fmt.Println("rendered GFM locally, took", time.Since(started))
 		}
 	}))

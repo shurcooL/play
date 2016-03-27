@@ -8,7 +8,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/shurcooL/go/u/u11"
+	"github.com/shurcooL/go/ioutil"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		err = u11.WriteFile(rc, filepath.Join(os.TempDir(), name))
+		err = ioutil.WriteFile(rc, filepath.Join(os.TempDir(), name))
 		if err != nil {
 			panic(err)
 		}

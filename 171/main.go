@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/shurcooL/frontend/tabsupport"
 	"github.com/shurcooL/go/gopherjs_http/jsutil"
-	"github.com/shurcooL/go/u/u9"
 	"github.com/shurcooL/htmlg"
 	"honnef.co/go/js/dom"
 )
@@ -114,7 +114,7 @@ func setup() {
 	highlighted = document.GetElementByID("highlighted").(dom.HTMLElement)
 	elements = document.GetElementByID("elements").(dom.HTMLElement)
 
-	u9.AddTabSupport(source)
+	tabsupport.Add(source)
 
 	source.AddEventListener("input", false, run)
 	source.Value = initial
