@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/shurcooL/go-goon"
+	"github.com/shurcooL/issues"
 	"golang.org/x/net/context"
-	"src.sourcegraph.com/apps/tracker/issues"
 )
 
 func DumpUsers(ctx context.Context, src issues.Service, repo issues.RepoSpec) error {

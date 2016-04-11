@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/shurcooL/go/gists/gist5439318"
+	"github.com/shurcooL/issues"
 	"github.com/shurcooL/users"
 	"golang.org/x/net/context"
-	"src.sourcegraph.com/apps/tracker/issues"
 )
 
 type service struct {
