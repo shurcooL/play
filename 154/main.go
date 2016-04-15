@@ -1,3 +1,4 @@
+// Play with experimental use of initialization order to do dependency resolution.
 package main
 
 import "fmt"

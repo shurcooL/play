@@ -1,3 +1,4 @@
+// Play with a debug implementation of issues.CopierFrom interface.
 package main
 
 import (

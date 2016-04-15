@@ -1,3 +1,4 @@
+// Play with "testing/quick".
 package main
 
 import (

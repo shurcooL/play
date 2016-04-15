@@ -1,13 +1,14 @@
 // +build js
 
+// Play with doing net/http.Get in browser.
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/shurcooL/go/u/u9"
-
+	"github.com/shurcooL/frontend/tabsupport"
 	"honnef.co/go/js/dom"
 )
 
@@ -23,21 +24,22 @@ func run(event dom.Event) {
 }
 
 func Process(in string) string {
-	resp, err := http.Get("http://localhost:8081/" + in)
+	resp, err := http.Get(in)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
+	//_, err = io.Copy(os.Stdout, resp.Body)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
-	return string(body)
+	return fmt.Sprintf("got a response with status: %v\n\n%s", resp.Status, string(body))
 }
 
 func main() {
 	document.GetElementByID("run").AddEventListener("click", false, run)
-	input.Value = "initial"
+	input.Value = "https://api.github.com"
 
-	u9.AddTabSupport(input)
+	tabsupport.Add(input)
 }

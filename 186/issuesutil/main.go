@@ -1,3 +1,4 @@
+// Package issuesutil has a utility to dump all users in a given issues.Service.
 package issuesutil
 
 import (

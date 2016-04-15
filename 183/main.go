@@ -1,3 +1,4 @@
+// Play with go-travis API client library.
 package main
 
 import (
