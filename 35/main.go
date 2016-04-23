@@ -10,13 +10,15 @@ import (
 )
 
 func main() {
-	//root := "/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/play/"
-	root := "/Users/Dmitri/Dropbox/"
+	visited := 0
+
+	root := filepath.Join(os.Getenv("HOME"), "Dropbox")
 	err := filepath.Walk(root, func(path string, fi os.FileInfo, err error) error {
 		if err != nil {
 			log.Printf("can't stat file %s: %v\n", path, err)
 			return nil
 		}
+		visited++
 		/*if fi.IsDir() && strings.HasPrefix(fi.Name(), ".") {
 			return filepath.SkipDir
 		}*/
@@ -26,6 +28,8 @@ func main() {
 		return nil
 	})
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
+
+	fmt.Println("files visited:", visited)
 }
