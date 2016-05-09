@@ -11,9 +11,14 @@ import (
 	fetchhttp "github.com/shurcooL/play/192/go-js-fetch/http"
 )
 
+var _ http.RoundTripper = &fetchhttp.FetchTransport{}
+
+//var client = http.Client{Transport: &fetchhttp.FetchTransport{}}
+//var client = http.Client{Transport: &http.XHRTransport{}}
+var client = http.DefaultClient
+
 func run() error {
-	c := http.Client{Transport: &fetchhttp.FetchTransport{}}
-	resp, err := c.Get("https://localhost:4430/reqinfo")
+	resp, err := client.Get("https://localhost:4430/reqinfo")
 	if err != nil {
 		return err
 	}
@@ -28,8 +33,7 @@ func run() error {
 }
 
 func stream() error {
-	c := http.Client{Transport: &fetchhttp.FetchTransport{}}
-	resp, err := c.Get("https://localhost:4430/clockstream")
+	resp, err := client.Get("https://localhost:4430/clockstream")
 	if err != nil {
 		return err
 	}

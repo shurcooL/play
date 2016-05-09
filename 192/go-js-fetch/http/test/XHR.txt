@@ -1,0 +1,42 @@
+XHR
+===
+
+(*http.Response)(&http.Response{
+	Status:     (string)("200 "),
+	StatusCode: (int)(200),
+	Proto:      (string)(""),
+	ProtoMajor: (int)(0),
+	ProtoMinor: (int)(0),
+	Header: (http.Header)(http.Header{
+		(string)("Content-Type"): ([]string)([]string{
+			(string)("text/plain"),
+		}),
+	}),
+	Body: (ioutil.nopCloser)(ioutil.nopCloser{
+		Reader: (*bytes.Reader)(already_shown),
+	}),
+	ContentLength:    (int64)(1099),
+	TransferEncoding: ([]string)(nil),
+	Close:            (bool)(false),
+	Trailer:          (http.Header)(nil),
+	Request:          (*http.Request)(already_shown),
+	TLS:              (*tls.ConnectionState)(nil),
+})
+Method: GET
+Protocol: HTTP/2.0
+Host: localhost:4430
+RemoteAddr: 127.0.0.1:52342
+RequestURI: "/reqinfo"
+URL: &url.URL{Scheme:"", Opaque:"", User:(*url.Userinfo)(nil), Host:"", Path:"/reqinfo", RawPath:"", RawQuery:"", Fragment:""}
+Body.ContentLength: 0 (-1 means unknown)
+Close: false (relevant for HTTP/1 only)
+TLS: &tls.ConnectionState{Version:0x303, HandshakeComplete:true, DidResume:false, CipherSuite:0xc02f, NegotiatedProtocol:"h2", NegotiatedProtocolIsMutual:true, ServerName:"localhost", PeerCertificates:[]*x509.Certificate(nil), VerifiedChains:[][]*x509.Certificate(nil), SignedCertificateTimestamps:[][]uint8(nil), OCSPResponse:[]uint8(nil), TLSUnique:[]uint8{0x3f, 0xb, 0xcb, 0xa4, 0x78, 0xed, 0x3b, 0x9b, 0x7b, 0xfb, 0x28, 0x4d}}
+
+Headers:
+Accept: */*
+Accept-Encoding: gzip, deflate, sdch
+Accept-Language: en
+Cache-Control: max-age=0
+Origin: http://localhost:8080
+Referer: http://localhost:8080/github.com/shurcooL/play/192/go-js-fetch/http/test/
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.86 Safari/537.36

@@ -13,7 +13,7 @@ import (
 
 var _ = fetch.Foo
 
-// streamReader implements a wrapper for https://streams.spec.whatwg.org/.
+// streamReader implements a wrapper for ReadableStreamDefaultReader of https://streams.spec.whatwg.org/.
 type streamReader struct {
 	pending []byte
 	reader  *js.Object
@@ -34,8 +34,8 @@ func (r streamReader) Read(p []byte) (n int, err error) {
 				bCh <- result.Get("value").Interface().([]byte)
 			},
 			func(reason *js.Object) {
-				// TODO: Capture error.
-				errCh <- errors.New("net/http: read failed")
+				// Assumes it's a DOMException.
+				errCh <- errors.New(reason.Get("message").String())
 			},
 		)
 		select {
@@ -90,7 +90,7 @@ func (t *FetchTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			// TODO: Make this better.
 			header := http.Header{}
 			result.Get("headers").Call("forEach", func(value, key *js.Object) {
-				header[key.String()] = []string{value.String()} // TODO: Support multiple values.
+				header[http.CanonicalHeaderKey(key.String())] = []string{value.String()} // TODO: Support multiple values.
 			})
 
 			contentLength := int64(-1)
