@@ -19,5 +19,5 @@ func Diff() {
 		Context:  3,
 	}
 	text, _ := GetUnifiedDiffString(diff)
-	fmt.Printf(text)
+	fmt.Print(text)
 }
