@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build h2demo
-
 package main
 
 import (
@@ -39,6 +37,9 @@ var (
 
 	hostHTTP  = flag.String("http_host", "", "Optional host or host:port to use for http:// links to this service. By default, this is implied from -http_addr.")
 	hostHTTPS = flag.String("https_host", "", "Optional host or host:port to use for http:// links to this service. By default, this is implied from -https_addr.")
+
+	certFlag = flag.String("cert", "server.crt", "Cert file.")
+	keyFlag  = flag.String("key", "server.key", "Key file.")
 )
 
 func homeOldHTTP(w http.ResponseWriter, r *http.Request) {
@@ -500,7 +501,7 @@ func main() {
 	}
 
 	go func() {
-		log.Fatal(srv.ListenAndServeTLS("server.crt", "server.key"))
+		log.Fatal(srv.ListenAndServeTLS(*certFlag, *keyFlag))
 	}()
 	select {}
 }
