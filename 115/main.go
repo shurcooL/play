@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"image"
 	_ "image/png"
+	"io"
+	"io/ioutil"
 	"math"
-	"os"
 	"time"
 
 	"github.com/go-gl/mathgl/mgl32"
@@ -411,15 +412,12 @@ func newTrack(path string) *Track {
 	track.TriGroups = make([]TriGroup, track.NumTriGroups)
 	binary.Read(file, binary.LittleEndian, &track.TriGroups)
 
-	fileOffset, err := file.Seek(0, os.SEEK_CUR)
-	if err != nil {
+	// Check that we've consumed the entire track file.
+	if n, err := io.Copy(ioutil.Discard, file); err != nil {
 		panic(err)
+	} else if n > 0 {
+		panic(fmt.Errorf("newTrack: did not get to end of track file, %d bytes left", n))
 	}
-	fileSize, err := file.Seek(0, os.SEEK_END)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Read %v of %v bytes.\n", fileOffset, fileSize)
 
 	{
 		rowCount := int(track.Depth) - 1
