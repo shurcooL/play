@@ -1,0 +1,38 @@
+fetch("https://gotools.org:34602/reqinfo").then((resp) => {
+	let r = resp.body.getReader();
+
+	let f = () => {
+		return r.read().then((result) => {
+			if (result.done) {
+				console.log("result.done, and result.value is:", result.value);
+				return;
+			};
+
+			console.log(new TextDecoder("utf-8").decode(result.value));
+
+			return f();
+		});
+	};
+
+	f();
+});
+
+---
+
+fetch("https://gotools.org:34602/reqinfo").then((r) => {resp = r;});
+resp.headers.forEach((k, v) => {console.log(v, "-", k);});
+resp.headers.getAll("test-header-x");
+resp.headers.getAll("test-header-y");
+
+goexec -quiet 'tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}; client := &http.Client{Transport: tr}; resp, err := client.Get("https://localhost:4430/reqinfo"); if err != nil {panic(err)}; goon.DumpExpr(resp.Header)'
+goexec -quiet 'resp, err := http.Get("https://gotools.org:34602/reqinfo"); if err != nil {panic(err)}; goon.DumpExpr(resp.Header); io.Copy(os.Stdout, resp.Body)'
+
+xhr = new XMLHttpRequest();
+xhr.open("GET", "https://gotools.org:34602/reqinfo");
+xhr.send();
+xhr.getAllResponseHeaders();
+
+---
+
+fetch("https://gotools.org:34602/clockstream").then((r) => {resp = r;});
+let r = resp.body.getReader();

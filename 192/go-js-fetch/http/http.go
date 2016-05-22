@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -13,19 +14,19 @@ import (
 
 var _ = fetch.Foo
 
-// streamReader implements a wrapper for ReadableStreamDefaultReader of https://streams.spec.whatwg.org/.
+// streamReader implements an io.ReadCloser wrapper for ReadableStream of https://fetch.spec.whatwg.org/.
 type streamReader struct {
 	pending []byte
-	reader  *js.Object
+	stream  *js.Object
 }
 
-func (r streamReader) Read(p []byte) (n int, err error) {
+func (r *streamReader) Read(p []byte) (n int, err error) {
 	if len(r.pending) == 0 {
 		var (
 			bCh   = make(chan []byte)
 			errCh = make(chan error)
 		)
-		r.reader.Call("read").Call("then",
+		r.stream.Call("read").Call("then",
 			func(result *js.Object) {
 				if result.Get("done").Bool() {
 					errCh <- io.EOF
@@ -50,8 +51,22 @@ func (r streamReader) Read(p []byte) (n int, err error) {
 	return n, nil
 }
 
-func (streamReader) Close() error {
-	// TODO: r.reader.cancel(reason) maybe?
+func (r *streamReader) Close() error {
+	// TOOD: Cannot do this because it's a blocking call, and Close() is often called
+	//       via `defer resp.Body.Close()`, but GopherJS currently has an issue with supporting that.
+	//       See https://github.com/gopherjs/gopherjs/issues/381 and https://github.com/gopherjs/gopherjs/issues/426.
+	/*ch := make(chan error)
+	r.stream.Call("cancel").Call("then",
+		func(result *js.Object) {
+			if result != js.Undefined {
+				ch <- errors.New(result.String()) // TODO: Verify this works, it probably doesn't and should be rewritten as result.Get("message").String() or something.
+				return
+			}
+			ch <- nil
+		},
+	)
+	return <-ch*/
+	r.stream.Call("cancel")
 	return nil
 }
 
@@ -62,17 +77,33 @@ func (t *FetchTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if fetch == js.Undefined {
 		return nil, errors.New("net/http: Fetch API not available")
 	}
+	if js.Global.Get("ReadableStream") == js.Undefined {
+		return nil, errors.New("net/http: Stream API not available")
+	}
 
 	headers := js.Global.Get("Headers").New()
 	for key, values := range req.Header {
 		for _, value := range values {
-			headers.Call("set", key, value)
+			headers.Call("append", key, value)
 		}
 	}
-	respPromise := fetch.Invoke(req.URL.String(), map[string]interface{}{
+	opt := map[string]interface{}{
 		"method":  req.Method,
 		"headers": headers,
-	})
+		//"redirect": "manual",
+	}
+	if req.Body != nil {
+		// TODO: Find out if request body can be streamed into the fetch request rather than in advance here.
+		//       See BufferSource at https://fetch.spec.whatwg.org/#body-mixin.
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			req.Body.Close() // RoundTrip must always close the body, including on errors.
+			return nil, err
+		}
+		req.Body.Close()
+		opt["body"] = body
+	}
+	respPromise := fetch.Invoke(req.URL.String(), opt)
 
 	respCh := make(chan *http.Response)
 	errCh := make(chan error)
@@ -84,31 +115,39 @@ func (t *FetchTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			//println(result.Get("headers").Call("has", "Content-Length"))
 			//println(result.Get("headers").Call("get", "Content-Type"))
 			//println(result.Get("headers").Call("get", "Content-Length"))
+
 			//statusText := result.Get("statusText").String()
 			statusText := http.StatusText(result.Get("status").Int())
 
-			// TODO: Make this better.
 			header := http.Header{}
 			result.Get("headers").Call("forEach", func(value, key *js.Object) {
-				header[http.CanonicalHeaderKey(key.String())] = []string{value.String()} // TODO: Support multiple values.
+				ck := http.CanonicalHeaderKey(key.String())
+				header[ck] = append(header[ck], value.String())
 			})
 
 			contentLength := int64(-1)
-			if cl, err := strconv.ParseInt(result.Get("headers").Call("get", "content-length").String(), 10, 64); err == nil {
+			if cl, err := strconv.ParseInt(header.Get("Content-Length"), 10, 64); err == nil {
 				contentLength = cl
 			}
+
+			/*var body io.ReadCloser
+			if b := result.Get("body"); b != nil {
+				body = &streamReader{stream: b.Call("getReader")}
+			} else {
+				body = noBody
+			}*/
 
 			respCh <- &http.Response{
 				Status:        result.Get("status").String() + " " + statusText,
 				StatusCode:    result.Get("status").Int(),
 				Header:        header,
 				ContentLength: contentLength,
-				Body:          &streamReader{reader: result.Get("body").Call("getReader")},
+				Body:          &streamReader{stream: result.Get("body").Call("getReader")},
 				Request:       req,
 			}
 		},
 		func(reason *js.Object) {
-			errCh <- errors.New("net/http: XMLHttpRequest failed")
+			errCh <- errors.New("net/http: fetch() failed")
 		},
 	)
 	select {
@@ -116,9 +155,11 @@ func (t *FetchTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		return resp, nil
 	case err := <-errCh:
 		return nil, err
+	case <-req.Cancel:
+		// TODO: Abort request if possible using Fetch API.
+		return nil, errors.New("net/http: request canceled")
 	}
 }
 
-func (t *FetchTransport) CancelRequest(req *http.Request) {
-	// TODO.
-}
+// TODO: Consider implementing here if importing those 2 packages is expensive.
+//var noBody io.ReadCloser = ioutil.NopCloser(bytes.NewReader(nil))

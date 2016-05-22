@@ -58,6 +58,10 @@ func homeOldHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == "OPTIONS" {
+		return
+	}
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -98,8 +102,21 @@ href="https://golang.org/s/http2bug">file a bug</a>.</p>
 }
 
 func reqInfoHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Accept-Encoding, Accept-Language, Foo, test-header-x, test-HEADER-Y")
+	w.Header().Set("Access-Control-Allow-Headers", r.Header.Get("Access-Control-Request-Headers"))
+	fmt.Printf("Access-Control-Request-Headers: %q\n", r.Header.Get("Access-Control-Request-Headers"))
+	if r.Method == "OPTIONS" {
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("accept-encoding", "gzip, deflate")
+	w.Header().Set("Accept-Language", "en-us")
+	w.Header().Add("fOO", "Bar")
+	w.Header().Add("foo", "two")
+	w.Header().Set("test-header-x", "value1, value2")
+	w.Header().Set("test-header-y", "value1")
+	w.Header().Add("test-header-y", "value2")
 	fmt.Fprintf(w, "Method: %s\n", r.Method)
 	fmt.Fprintf(w, "Protocol: %s\n", r.Proto)
 	fmt.Fprintf(w, "Host: %s\n", r.Host)
@@ -114,6 +131,11 @@ func reqInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func crcHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "PUT, OPTIONS")
+	if r.Method == "OPTIONS" {
+		return
+	}
 	if r.Method != "PUT" {
 		http.Error(w, "PUT required.", 400)
 		return
@@ -153,6 +175,11 @@ func (fw flushWriter) Write(p []byte) (n int, err error) {
 }
 
 func echoCapitalHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "PUT, OPTIONS")
+	if r.Method == "OPTIONS" {
+		return
+	}
 	if r.Method != "PUT" {
 		http.Error(w, "PUT required.", 400)
 		return
@@ -206,9 +233,12 @@ func fileServer(url string) http.Handler {
 }
 
 func clockStreamHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == "OPTIONS" {
+		return
+	}
 	clientGone := w.(http.CloseNotifier).CloseNotify()
 	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 	fmt.Fprintf(w, "# ~1KB of junk to force browsers to start rendering immediately: \n")
@@ -258,6 +288,10 @@ func registerHandlers() {
 	mux2.HandleFunc("/clockstream", clockStreamHandler)
 	mux2.Handle("/gophertiles", tiles)
 	mux2.HandleFunc("/redirect", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if r.Method == "OPTIONS" {
+			return
+		}
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 	stripHomedir := regexp.MustCompile(`/(Users|home)/\w+`)
