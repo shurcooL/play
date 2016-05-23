@@ -10,28 +10,15 @@ import (
 	"github.com/shurcooL/octicons"
 	"github.com/shurcooL/play/175/idea2/css"
 	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
 )
 
 func openBadge() []*html.Node {
-	n := &html.Node{
-		Type: html.ElementNode, Data: atom.Span.String(),
-		Attr: []html.Attribute{
-			{Key: atom.Class.String(), Val: "open-badge"},
-		},
-	}
-	n.AppendChild(
-		&html.Node{
-			Type: html.ElementNode, Data: atom.Span.String(),
-			Attr: []html.Attribute{
-				{Key: atom.Class.String(), Val: "octicon octicon-issue-opened"},
-			},
-		},
+	// <span class="open-badge"><span class="octicon octicon-issue-opened"></span> Open</span>
+	span := htmlg.SpanClass("open-badge",
+		htmlg.SpanClass("octicon octicon-issue-opened"),
+		htmlg.Text(" Open"),
 	)
-	n.AppendChild(&html.Node{
-		Type: html.TextNode, Data: " Open",
-	})
-	return []*html.Node{n}
+	return []*html.Node{span}
 }
 
 func genHandler(w http.ResponseWriter, req *http.Request) {
