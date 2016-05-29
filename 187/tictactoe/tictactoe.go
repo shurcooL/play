@@ -4,6 +4,7 @@ package tictactoe
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 
 	"golang.org/x/net/context"
 )
@@ -17,6 +18,14 @@ type Player interface {
 	// ctx is expected to have a deadline set, and Play may take time
 	// to "think" until deadline is reached before returning.
 	Play(ctx context.Context, b Board) (Move, error)
+}
+
+// Imager is an optional interface implemented by players
+// that have an image that represents them.
+type Imager interface {
+	// Image returns the URL of the player's image.
+	// Optimal size is 100 by 100 pixels (or higher for high DPI screens).
+	Image() template.URL
 }
 
 // Move is the board cell index where to place one's mark, a value in range [0, 9).

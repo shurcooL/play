@@ -42,10 +42,12 @@ func run() {
 		Mark:   ttt.O,
 	}
 
+	fmt.Println("Tic Tac Toe")
+	fmt.Println()
 	fmt.Printf("%v (X) vs %v (O)\n", playerX.Name(), playerO.Name())
 	if runtime.GOARCH == "js" {
 		var document = dom.GetWindow().Document().(dom.HTMLDocument)
-		document.SetTitle(fmt.Sprintf("%v (X) vs %v (O)", playerX.Name(), playerO.Name()))
+		document.SetTitle("Tic Tac Toe")
 	}
 
 	condition, err := playGame([2]player{playerX, playerO})
@@ -56,38 +58,34 @@ func run() {
 
 	fmt.Println()
 	fmt.Println(condition)
-	if runtime.GOARCH == "js" {
-		var document = dom.GetWindow().Document().(dom.HTMLDocument)
-		div := htmlg.Div(htmlg.Text(condition.String()))
-		document.Body().SetInnerHTML(document.Body().InnerHTML() + string(htmlg.Render(div)))
-	}
 }
 
 // players[0] always goes first.
 func playGame(players [2]player) (ttt.Condition, error) {
-	var b ttt.Board // Start with an empty board.
+	var board ttt.Board // Start with an empty board.
 
 	fmt.Println()
-	fmt.Println(b)
+	fmt.Println(board)
 	if runtime.GOARCH == "js" {
 		var document = dom.GetWindow().Document().(dom.HTMLDocument)
-		document.Body().SetInnerHTML(string(htmlg.Render(board{b}.Render()...)))
+		document.Body().SetInnerHTML(string(htmlg.Render(page{board: board, players: players}.Render()...)))
 	}
 
 	for i := 0; ; i++ {
-		err := playerTurn(&b, players[i%2])
+		err := playerTurn(&board, players[i%2])
 		if err != nil {
 			return 0, err
 		}
+		condition := board.Condition()
 
 		fmt.Println()
-		fmt.Println(b)
+		fmt.Println(board)
 		if runtime.GOARCH == "js" {
 			var document = dom.GetWindow().Document().(dom.HTMLDocument)
-			document.Body().SetInnerHTML(string(htmlg.Render(board{b}.Render()...)))
+			document.Body().SetInnerHTML(string(htmlg.Render(page{board: board, condition: condition, players: players}.Render()...)))
 		}
 
-		if condition := b.Condition(); condition != ttt.NotEnd {
+		if condition != ttt.NotEnd {
 			return condition, nil
 		}
 	}
@@ -111,27 +109,4 @@ func playerTurn(b *ttt.Board, player player) error {
 		return fmt.Errorf("player %v made a move that isn't legal: %v", player.Mark, err)
 	}
 	return nil
-}
-
-func mock() {
-	b := ttt.Board{
-		Cells: [9]ttt.State{
-			ttt.F, ttt.X, ttt.F,
-			ttt.F, ttt.F, ttt.F,
-			ttt.O, ttt.F, ttt.F,
-		},
-	}
-
-	fmt.Println(b)
-	fmt.Println()
-	fmt.Println(htmlg.Render(state{b.Cells[1]}.Render()...))
-	fmt.Println()
-	fmt.Println(htmlg.Render(board{b}.Render()...))
-
-	if runtime.GOARCH == "js" {
-		var document = dom.GetWindow().Document().(dom.HTMLDocument)
-		document.AddEventListener("DOMContentLoaded", false, func(dom.Event) {
-			document.Body().SetInnerHTML(string(htmlg.Render(board{b}.Render()...)))
-		})
-	}
 }
