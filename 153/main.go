@@ -1,3 +1,4 @@
+// Play with implementing goon dumper using go/ast and go/printer.
 package main
 
 import (
@@ -14,7 +15,7 @@ import (
 
 func main() {
 	for _, Dump := range []func(interface{}){
-		//GoonDump,
+		GoonDump,
 		Dump,
 	} {
 		Dump(123)
@@ -101,8 +102,8 @@ func dump(v reflect.Value) ast.Expr {
 		for i := 0; i < vt.NumField(); i++ {
 			fields = append(fields, &ast.KeyValueExpr{
 				Key: &ast.Ident{
-					Name:    vt.Field(i).Name,
-					NamePos: token.Pos(1 + i + 1),
+					Name: vt.Field(i).Name,
+					//NamePos: token.Pos(1 + i + 1),
 				},
 				Value: dump(v.Field(i)),
 			})
@@ -111,10 +112,10 @@ func dump(v reflect.Value) ast.Expr {
 		return typeValue(
 			typ,
 			&ast.CompositeLit{
-				Type:   typ,
-				Elts:   fields,
-				Lbrace: token.Pos(1),
-				Rbrace: token.Pos(1 + len(fields) + 1),
+				Type: typ,
+				Elts: fields,
+				//Lbrace: token.Pos(1),
+				//Rbrace: token.Pos(1 + len(fields) + 1),
 			},
 		)
 	case reflect.Ptr:

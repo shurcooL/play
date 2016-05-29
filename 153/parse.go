@@ -14,7 +14,7 @@ import (
 
 func main() {
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, "/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/play/31/x.go", nil, 0)
+	f, err := parser.ParseFile(fset, "/Users/Dmitri/Dropbox/Work/2013/GoLand/src/github.com/shurcooL/play/153/x.go", nil, 0)
 	if err != nil {
 		log.Fatalln(err)
 	}
