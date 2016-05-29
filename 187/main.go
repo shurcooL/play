@@ -5,43 +5,115 @@ package main
 
 import (
 	"fmt"
+	"runtime"
+	"time"
 
 	"github.com/shurcooL/htmlg"
+	"github.com/shurcooL/play/187/player/random"
 	ttt "github.com/shurcooL/play/187/tictactoe"
-	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
+	"golang.org/x/net/context"
+	"honnef.co/go/js/dom"
 )
 
-type state struct{ ttt.State }
-
-func (s state) Render() []*html.Node {
-	return []*html.Node{style(
-		`display: table-cell; width: 20px; height: 20px; text-align: center; vertical-align: middle; background-color: #f4f4f4;`,
-		htmlg.Div(
-			htmlg.Text(s.String()),
-		),
-	)}
-}
-
-type board struct{ ttt.Board }
-
-func (b board) Render() []*html.Node {
-	table := &html.Node{Data: atom.Table.String(), Type: html.ElementNode}
-	for row := 0; row < 3; row++ {
-		tr := &html.Node{Data: atom.Tr.String(), Type: html.ElementNode}
-		for _, cell := range b.Cells[3*row : 3*row+3] {
-			td := &html.Node{Data: atom.Td.String(), Type: html.ElementNode}
-			for _, n := range (state{cell}.Render()) {
-				td.AppendChild(n)
-			}
-			tr.AppendChild(td)
-		}
-		table.AppendChild(tr)
-	}
-	return []*html.Node{table}
+type player struct {
+	ttt.Player
+	Mark ttt.State // Mark is either X or O.
 }
 
 func main() {
+	switch runtime.GOARCH {
+	default:
+		run()
+	case "js":
+		var document = dom.GetWindow().Document().(dom.HTMLDocument)
+		document.AddEventListener("DOMContentLoaded", false, func(dom.Event) {
+			go run()
+		})
+	}
+}
+
+func run() {
+	playerX := player{
+		Player: random.NewPlayer(),
+		Mark:   ttt.X,
+	}
+	playerO := player{
+		Player: random.NewPlayer(),
+		Mark:   ttt.O,
+	}
+
+	fmt.Printf("%v (X) vs %v (O)\n", playerX.Name(), playerO.Name())
+	if runtime.GOARCH == "js" {
+		var document = dom.GetWindow().Document().(dom.HTMLDocument)
+		document.SetTitle(fmt.Sprintf("%v (X) vs %v (O)", playerX.Name(), playerO.Name()))
+	}
+
+	condition, err := playGame([2]player{playerX, playerO})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println()
+	fmt.Println(condition)
+	if runtime.GOARCH == "js" {
+		var document = dom.GetWindow().Document().(dom.HTMLDocument)
+		div := htmlg.Div(htmlg.Text(condition.String()))
+		document.Body().SetInnerHTML(document.Body().InnerHTML() + string(htmlg.Render(div)))
+	}
+}
+
+// players[0] always goes first.
+func playGame(players [2]player) (ttt.Condition, error) {
+	var b ttt.Board // Start with an empty board.
+
+	fmt.Println()
+	fmt.Println(b)
+	if runtime.GOARCH == "js" {
+		var document = dom.GetWindow().Document().(dom.HTMLDocument)
+		document.Body().SetInnerHTML(string(htmlg.Render(board{b}.Render()...)))
+	}
+
+	for i := 0; ; i++ {
+		err := playerTurn(&b, players[i%2])
+		if err != nil {
+			return 0, err
+		}
+
+		fmt.Println()
+		fmt.Println(b)
+		if runtime.GOARCH == "js" {
+			var document = dom.GetWindow().Document().(dom.HTMLDocument)
+			document.Body().SetInnerHTML(string(htmlg.Render(board{b}.Render()...)))
+		}
+
+		if condition := b.Condition(); condition != ttt.NotEnd {
+			return condition, nil
+		}
+	}
+}
+
+func playerTurn(b *ttt.Board, player player) error {
+	const timePerMove = 3 * time.Second
+
+	ctx, cancel := context.WithTimeout(context.Background(), timePerMove)
+	move, err := player.Play(ctx, *b)
+	cancel()
+	if err != nil {
+		return fmt.Errorf("player %v failed to make a move: %v", player.Mark, err)
+	}
+	if err := move.Validate(); err != nil {
+		return fmt.Errorf("player %v made a move that isn't valid: %v", player.Mark, err)
+	}
+
+	err = b.Apply(move, player.Mark)
+	if err != nil {
+		return fmt.Errorf("player %v made a move that isn't legal: %v", player.Mark, err)
+	}
+	return nil
+}
+
+func mock() {
 	b := ttt.Board{
 		Cells: [9]ttt.State{
 			ttt.F, ttt.X, ttt.F,
@@ -55,16 +127,11 @@ func main() {
 	fmt.Println(htmlg.Render(state{b.Cells[1]}.Render()...))
 	fmt.Println()
 	fmt.Println(htmlg.Render(board{b}.Render()...))
-}
 
-type Component interface {
-	Render() []*html.Node
-}
-
-func style(style string, n *html.Node) *html.Node {
-	if n.Type != html.ElementNode {
-		panic("invalid node type")
+	if runtime.GOARCH == "js" {
+		var document = dom.GetWindow().Document().(dom.HTMLDocument)
+		document.AddEventListener("DOMContentLoaded", false, func(dom.Event) {
+			document.Body().SetInnerHTML(string(htmlg.Render(board{b}.Render()...)))
+		})
 	}
-	n.Attr = append(n.Attr, html.Attribute{Key: atom.Style.String(), Val: style})
-	return n
 }
