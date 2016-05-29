@@ -120,17 +120,21 @@ func (b Board) Condition() Condition {
 
 			(b.Cells[0] == O && b.Cells[4] == O && b.Cells[8] == O) || // Check all diagonals.
 			(b.Cells[2] == O && b.Cells[4] == O && b.Cells[6] == O)
+
+		freeCellsLeft = b.Cells[0] == F || b.Cells[1] == F || b.Cells[2] == F ||
+			b.Cells[3] == F || b.Cells[4] == F || b.Cells[5] == F ||
+			b.Cells[6] == F || b.Cells[7] == F || b.Cells[8] == F
 	)
 
 	switch {
-	default:
-		return NotEnd
 	case x && !o:
 		return XWon
 	case o && !x:
 		return OWon
-	case x && o:
+	case !freeCellsLeft:
 		return Tie
+	default:
+		return NotEnd
 	}
 }
 
