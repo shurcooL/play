@@ -75,6 +75,7 @@ func input(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		n, err := r.Body.Read(b)
+		// TODO: If we cared about correctness, should process b[:n] bytes before checking/dealing with error.
 		if err != nil {
 			return
 		}
