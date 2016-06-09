@@ -1,3 +1,4 @@
+// Play with a VFS abstraction that implicitly creates/removes directories.
 package main
 
 import (
@@ -6,11 +7,56 @@ import (
 	"log"
 	"os"
 	pathpkg "path"
-	"syscall"
 
-	"github.com/shurcooL/webdavfs/vfsutil"
 	"golang.org/x/net/webdav"
 )
+
+func run() error {
+	fs := ImplicitDirFS{webdav.NewMemFS()}
+
+	f, err := fs.OpenFile("/foo/bar/baz.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	f.Close()
+
+	f, err = fs.OpenFile("/foo/bar.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	f.Close()
+
+	err = Tree(fs, "/")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("\n---\n")
+
+	err = fs.RemoveAll("/foo/bar/baz.txt")
+	if err != nil {
+		return err
+	}
+
+	err = Tree(fs, "/")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("\n---\n")
+
+	err = fs.RemoveAll("/foo/bar.txt")
+	if err != nil {
+		return err
+	}
+
+	err = Tree(fs, "/")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func main() {
 	err := run()
@@ -19,47 +65,16 @@ func main() {
 	}
 }
 
-func run() error {
-	fs := Foo{webdav.NewMemFS()}
-
-	f, err := fs.OpenFile("/foo/bar/baz.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		return err
-	}
-	f.Close()
-
-	/*f, err = fs.OpenFile("/foo/bar.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		return err
-	}
-	f.Close()*/
-
-	err = fs.RemoveAll("/foo/bar/baz.txt")
-	if err != nil {
-		return err
-	}
-
-	fis, err := vfsutil.ReadDir(fs, "/")
-	if err != nil {
-		return err
-	}
-	fmt.Printf("%v files in root:\n", len(fis))
-	for _, fi := range fis {
-		fmt.Printf("  %q\n", fi.Name())
-	}
-
-	return nil
-}
-
-type Foo struct {
+// ImplicitDirFS is a virtual filesystem wrapper that implicitly creates/removes directories.
+type ImplicitDirFS struct {
 	s webdav.FileSystem
 }
 
-func (fs Foo) Mkdir(name string, perm os.FileMode) error {
+func (fs ImplicitDirFS) Mkdir(name string, perm os.FileMode) error {
 	return fs.s.Mkdir(name, perm)
 }
 
-func (fs Foo) OpenFile(name string, flag int, perm os.FileMode) (webdav.File, error) {
+func (fs ImplicitDirFS) OpenFile(name string, flag int, perm os.FileMode) (webdav.File, error) {
 	f, err := fs.s.OpenFile(name, flag, perm)
 	if err != nil && flag&os.O_CREATE == os.O_CREATE && os.IsNotExist(err) {
 		err = MkdirAll(fs.s, pathpkg.Dir(name), 0755)
@@ -71,7 +86,7 @@ func (fs Foo) OpenFile(name string, flag int, perm os.FileMode) (webdav.File, er
 	return f, err
 }
 
-func (fs Foo) RemoveAll(name string) error {
+func (fs ImplicitDirFS) RemoveAll(name string) error {
 	err := fs.s.RemoveAll(name)
 	if err != nil {
 		return err
@@ -80,11 +95,11 @@ func (fs Foo) RemoveAll(name string) error {
 	return nil
 }
 
-func (fs Foo) Rename(oldName string, newName string) error {
+func (fs ImplicitDirFS) Rename(oldName string, newName string) error {
 	return fs.s.Rename(oldName, newName)
 }
 
-func (fs Foo) Stat(name string) (os.FileInfo, error) {
+func (fs ImplicitDirFS) Stat(name string) (os.FileInfo, error) {
 	return fs.s.Stat(name)
 }
 
@@ -102,17 +117,17 @@ func MkdirAll(fs webdav.FileSystem, path string, perm os.FileMode) error {
 		if dir.IsDir() {
 			return nil
 		}
-		return &os.PathError{Op: "mkdir", Path: path, Err: syscall.ENOTDIR}
+		return &os.PathError{Op: "MkdirAll", Path: path, Err: fmt.Errorf("path already exists, and it's not directory")}
 	}
 
 	// Slow path: make sure parent exists and then call Mkdir for path.
 	i := len(path)
-	for i > 0 && os.IsPathSeparator(path[i-1]) { // Skip trailing path separator.
+	for i > 0 && path[i-1] == '/' { // Skip trailing path separator.
 		i--
 	}
 
 	j := i
-	for j > 0 && !os.IsPathSeparator(path[j-1]) { // Scan backward over element.
+	for j > 0 && path[j-1] != '/' { // Scan backward over element.
 		j--
 	}
 
@@ -138,7 +153,7 @@ func MkdirAll(fs webdav.FileSystem, path string, perm os.FileMode) error {
 	return nil
 }
 
-// RmdirAll removes empty directory at path and any parents it can.
+// RmdirAll removes empty directory at path and any empty parents.
 func RmdirAll(fs webdav.FileSystem, path string) {
 	path = pathpkg.Clean(path)
 
@@ -165,6 +180,7 @@ func RmdirAll(fs webdav.FileSystem, path string) {
 	}
 }
 
+// emptyDir reports if name is an empty directory.
 func emptyDir(fs webdav.FileSystem, name string) (bool, error) {
 	f, err := fs.OpenFile(name, os.O_RDONLY, 0)
 	if err != nil {
