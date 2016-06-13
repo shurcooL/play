@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/shurcooL/play/187/player/random"
-	ttt "github.com/shurcooL/play/187/tictactoe"
+	ttt "github.com/shurcooL/tictactoe"
 	"golang.org/x/net/context"
 )
 
