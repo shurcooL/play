@@ -6,12 +6,10 @@ import (
 	"os"
 	pathpkg "path"
 	"sort"
-
-	"golang.org/x/net/webdav"
 )
 
 // Tree prints a tree of fs at path to stdout.
-func Tree(fs webdav.FileSystem, path string) error {
+func Tree(fs ImplicitDirFS, path string) error {
 	dirs, files, err := visit(fs, path, "")
 	if err != nil {
 		return err
@@ -20,7 +18,7 @@ func Tree(fs webdav.FileSystem, path string) error {
 	return nil
 }
 
-func visit(fs webdav.FileSystem, path, indent string) (dirs, files int, err error) {
+func visit(fs ImplicitDirFS, path, indent string) (dirs, files int, err error) {
 	fi, err := fs.Stat(path)
 	if err != nil {
 		return 0, 0, fmt.Errorf("stat %s: %v", path, err)
