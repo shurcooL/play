@@ -1,3 +1,13 @@
+/*
+AST-explorer is for inspecting Go AST nodes, like Elements tab of Chrome Deverloper Tools is for DOM elements.
+
+Examples
+
+Here are some instances where this might be useful.
+
+	// Figure out order of operators. Turns out you need parenthesis around (3*8), (2*8), etc.
+	fmt.Printf("%d\n", uint32(ip[0])<<3*8|uint32(ip[1])<<2*8|uint32(ip[2])<<1*8|uint32(ip[3]))
+*/
 package main
 
 import (
