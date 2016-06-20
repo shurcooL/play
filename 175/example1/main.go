@@ -27,7 +27,7 @@ func genHandler(w http.ResponseWriter, req *http.Request) {
 	io.WriteString(w, `<html>
 	<head>
 		<link rel="stylesheet" href="/gen/style.css">
-		<link rel="stylesheet" href="/raw/octicons/octicons.css">
+		<link rel="stylesheet" href="/raw/octicons/octicons.min.css">
 	</head>
 	<body>
 		`)
@@ -72,8 +72,8 @@ func genStyleHandler(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 	fmt.Println("Started.")
-	http.Handle("/raw/", http.StripPrefix("/raw/", http.FileServer(http.Dir("raw"))))
-	http.Handle("/raw/octicons/", http.StripPrefix("/raw/octicons/", http.FileServer(octicons.Assets)))
+	http.Handle("/raw/", http.StripPrefix("/raw", http.FileServer(http.Dir("raw"))))
+	http.Handle("/raw/octicons/", http.StripPrefix("/raw/octicons", http.FileServer(octicons.Assets)))
 	http.HandleFunc("/gen/", genHandler)
 	http.HandleFunc("/gen/style.css", genStyleHandler)
 	err := http.ListenAndServe(":8080", nil)
