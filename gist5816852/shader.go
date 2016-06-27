@@ -17,7 +17,7 @@ func ReadSourceFile(filename string) (string, error) {
 	fp, err := os.Open(filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: ReadSourceFile: Could not open %s!\n", filename)
-		fmt.Fprintf(os.Stderr, "os.Open: %e\n", err)
+		fmt.Fprintf(os.Stderr, "os.Open: %v\n", err)
 		return "", err
 	}
 	defer fp.Close()
@@ -61,9 +61,9 @@ func CreateShader(shaderType uint32, filePath string) uint32 {
 	/*glslCode := gl.GLStringArray(shaderCode)
 	defer gl.GLStringArrayFree(glslCode)
 	gl.ShaderSource(shaderId, int32(len(glslCode)), &glslCode[0], nil)*/
-	shaderCode = shaderCode
-	csource := gl.Str(shaderCode)
-	gl.ShaderSource(shaderId, 1, &csource, nil)
+	csources, free := gl.Strs(shaderCode)
+	gl.ShaderSource(shaderId, 1, csources, nil)
+	free()
 	gl.CompileShader(shaderId)
 
 	// Check the status of the compile - did it work?

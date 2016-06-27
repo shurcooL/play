@@ -12,7 +12,7 @@ import (
 	//gl "github.com/chsc/gogl/gl33"
 	//gl "github.com/err/gl33"
 	"github.com/go-gl/gl/v4.1-core/gl"
-	"github.com/go-gl/glfw/v3.1/glfw"
+	"github.com/go-gl/glfw/v3.2/glfw"
 
 	//"github.com/Ysgard/GoGLutils"
 	"github.com/go-gl/mathgl/mgl32"
