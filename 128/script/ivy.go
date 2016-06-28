@@ -14,14 +14,15 @@ import (
 	"os"
 	"strings"
 
-	"honnef.co/go/js/dom"
 	"robpike.io/ivy/config"
+	"robpike.io/ivy/exec"
 	"robpike.io/ivy/parse"
+	"robpike.io/ivy/run"
 	"robpike.io/ivy/scan"
 	"robpike.io/ivy/value"
-)
 
-var document = dom.GetWindow().Document()
+	"honnef.co/go/js/dom"
+)
 
 var (
 	execute   = flag.Bool("e", false, "execute arguments as a single expression")
@@ -36,13 +37,10 @@ var (
 
 var (
 	conf    config.Config
-	stderr  io.Writer
 	context value.Context
 )
 
-func init() {
-	value.IvyEval = IvyEval
-}
+var document = dom.GetWindow().Document()
 
 func main() {
 	flag.Usage = usage
@@ -56,7 +54,7 @@ func main() {
 	// The default os.Stdout, os.Stderr are printed to browser's console, which isn't a friendly interface.
 	// Create an implementation of stdout, stderr, stdin that uses a <pre> and <input> html elements.
 	stdout := NewWriter(document.GetElementByID("output").(*dom.HTMLPreElement))
-	stderr = NewWriter(document.GetElementByID("output").(*dom.HTMLPreElement))
+	stderr := NewWriter(document.GetElementByID("output").(*dom.HTMLPreElement))
 	stdin := NewReader(document.GetElementByID("input").(*dom.HTMLInputElement))
 
 	// Send a copy of stdin to stdout (like in most terminals).
@@ -70,9 +68,12 @@ func main() {
 	})
 
 	conf.SetOutput(stdout)
+	conf.SetErrOutput(stderr)
+
 	if *gformat {
 		*format = "%.12g"
 	}
+
 	conf.SetFormat(*format)
 	conf.SetMaxBits(*maxbits)
 	conf.SetMaxDigits(*maxdigits)
@@ -87,10 +88,7 @@ func main() {
 		}
 	}
 
-	value.SetConfig(&conf)
-
-	context = parse.NewContext()
-	value.SetContext(context)
+	context = exec.NewContext(&conf)
 
 	if *execute {
 		runArgs(context)
@@ -114,127 +112,26 @@ func main() {
 				fmt.Fprintf(os.Stderr, "ivy: %s\n", err)
 				os.Exit(1)
 			}
-			scanner := scan.New(&conf, name, bufio.NewReader(fd))
-			parser := parse.NewParser(&conf, name, scanner, context)
-			if !run(parser, context, interactive) {
+			scanner := scan.New(context, name, bufio.NewReader(fd))
+			parser := parse.NewParser(name, scanner, context)
+			if !run.Run(parser, context, interactive) {
 				break
 			}
 		}
 		return
 	}
 
-	scanner := scan.New(&conf, "<stdin>", bufio.NewReader(stdin))
-	parser := parse.NewParser(&conf, "<stdin>", scanner, context)
-	for !run(parser, context, true) {
+	scanner := scan.New(context, "<stdin>", bufio.NewReader(stdin))
+	parser := parse.NewParser("<stdin>", scanner, context)
+	for !run.Run(parser, context, true) {
 	}
 }
 
+// runArgs executes the text of the command-line arguments as an ivy program.
 func runArgs(context value.Context) {
-	scanner := scan.New(&conf, "<args>", strings.NewReader(strings.Join(flag.Args(), " ")))
-	parser := parse.NewParser(&conf, "<args>", scanner, context)
-	run(parser, context, false)
-}
-
-// IvyEval is the function called by value/unaryIvy to implement the ivy (eval) operation.
-func IvyEval(context value.Context, str string) value.Value {
-	scanner := scan.New(&conf, "<ivy>", strings.NewReader(str))
-	parser := parse.NewParser(&conf, "<ivy>", scanner, context)
-	return eval(parser, context)
-}
-
-// run runs until EOF or error. The return value says whether we completed without error.
-func run(p *parse.Parser, context value.Context, interactive bool) (success bool) {
-	writer := conf.Output()
-	defer func() {
-		if conf.Debug("panic") {
-			return
-		}
-		err := recover()
-		if err == nil {
-			return
-		}
-		p.FlushToNewline()
-		if err, ok := err.(value.Error); ok {
-			fmt.Fprintf(stderr, "%s%s\n", p.Loc(), err)
-			if interactive {
-				fmt.Fprintln(writer)
-			}
-			success = false
-			return
-		}
-		panic(err)
-	}()
-	for {
-		if interactive {
-			fmt.Fprint(writer, conf.Prompt())
-		}
-		exprs, ok := p.Line()
-		var values []value.Value
-		if exprs != nil {
-			values = context.Eval(exprs)
-		}
-		if values != nil {
-			printValues(writer, values)
-			context.Assign("_", values[len(values)-1])
-		}
-		if !ok {
-			return true
-		}
-		if interactive {
-			fmt.Fprintln(writer)
-		}
-	}
-}
-
-// eval runs until EOF or error. It prints every value but the last, and returns the last.
-// By last we mean the last expression of the last evaluation.
-// (Expressions are separated by ; in the input.)
-// It is always called from (somewhere below) run, so if it errors out the recover in
-// run will catch it.
-func eval(p *parse.Parser, context value.Context) value.Value {
-	writer := conf.Output()
-	var prevValues []value.Value
-	for {
-		exprs, ok := p.Line()
-		var values []value.Value
-		if exprs != nil {
-			values = context.Eval(exprs)
-		}
-		if !ok {
-			if len(prevValues) == 0 {
-				return nil
-			}
-			printValues(writer, prevValues[:len(prevValues)-1])
-			return prevValues[len(prevValues)-1]
-		}
-		printValues(writer, prevValues)
-		prevValues = values
-	}
-}
-
-// printValues neatly prints the values returned from execution, followed by a newilne.
-// It also handles the ')debug types' output.
-func printValues(writer io.Writer, values []value.Value) {
-	if len(values) == 0 {
-		return
-	}
-	if conf.Debug("types") {
-		for i, v := range values {
-			if i > 0 {
-				fmt.Fprint(writer, ",")
-			}
-			fmt.Fprintf(writer, "%T", v)
-		}
-		fmt.Fprintln(writer)
-	}
-	for i, v := range values {
-		s := v.String()
-		if i > 0 && len(s) > 0 && s[len(s)-1] != '\n' {
-			fmt.Fprint(writer, " ")
-		}
-		fmt.Fprint(writer, s)
-	}
-	fmt.Fprintln(writer)
+	scanner := scan.New(context, "<args>", strings.NewReader(strings.Join(flag.Args(), " ")))
+	parser := parse.NewParser("<args>", scanner, context)
+	run.Run(parser, context, false)
 }
 
 func usage() {
