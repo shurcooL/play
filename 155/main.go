@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shurcooL/go/gzip_file_server"
 	"github.com/shurcooL/httpfs/html/vfstemplate"
+	"github.com/shurcooL/httpgzip"
 )
 
 var httpFlag = flag.String("http", ":8080", "Listen for HTTP connections on this address.")
@@ -93,7 +93,7 @@ func main() {
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.HandleFunc("/", mainHandler)
 	http.HandleFunc("/events", eventsHandler)
-	http.Handle("/assets/", gzip_file_server.New(assets))
+	http.Handle("/assets/", httpgzip.FileServer(assets, httpgzip.FileServerOptions{ServeError: httpgzip.Detailed}))
 
 	printServingAt(*httpFlag)
 	err = http.ListenAndServe(*httpFlag, nil)

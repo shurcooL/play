@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/shurcooL/go/gzip_file_server"
 	"github.com/shurcooL/httpfs/vfsutil"
+	"github.com/shurcooL/httpgzip"
 )
 
 // File implements http.FileSystem using the native file system restricted to a
@@ -57,5 +57,5 @@ func main() {
 	f.Close()
 	return
 
-	panic(http.ListenAndServe(":8080", gzip_file_server.New(fs)))
+	log.Fatalln(http.ListenAndServe(":8080", httpgzip.FileServer(fs, httpgzip.FileServerOptions{ServeError: httpgzip.Detailed})))
 }

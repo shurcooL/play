@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/shurcooL/go/gzip_file_server"
 	"github.com/shurcooL/httpfs/html/vfstemplate"
+	"github.com/shurcooL/httpgzip"
 	"github.com/shurcooL/play/148/pages"
 )
 
@@ -62,7 +62,7 @@ func main() {
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.HandleFunc("/", mainHandler)
-	http.Handle("/assets/", gzip_file_server.New(assets))
+	http.Handle("/assets/", httpgzip.FileServer(assets, httpgzip.FileServerOptions{ServeError: httpgzip.Detailed}))
 
 	printServingAt(*httpFlag)
 	err = http.ListenAndServe(*httpFlag, nil)

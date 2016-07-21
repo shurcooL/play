@@ -7,13 +7,13 @@ import (
 	"net/http"
 
 	"github.com/shurcooL/go/gopherjs_http"
-	"github.com/shurcooL/go/gzip_file_server"
+	"github.com/shurcooL/httpgzip"
 )
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "index.html") })
 	//http.Handle("/script/script.js", gopherjs_http.GoFiles("script/script.go"))
-	http.Handle("/script/script.js", gzip_file_server.New(gopherjs_http.NewFS(http.Dir("."))))
+	http.Handle("/script/script.js", httpgzip.FileServer(gopherjs_http.NewFS(http.Dir(".")), httpgzip.FileServerOptions{ServeError: httpgzip.Detailed}))
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
