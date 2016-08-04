@@ -109,7 +109,7 @@ func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 		state := base64.RawURLEncoding.EncodeToString(cryptoRandBytes()) // GitHub doesn't handle all non-ascii bytes in state, so use base64.
 		SetCookie(w, &http.Cookie{Path: "/callback/github", Name: stateCookieName, Value: state, HttpOnly: true})
 
-		url := gitHubConfig.AuthCodeURL(state)
+		url := githubConfig.AuthCodeURL(state)
 		return nil, Redirect{URL: url}
 	case req.Method == "GET" && req.URL.Path == "/callback/github":
 		if u != nil {
@@ -128,11 +128,11 @@ func Handler(u *user, w HeaderWriter, req *http.Request) ([]*html.Node, error) {
 				return nil, errors.New("state doesn't match")
 			}
 
-			token, err := gitHubConfig.Exchange(oauth2.NoContext, req.FormValue("code"))
+			token, err := githubConfig.Exchange(oauth2.NoContext, req.FormValue("code"))
 			if err != nil {
 				return nil, err
 			}
-			tc := gitHubConfig.Client(oauth2.NoContext, token)
+			tc := githubConfig.Client(oauth2.NoContext, token)
 			gh := github.NewClient(tc)
 
 			user, _, err := gh.Users.Get("")

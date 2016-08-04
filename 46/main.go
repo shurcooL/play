@@ -34,7 +34,7 @@ func main() {
 					},
 				},
 			},
-			Comparison: &GithubComparison{
+			Comparison: &GitHubComparison{
 				cc: &github.CommitsComparison{
 					Commits: []github.RepositoryCommit{
 						{Commit: &github.Commit{Message: NewString("first message")}},
@@ -124,7 +124,7 @@ var t = template.Must(template.New("repo").Parse(`<div class="list-entry" style=
 
 type RepoCc struct {
 	Repo       Repo
-	Comparison *GithubComparison
+	Comparison *GitHubComparison
 }
 
 func (this RepoCc) AvatarUrl() template.URL {
@@ -149,7 +149,7 @@ func (this RepoCc) Changes() []github.RepositoryCommit {
 	return this.Comparison.cc.Commits
 }
 
-type GithubComparison struct {
+type GitHubComparison struct {
 	cc *github.CommitsComparison
 }
 

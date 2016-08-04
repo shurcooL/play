@@ -15,7 +15,7 @@ import (
 	githuboauth2 "golang.org/x/oauth2/github"
 )
 
-var gitHubConfig = oauth2.Config{
+var githubConfig = oauth2.Config{
 	ClientID:     os.Getenv("GH_BASIC_CLIENT_ID"),
 	ClientSecret: os.Getenv("GH_BASIC_SECRET_ID"),
 	Scopes:       nil,
@@ -57,7 +57,7 @@ func handleLogin(w http.ResponseWriter, req *http.Request) {
 	state := cryptoRandString()
 	goon.DumpExpr(state)
 
-	url := gitHubConfig.AuthCodeURL(state)
+	url := githubConfig.AuthCodeURL(state)
 	http.Redirect(w, req, url, http.StatusFound)
 }
 
@@ -66,11 +66,11 @@ func handleCallback(w http.ResponseWriter, req *http.Request) {
 	state := req.FormValue("state")
 	goon.DumpExpr(state)
 
-	token, err := gitHubConfig.Exchange(oauth2.NoContext, req.FormValue("code"))
+	token, err := githubConfig.Exchange(oauth2.NoContext, req.FormValue("code"))
 	if err != nil {
 		panic(err)
 	}
-	tc := gitHubConfig.Client(oauth2.NoContext, token)
+	tc := githubConfig.Client(oauth2.NoContext, token)
 	gh := github.NewClient(tc)
 
 	user, _, err := gh.Users.Get("")
