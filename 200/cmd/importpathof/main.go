@@ -43,9 +43,7 @@ func table(file string) (*gosym.Table, error) {
 		} else {
 			text = s.Addr
 		}
-		if s := o.Section("__gosymtab"); s == nil {
-			return nil, errors.New("empty __gosymtab")
-		} else {
+		if s := o.Section("__gosymtab"); s != nil { // Treat a missing gosymtab section as an empty one.
 			if symtab, err = s.Data(); err != nil {
 				return nil, err
 			}
@@ -63,9 +61,7 @@ func table(file string) (*gosym.Table, error) {
 		} else {
 			text = s.Addr
 		}
-		if s := o.Section(".gosymtab"); s == nil {
-			return nil, errors.New("empty .gosymtab")
-		} else {
+		if s := o.Section(".gosymtab"); s != nil { // Treat a missing gosymtab section as an empty one.
 			if symtab, err = s.Data(); err != nil {
 				return nil, err
 			}
