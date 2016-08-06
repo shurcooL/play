@@ -94,15 +94,12 @@ func mainFile(table *gosym.Table) (string, error) {
 func importPath(file string) (string, error) {
 	path, _ := filepath.Split(file)
 	path = path[:len(path)-1] // Remove trailing slash. TODO: Better.
-	// TODO: Consider build.Default.SrcDirs().
-	workspaces := filepath.SplitList(build.Default.GOPATH)
-	for _, w := range workspaces {
-		srcRoot := filepath.Join(w, "src")
+	for _, srcRoot := range build.Default.SrcDirs() {
 		if strings.HasPrefix(path, srcRoot) {
 			return path[len(srcRoot)+1:], nil
 		}
 	}
-	return "", fmt.Errorf("not found")
+	return "", fmt.Errorf("couldn't find an import path corresponding to %q", file)
 }
 
 func run() error {
