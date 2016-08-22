@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/shurcooL/go-goon"
 	"github.com/shurcooL/issues/asanaapi/asana"
 	"github.com/shurcooL/users/asanaapi"
-	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
 

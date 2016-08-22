@@ -2,10 +2,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
-	"golang.org/x/net/context"
 	"src.sourcegraph.com/apps/tracker/issues"
 	ghissues "src.sourcegraph.com/apps/tracker/issues/github"
 )

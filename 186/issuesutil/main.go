@@ -2,12 +2,12 @@
 package issuesutil
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/shurcooL/go-goon"
 	"github.com/shurcooL/issues"
 	"github.com/shurcooL/users"
-	"golang.org/x/net/context"
 )
 
 func DumpUsers(ctx context.Context, src issues.Service, repo issues.RepoSpec) error {

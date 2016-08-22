@@ -2,6 +2,7 @@
 package wordpress
 
 import (
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -14,7 +15,6 @@ import (
 	"github.com/shurcooL/go/gists/gist5439318"
 	"github.com/shurcooL/issues"
 	"github.com/shurcooL/users"
-	"golang.org/x/net/context"
 )
 
 type service struct {
