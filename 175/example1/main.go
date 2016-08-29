@@ -8,11 +8,15 @@ import (
 
 	"github.com/shurcooL/htmlg"
 	"github.com/shurcooL/octicons"
-	"github.com/shurcooL/play/175/idea2/css"
+	"github.com/shurcooL/play/175/idea3/cd"
+	"github.com/shurcooL/play/175/idea3/css"
+	"github.com/shurcooL/play/175/idea3/cv"
 	"golang.org/x/net/html"
 )
 
-func openBadge() []*html.Node {
+type openBadge struct{}
+
+func (openBadge) Render() []*html.Node {
 	// <span class="open-badge"><span class="octicon octicon-issue-opened"></span> Open</span>
 	span := htmlg.SpanClass("open-badge",
 		htmlg.SpanClass("octicon octicon-issue-opened"),
@@ -32,7 +36,7 @@ func genHandler(w http.ResponseWriter, req *http.Request) {
 	<body>
 		`)
 
-	openBadge := openBadge()
+	openBadge := openBadge{}.Render()
 	io.WriteString(w, string(htmlg.Render(openBadge...)))
 
 	io.WriteString(w, `
@@ -54,18 +58,14 @@ func genStyleHandler(w http.ResponseWriter, req *http.Request) {
 		color: #fff;
 	}
 	`)*/
-	n := struct {
-		css.FontSize
-		css.BackgroundColor
-		css.LineHeight
-	}{
-		//FontFamily: "sans-serif";
-		FontSize:        css.FontSize{css.Px(14)},
-		BackgroundColor: css.BackgroundColor{css.Hex{0x6cc644}},
-		//Display: css.InlineBlock,
-		//Padding: 4px 8px;
-		LineHeight: css.LineHeight{css.Px(20)},
-		//Color: css.Color{css.Hex{0xffffff}},
+	n := css.DeclarationBlock{
+		cd.FontFamily{cv.SansSerif},
+		cd.FontSize{cv.Px(14)},
+		cd.BackgroundColor{cv.Hex{0x6cc644}},
+		cd.Display{cv.InlineBlock},
+		cd.Padding{cv.Px(4), cv.Px(8)},
+		cd.LineHeight{cv.Px(20)},
+		cd.Color{cv.Hex{0xffffff}},
 	}
 	fmt.Fprintf(w, ".open-badge %s", css.Render(n))
 }

@@ -7,7 +7,16 @@ import (
 	"github.com/shurcooL/play/175/idea3/cv"
 )
 
-// BackgroundColor is a CSS declarations of CSS property "background-color".
+// Color is a CSS declaration of CSS property "color".
+type Color struct {
+	cv.Color
+}
+
+func (c Color) CSS() string {
+	return fmt.Sprint("color: ", c.Color.CSS(), ";")
+}
+
+// BackgroundColor is a CSS declaration of CSS property "background-color".
 type BackgroundColor struct {
 	cv.Color
 }
@@ -16,11 +25,49 @@ func (bc BackgroundColor) CSS() string {
 	return fmt.Sprint("background-color: ", bc.Color.CSS(), ";")
 }
 
-// FontSize is a CSS declarations of CSS property "font-size".
+// FontSize is a CSS declaration of CSS property "font-size".
 type FontSize struct {
 	cv.Size
 }
 
 func (fs FontSize) CSS() string {
 	return fmt.Sprint("font-size: ", fs.Size.CSS(), ";")
+}
+
+// LineHeight is a CSS declaration of CSS property "line-height".
+type LineHeight struct {
+	cv.Size
+}
+
+func (lh LineHeight) CSS() string {
+	return fmt.Sprint("line-height: ", lh.Size.CSS(), ";")
+}
+
+// Display is a CSS declaration of CSS property "display".
+type Display struct {
+	cv.Display
+}
+
+func (d Display) CSS() string {
+	return fmt.Sprint("display: ", d.Display.CSS(), ";")
+}
+
+// FontFamily is a CSS declaration of CSS property "font-family".
+type FontFamily struct {
+	cv.FontFamily
+}
+
+func (ff FontFamily) CSS() string {
+	return fmt.Sprint("font-family: ", ff.FontFamily.CSS(), ";")
+}
+
+// Padding is a CSS declaration of CSS property "padding".
+type Padding struct {
+	// TODO: These should be factored into CSS values. Multiple ways of defining padding, which is 4 sizes.
+	Size0 cv.Size
+	Size1 cv.Size
+}
+
+func (p Padding) CSS() string {
+	return fmt.Sprintf("padding: %v %v;", p.Size0.CSS(), p.Size1.CSS())
 }

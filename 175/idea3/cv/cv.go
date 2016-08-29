@@ -40,3 +40,25 @@ type Hex struct {
 func (c Hex) CSS() string {
 	return fmt.Sprintf("#%x", c.RGB)
 }
+
+// Display is a CSS value describing display.
+type Display string
+
+const (
+	InlineBlock Display = "inline-block"
+)
+
+func (d Display) CSS() string {
+	return string(d)
+}
+
+// FontFamily is a CSS value describing font family.
+type FontFamily string
+
+const (
+	SansSerif FontFamily = "sans-serif"
+)
+
+func (ff FontFamily) CSS() string {
+	return string(ff)
+}
