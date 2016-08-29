@@ -55,8 +55,8 @@ func genStyleHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	`)*/
 	n := struct {
-		css.BackgroundColor
 		css.FontSize
+		css.BackgroundColor
 		css.LineHeight
 	}{
 		//FontFamily: "sans-serif";
