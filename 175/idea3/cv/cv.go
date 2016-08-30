@@ -41,6 +41,12 @@ func (c Hex) CSS() string {
 	return fmt.Sprintf("#%x", c.RGB)
 }
 
+type CurrentColor struct{}
+
+func (CurrentColor) CSS() string {
+	return "currentColor"
+}
+
 // Display is a CSS value describing display.
 type Display string
 

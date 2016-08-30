@@ -16,6 +16,15 @@ func (c Color) CSS() string {
 	return fmt.Sprint("color: ", c.Color.CSS(), ";")
 }
 
+// Fill is a CSS declaration of CSS property "fill".
+type Fill struct {
+	cv.Color
+}
+
+func (s Fill) CSS() string {
+	return fmt.Sprint("fill: ", s.Color.CSS(), ";")
+}
+
 // BackgroundColor is a CSS declaration of CSS property "background-color".
 type BackgroundColor struct {
 	cv.Color

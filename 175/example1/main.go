@@ -11,6 +11,7 @@ import (
 	"github.com/shurcooL/play/175/idea3/cd"
 	"github.com/shurcooL/play/175/idea3/css"
 	"github.com/shurcooL/play/175/idea3/cv"
+	"github.com/shurcooL/play/175/svg"
 	"golang.org/x/net/html"
 )
 
@@ -19,7 +20,7 @@ type openBadge struct{}
 func (openBadge) Render() []*html.Node {
 	// <span class="open-badge"><span class="octicon octicon-issue-opened"></span> Open</span>
 	span := htmlg.SpanClass("open-badge",
-		htmlg.SpanClass("octicon octicon-issue-opened"),
+		svg.Octicon("issue-opened"),
 		htmlg.Text(" Open"),
 	)
 	return []*html.Node{span}
@@ -64,8 +65,9 @@ func genStyleHandler(w http.ResponseWriter, req *http.Request) {
 		cd.BackgroundColor{cv.Hex{0x6cc644}},
 		cd.Display{cv.InlineBlock},
 		cd.Padding{cv.Px(4), cv.Px(8)},
-		cd.LineHeight{cv.Px(20)},
+		cd.LineHeight{cv.Px(16)},
 		cd.Color{cv.Hex{0xffffff}},
+		cd.Fill{cv.CurrentColor{}}, // THINK: Needed for svg only.
 	}
 	fmt.Fprintf(w, ".open-badge %s", css.Render(n))
 }
