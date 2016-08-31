@@ -61,6 +61,15 @@ func (d Display) CSS() string {
 	return fmt.Sprint("display: ", d.Display.CSS(), ";")
 }
 
+// VerticalAlign is a CSS declaration of CSS property "vertical-align".
+type VerticalAlign struct {
+	cv.VerticalAlign
+}
+
+func (va VerticalAlign) CSS() string {
+	return fmt.Sprint("vertical-align: ", va.VerticalAlign.CSS(), ";")
+}
+
 // FontFamily is a CSS declaration of CSS property "font-family".
 type FontFamily struct {
 	cv.FontFamily
@@ -79,4 +88,13 @@ type Padding struct {
 
 func (p Padding) CSS() string {
 	return fmt.Sprintf("padding: %v %v;", p.Size0.CSS(), p.Size1.CSS())
+}
+
+// BorderRadius is a CSS declaration of CSS property "border-radius".
+type BorderRadius struct {
+	cv.Size
+}
+
+func (br BorderRadius) CSS() string {
+	return fmt.Sprint("border-radius: ", br.Size.CSS(), ";")
 }

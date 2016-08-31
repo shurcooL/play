@@ -20,6 +20,13 @@ func (s Px) CSS() string {
 	return fmt.Sprint(s, "px")
 }
 
+// Percent is in [0, 100] range.
+type Percent float32
+
+func (p Percent) CSS() string {
+	return fmt.Sprint(p, "%")
+}
+
 // Color is a CSS value describing color.
 type Color interface {
 	CSS
@@ -47,7 +54,7 @@ func (CurrentColor) CSS() string {
 	return "currentColor"
 }
 
-// Display is a CSS value describing display.
+// Display is a CSS value for display property.
 type Display string
 
 const (
@@ -58,7 +65,18 @@ func (d Display) CSS() string {
 	return string(d)
 }
 
-// FontFamily is a CSS value describing font family.
+// VerticalAlign is a CSS value for vertical-align property.
+type VerticalAlign string
+
+const (
+	Top VerticalAlign = "top"
+)
+
+func (va VerticalAlign) CSS() string {
+	return string(va)
+}
+
+// FontFamily is a CSS value for font-family property.
 type FontFamily string
 
 const (
