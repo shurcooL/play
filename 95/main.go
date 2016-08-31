@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"time"
 
 	"github.com/go-gl/mathgl/mgl32"
@@ -394,11 +394,11 @@ func newTrack(path string) *Track {
 	track.TriGroups = make([]TriGroup, track.NumTriGroups)
 	binary.Read(file, binary.LittleEndian, &track.TriGroups)
 
-	fileOffset, err := file.Seek(0, os.SEEK_CUR)
+	fileOffset, err := file.Seek(0, io.SeekCurrent)
 	if err != nil {
 		panic(err)
 	}
-	fileSize, err := file.Seek(0, os.SEEK_END)
+	fileSize, err := file.Seek(0, io.SeekEnd)
 	if err != nil {
 		panic(err)
 	}

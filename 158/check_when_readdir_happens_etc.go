@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
 )
@@ -39,7 +40,7 @@ func main() {
 	}
 	fmt.Println(len(fis))
 
-	f.Seek(0, os.SEEK_SET)
+	f.Seek(0, io.SeekStart)
 
 	fis, err = f.Readdir(0)
 	if err != nil {

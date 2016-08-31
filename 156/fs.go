@@ -256,7 +256,7 @@ func serveContent(w http.ResponseWriter, r *http.Request, name string, modtime t
 			var buf [sniffLen]byte
 			n, _ := io.ReadFull(content, buf[:])
 			ctype = http.DetectContentType(buf[:n])
-			_, err := content.Seek(0, os.SEEK_SET) // rewind to output whole file
+			_, err := content.Seek(0, io.SeekStart) // rewind to output whole file
 			if err != nil {
 				http.Error(w, "seeker can't seek", http.StatusInternalServerError)
 				return
@@ -303,7 +303,7 @@ func serveContent(w http.ResponseWriter, r *http.Request, name string, modtime t
 			// A response to a request for a single range MUST NOT
 			// be sent using the multipart/byteranges media type."
 			ra := ranges[0]
-			if _, err := content.Seek(ra.start, os.SEEK_SET); err != nil {
+			if _, err := content.Seek(ra.start, io.SeekStart); err != nil {
 				http.Error(w, err.Error(), http.StatusRequestedRangeNotSatisfiable)
 				return
 			}
@@ -326,7 +326,7 @@ func serveContent(w http.ResponseWriter, r *http.Request, name string, modtime t
 						pw.CloseWithError(err)
 						return
 					}
-					if _, err := content.Seek(ra.start, os.SEEK_SET); err != nil {
+					if _, err := content.Seek(ra.start, io.SeekStart); err != nil {
 						pw.CloseWithError(err)
 						return
 					}
