@@ -31,38 +31,46 @@ func table(file string) (*gosym.Table, error) {
 		symtab  []byte
 	)
 	if o, err := macho.NewFile(f); err == nil {
-		if s := o.Section("__gopclntab"); s == nil {
+		s := o.Section("__gopclntab")
+		if s == nil {
 			return nil, errors.New("empty __gopclntab")
-		} else {
-			if pclntab, err = s.Data(); err != nil {
-				return nil, err
-			}
 		}
-		if s := o.Section("__text"); s == nil {
+		if pclntab, err = s.Data(); err != nil {
+			return nil, err
+		}
+
+		s = o.Section("__text")
+		if s == nil {
 			return nil, errors.New("empty __text")
-		} else {
-			text = s.Addr
 		}
-		if s := o.Section("__gosymtab"); s != nil { // Treat a missing gosymtab section as an empty one.
-			if symtab, err = s.Data(); err != nil {
+		text = s.Addr
+
+		s = o.Section("__gosymtab")
+		if s != nil { // Treat a missing gosymtab section as an empty one.
+			symtab, err = s.Data()
+			if err != nil {
 				return nil, err
 			}
 		}
 	} else if o, err := elf.NewFile(f); err == nil {
-		if s := o.Section(".gopclntab"); s == nil {
+		s := o.Section(".gopclntab")
+		if s == nil {
 			return nil, errors.New("empty .gopclntab")
-		} else {
-			if pclntab, err = s.Data(); err != nil {
-				return nil, err
-			}
 		}
-		if s := o.Section(".text"); s == nil {
+		if pclntab, err = s.Data(); err != nil {
+			return nil, err
+		}
+
+		s = o.Section(".text")
+		if s == nil {
 			return nil, errors.New("empty .text")
-		} else {
-			text = s.Addr
 		}
-		if s := o.Section(".gosymtab"); s != nil { // Treat a missing gosymtab section as an empty one.
-			if symtab, err = s.Data(); err != nil {
+		text = s.Addr
+
+		s = o.Section(".gosymtab")
+		if s != nil { // Treat a missing gosymtab section as an empty one.
+			symtab, err = s.Data()
+			if err != nil {
 				return nil, err
 			}
 		}
