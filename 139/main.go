@@ -9,13 +9,22 @@ import (
 	"os/exec"
 	"strings"
 
-	"sourcegraph.com/sourcegraph/go-diff/diff"
-
 	"github.com/shurcooL/go/openutil"
+	"sourcegraph.com/sourcegraph/go-diff/diff"
 )
 
 func main() {
+	allJSON := false
+
 	var b string
+
+	/*allJSON = true
+	cmd := exec.Command("git", "diff")
+	cmd.Dir = "/Users/Dmitri/Dropbox/Store/issues"
+	in, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}*/
 
 	fileDiffs, err := diff.ParseMultiFileDiff([]byte(in))
 	if err != nil {
@@ -25,7 +34,7 @@ func main() {
 	for _, fileDiff := range fileDiffs {
 		b += "\n" + "## " + fileDiffName(fileDiff) + "\n"
 		b += "\n```diff\n"
-		if !strings.HasSuffix(fileDiffName(fileDiff), ".json") {
+		if !strings.HasSuffix(fileDiffName(fileDiff), ".json") && !allJSON {
 			hunks, err := diff.PrintHunks(fileDiff.Hunks)
 			if err != nil {
 				panic(err)
@@ -65,30 +74,32 @@ func main() {
 	openutil.DisplayMarkdownInBrowser([]byte(b))
 }
 
-// fileDiffName returns the name of a FileDiff.
+// fileDiffName returns the name of a FileDiff as Markdown.
 func fileDiffName(fileDiff *diff.FileDiff) string {
-	var origName, newName string
-	if strings.HasPrefix(fileDiff.OrigName, "a/") {
-		origName = fileDiff.OrigName[2:]
-	}
-	if strings.HasPrefix(fileDiff.NewName, "b/") {
-		newName = fileDiff.NewName[2:]
-	}
+	origName := strings.TrimPrefix(fileDiff.OrigName, "a/")
+	newName := strings.TrimPrefix(fileDiff.NewName, "b/")
 	switch {
-	case origName != "" && newName != "" && origName == newName: // Modified.
+	case origName != "/dev/null" && newName != "/dev/null" && origName == newName: // Modified.
 		return newName
-	case origName != "" && newName != "" && origName != newName: // Renamed.
+	case origName != "/dev/null" && newName != "/dev/null" && origName != newName: // Renamed.
 		return origName + " -> " + newName
-	case origName == "" && newName != "": // Added.
+	case origName == "/dev/null" && newName != "/dev/null": // Added.
 		return newName
-	case origName != "" && newName == "": // Removed.
+	case origName != "/dev/null" && newName == "/dev/null": // Removed.
 		return "~~" + origName + "~~"
 	default:
-		panic("unexpected, no names")
+		panic("unexpected *diff.FileDiff, no names")
 	}
 }
 
-func unifiedDiff(b1, b2 []byte) (data []byte, err error) {
+func unifiedDiff(b0, b1 []byte) (data []byte, err error) {
+	f0, err := ioutil.TempFile("", "diff")
+	if err != nil {
+		return
+	}
+	defer os.Remove(f0.Name())
+	defer f0.Close()
+
 	f1, err := ioutil.TempFile("", "diff")
 	if err != nil {
 		return
@@ -96,17 +107,10 @@ func unifiedDiff(b1, b2 []byte) (data []byte, err error) {
 	defer os.Remove(f1.Name())
 	defer f1.Close()
 
-	f2, err := ioutil.TempFile("", "diff")
-	if err != nil {
-		return
-	}
-	defer os.Remove(f2.Name())
-	defer f2.Close()
-
+	f0.Write(b0)
 	f1.Write(b1)
-	f2.Write(b2)
 
-	data, err = exec.Command("diff", "-u", f1.Name(), f2.Name()).CombinedOutput()
+	data, err = exec.Command("diff", "-u", f0.Name(), f1.Name()).CombinedOutput()
 	if len(data) > 0 {
 		// diff exits with a non-zero status when the files don't match.
 		// Ignore that failure as long as we get output.
