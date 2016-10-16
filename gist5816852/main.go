@@ -42,10 +42,10 @@ func CheckCoreProfile(window *glfw.Window) {
 	fmt.Println("glfw.OpenGLCoreProfile:", glfw.OpenGLCoreProfile == openGlProfile)
 }
 
-func CheckGLError() {
-	errorCode := gl.GetError()
-	if errorCode != 0 {
-		log.Panicln("GL Error:", errorCode)
+func checkGLError() {
+	err := gl.GetError()
+	if err != 0 {
+		panic(fmt.Errorf("GL error: %v", err))
 	}
 }
 
@@ -187,7 +187,7 @@ func main() {
 
 			window.SwapBuffers()
 			//log.Println("swapped buffers")
-			CheckGLError()
+			checkGLError()
 		}
 
 		runtime.Gosched()
