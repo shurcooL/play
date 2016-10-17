@@ -15,18 +15,8 @@ import (
 	"golang.org/x/tools/present"
 )
 
-func write(w io.Writer) error {
-	f, err := os.Open("talk-local-iframe/talk.slide")
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	pctx := present.Context{
-		ReadFile: func(filename string) ([]byte, error) {
-			return ioutil.ReadFile(filename)
-		},
-	}
-	doc, err := pctx.Parse(f, "name", 0)
+func renderDoc(w io.Writer) error {
+	doc, err := parse("talk-local-iframe/talk.slide", 0)
 	if err != nil {
 		return err
 	}
@@ -42,18 +32,28 @@ func write(w io.Writer) error {
 		return err
 	}
 
-	doc.Render(w, tmpl)
+	return doc.Render(w, tmpl)
+}
 
-	return nil
+func parse(path string, mode present.ParseMode) (*present.Doc, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	pctx := present.Context{
+		ReadFile: func(path string) ([]byte, error) { return ioutil.ReadFile(path) },
+	}
+	return pctx.Parse(f, path, mode)
 }
 
 func run1() error {
-	return write(os.Stdout)
+	return renderDoc(os.Stdout)
 }
 
 func run2() error {
 	http.HandleFunc("/index.html", func(w http.ResponseWriter, req *http.Request) {
-		err := write(w)
+		err := renderDoc(w)
 		if err != nil {
 			log.Println(err)
 		}
