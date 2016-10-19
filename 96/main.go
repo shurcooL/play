@@ -1,27 +1,41 @@
+// Render a 3D textured terrain with flying camera controls.
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"image"
 	_ "image/png"
 	"io"
+	"io/ioutil"
 	"math"
 	"time"
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/shurcooL/gogl"
-	glfw "github.com/shurcooL/goglfw"
+	"github.com/goxjs/gl"
+	"github.com/goxjs/gl/glutil"
+	"github.com/goxjs/glfw"
+	"golang.org/x/mobile/exp/f32"
 )
 
-const skipTrack = false
+var wireframe bool
 
-var gl *gogl.Context
+var program gl.Program
+var pMatrixUniform gl.Uniform
+var mvMatrixUniform gl.Uniform
+var wireframeUniform gl.Uniform
+var texUnit gl.Uniform
+var texUnit2 gl.Uniform
 
-const (
-	vertexSource = `//#version 120 // OpenGL 2.1.
+var mvMatrix mgl32.Mat4
+var pMatrix mgl32.Mat4
+
+func initShaders() error {
+	const (
+		vertexSource = `//#version 120 // OpenGL 2.1.
 //#version 100 // WebGL.
 
 const float TERR_TEXTURE_SCALE = 1.0 / 20.0; // From track.h rather than terrain.h.
@@ -44,12 +58,16 @@ void main() {
 	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 }
 `
-	fragmentSource = `//#version 120 // OpenGL 2.1.
+		fragmentSource = `//#version 120 // OpenGL 2.1.
 //#version 100 // WebGL.
 
 #ifdef GL_ES
 	precision lowp float;
 #endif
+
+const float TERR_TEXTURE_SCALE = 1.0 / 20.0; // From track.h rather than terrain.h.
+
+uniform bool wireframe;
 
 uniform sampler2D texUnit;
 uniform sampler2D texUnit2;
@@ -59,43 +77,32 @@ varying vec2 vTexCoord;
 varying float vTerrType;
 
 void main() {
+	if (wireframe) {
+		vec2 unit;
+		unit.x = mod(vTexCoord.x, TERR_TEXTURE_SCALE) / TERR_TEXTURE_SCALE;
+		unit.y = mod(vTexCoord.y, TERR_TEXTURE_SCALE) / TERR_TEXTURE_SCALE;
+		if (unit.x <= 0.02 || unit.x >= 0.98 || unit.y <= 0.02 || unit.y >= 0.98 ||
+			(-0.02 <= unit.x - unit.y && unit.x - unit.y <= 0.02)) {
+
+			gl_FragColor = vec4(unit.x, unit.y, 0.0, 1.0);
+			return;
+		};
+	}
+
 	vec3 tex = mix(texture2D(texUnit, vTexCoord).rgb, texture2D(texUnit2, vTexCoord).rgb, vTerrType);
 	gl_FragColor = vec4(vPixelColor * tex, 1.0);
 }
 `
-)
+	)
 
-var program *gogl.Program
-var pMatrixUniform *gogl.UniformLocation
-var mvMatrixUniform *gogl.UniformLocation
-var texUnit *gogl.UniformLocation
-var texUnit2 *gogl.UniformLocation
-
-var mvMatrix mgl32.Mat4
-var pMatrix mgl32.Mat4
-
-func initShaders() error {
-	vertexShader := gl.CreateShader(gl.VERTEX_SHADER)
-	gl.ShaderSource(vertexShader, vertexSource)
-	gl.CompileShader(vertexShader)
-	defer gl.DeleteShader(vertexShader)
-
-	fragmentShader := gl.CreateShader(gl.FRAGMENT_SHADER)
-	gl.ShaderSource(fragmentShader, fragmentSource)
-	gl.CompileShader(fragmentShader)
-	defer gl.DeleteShader(fragmentShader)
-
-	program = gl.CreateProgram()
-	gl.AttachShader(program, vertexShader)
-	gl.AttachShader(program, fragmentShader)
-
-	gl.LinkProgram(program)
-	if !gl.GetProgramParameterb(program, gl.LINK_STATUS) {
-		return errors.New("LINK_STATUS: " + gl.GetProgramInfoLog(program))
+	var err error
+	program, err = glutil.CreateProgram(vertexSource, fragmentSource)
+	if err != nil {
+		return err
 	}
 
 	gl.ValidateProgram(program)
-	if !gl.GetProgramParameterb(program, gl.VALIDATE_STATUS) {
+	if gl.GetProgrami(program, gl.VALIDATE_STATUS) != gl.TRUE {
 		return errors.New("VALIDATE_STATUS: " + gl.GetProgramInfoLog(program))
 	}
 
@@ -103,6 +110,7 @@ func initShaders() error {
 
 	pMatrixUniform = gl.GetUniformLocation(program, "uPMatrix")
 	mvMatrixUniform = gl.GetUniformLocation(program, "uMVMatrix")
+	wireframeUniform = gl.GetUniformLocation(program, "wireframe")
 	texUnit = gl.GetUniformLocation(program, "texUnit")
 	texUnit2 = gl.GetUniformLocation(program, "texUnit2")
 
@@ -113,34 +121,14 @@ func initShaders() error {
 	return nil
 }
 
-var triangleVertexPositionBuffer *gogl.Buffer
-
-func createVbo() error {
-	triangleVertexPositionBuffer = gl.CreateBuffer()
-	gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
-	vertices := []float32{
-		0, 0, 0,
-		float32(track.Width), 0, 0,
-		float32(track.Width), float32(track.Depth), 0,
-		0, float32(track.Depth), 0,
-	}
-	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
-
-	if glError := gl.GetError(); glError != 0 {
-		return fmt.Errorf("gl.GetError: %v", glError)
-	}
-
-	return nil
-}
-
-func createVbo3Float(vertices []float32) *gogl.Buffer {
+func createVbo3Float(vertices []float32) gl.Buffer {
 	vbo := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, f32.Bytes(binary.LittleEndian, vertices...), gl.STATIC_DRAW)
 	return vbo
 }
 
-func createVbo3Ubyte(vertices []uint8) *gogl.Buffer {
+func createVbo3Ubyte(vertices []uint8) gl.Buffer {
 	vbo := gl.CreateBuffer()
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
@@ -150,7 +138,7 @@ func createVbo3Ubyte(vertices []uint8) *gogl.Buffer {
 var windowSize = [2]int{1024, 800}
 
 func main() {
-	err := glfw.Init()
+	err := glfw.Init(gl.ContextWatcher)
 	if err != nil {
 		panic(err)
 	}
@@ -161,8 +149,6 @@ func main() {
 		panic(err)
 	}
 	window.MakeContextCurrent()
-
-	gl = window.Context
 
 	fmt.Printf("OpenGL: %s %s %s; %v samples.\n", gl.GetString(gl.VENDOR), gl.GetString(gl.RENDERER), gl.GetString(gl.VERSION), gl.GetInteger(gl.SAMPLES))
 	fmt.Printf("GLSL: %s.\n", gl.GetString(gl.SHADING_LANGUAGE_VERSION))
@@ -243,22 +229,7 @@ func main() {
 		}
 	})
 
-	track = newTrack("./track1.dat")
-
-	err = initShaders()
-	if err != nil {
-		panic(err)
-	}
-	err = createVbo()
-	if err != nil {
-		panic(err)
-	}
-	var textures [2]*gogl.Texture
-	textures[0], err = loadTexture("./dirt.png")
-	if err != nil {
-		panic(err)
-	}
-	textures[1], err = loadTexture("./sand.png")
+	track, err = loadTrack("track1.dat")
 	if err != nil {
 		panic(err)
 	}
@@ -274,26 +245,10 @@ func main() {
 		//mvMatrix = mgl32.Translate3D(float32(mouseX), float32(mouseY), 0)
 		mvMatrix = camera.Apply()
 
-		gl.UniformMatrix4fv(pMatrixUniform, false, pMatrix[:])
-		gl.UniformMatrix4fv(mvMatrixUniform, false, mvMatrix[:])
+		gl.UniformMatrix4fv(pMatrixUniform, pMatrix[:])
+		gl.UniformMatrix4fv(mvMatrixUniform, mvMatrix[:])
 
-		gl.Uniform1i(texUnit, 0)
-		gl.ActiveTexture(gl.TEXTURE0)
-		gl.BindTexture(gl.TEXTURE_2D, textures[0])
-		gl.Uniform1i(texUnit2, 1)
-		gl.ActiveTexture(gl.TEXTURE1)
-		gl.BindTexture(gl.TEXTURE_2D, textures[1])
-
-		if !skipTrack {
-			track.Render()
-		}
-
-		// Ground plane.
-		gl.BindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer)
-		vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
-		gl.EnableVertexAttribArray(vertexPositionAttribute)
-		gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0)
-		gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
+		track.Render()
 
 		window.SwapBuffers()
 		glfw.PollEvents()
@@ -367,26 +322,36 @@ type Track struct {
 	TerrCoords []TerrCoord
 	TriGroups  []TriGroup
 
-	vertexVbo   *gogl.Buffer
-	colorVbo    *gogl.Buffer
-	terrTypeVbo *gogl.Buffer
+	vertexVbo   gl.Buffer
+	colorVbo    gl.Buffer
+	terrTypeVbo gl.Buffer
+
+	textures [2]gl.Texture
 }
 
-func newTrack(path string) *Track {
-	// HACK: Skip slow loading for now.
-	if skipTrack {
-		return &Track{TrackFileHeader: TrackFileHeader{Width: 721, Depth: 721}}
+func loadTrack(path string) (*Track, error) {
+	var track Track
+
+	err := initShaders()
+	if err != nil {
+		panic(err)
+	}
+	track.textures[0], err = loadTexture("dirt.png")
+	if err != nil {
+		panic(err)
+	}
+	track.textures[1], err = loadTexture("sand.png")
+	if err != nil {
+		panic(err)
 	}
 
 	started := time.Now()
 
 	file, err := glfw.Open(path)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer file.Close()
-
-	var track Track
 
 	binary.Read(file, binary.LittleEndian, &track.TrackFileHeader)
 
@@ -424,15 +389,12 @@ func newTrack(path string) *Track {
 	track.TriGroups = make([]TriGroup, track.NumTriGroups)
 	binary.Read(file, binary.LittleEndian, &track.TriGroups)
 
-	fileOffset, err := file.Seek(0, io.SeekCurrent)
-	if err != nil {
-		panic(err)
+	// Check that we've consumed the entire track file.
+	if n, err := io.Copy(ioutil.Discard, file); err != nil {
+		return nil, err
+	} else if n > 0 {
+		return nil, fmt.Errorf("loadTrack: did not get to end of track file, %d bytes left", n)
 	}
-	fileSize, err := file.Seek(0, io.SeekEnd)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Read %v of %v bytes.\n", fileOffset, fileSize)
 
 	{
 		rowCount := int(track.Depth) - 1
@@ -462,7 +424,7 @@ func newTrack(path string) *Track {
 
 					terrCoord := &track.TerrCoords[yy*int(track.Width)+x]
 					height := float64(terrCoord.Height) * TERR_HEIGHT_SCALE
-					lightIntensity := uint8(terrCoord.LightIntensity)
+					lightIntensity := terrCoord.LightIntensity
 
 					vertexData[3*index+0], vertexData[3*index+1], vertexData[3*index+2] = float32(x), float32(yy), float32(height)
 					colorData[3*index+0], colorData[3*index+1], colorData[3*index+2] = lightIntensity, lightIntensity, lightIntensity
@@ -483,44 +445,61 @@ func newTrack(path string) *Track {
 
 	fmt.Println("Done loading track in:", time.Since(started))
 
-	return &track
+	return &track, nil
 }
 
 func (track *Track) Render() {
-	rowCount := int(track.Depth) - 1
-	rowLength := int(track.Width)
+	gl.UseProgram(program)
+	{
+		gl.UniformMatrix4fv(pMatrixUniform, pMatrix[:])
+		gl.UniformMatrix4fv(mvMatrixUniform, mvMatrix[:])
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, track.vertexVbo)
-	vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
-	gl.EnableVertexAttribArray(vertexPositionAttribute)
-	gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0)
+		if wireframe {
+			gl.Uniform1i(wireframeUniform, gl.TRUE)
+		} else {
+			gl.Uniform1i(wireframeUniform, gl.FALSE)
+		}
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, track.colorVbo)
-	vertexColorAttribute := gl.GetAttribLocation(program, "aVertexColor")
-	gl.EnableVertexAttribArray(vertexColorAttribute)
-	gl.VertexAttribPointer(vertexColorAttribute, 3, gl.UNSIGNED_BYTE, true, 0, 0)
+		gl.Uniform1i(texUnit, 0)
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, track.textures[0])
+		gl.Uniform1i(texUnit2, 1)
+		gl.ActiveTexture(gl.TEXTURE1)
+		gl.BindTexture(gl.TEXTURE_2D, track.textures[1])
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, track.terrTypeVbo)
-	vertexTerrTypeAttribute := gl.GetAttribLocation(program, "aVertexTerrType")
-	gl.EnableVertexAttribArray(vertexTerrTypeAttribute)
-	gl.VertexAttribPointer(vertexTerrTypeAttribute, 1, gl.FLOAT, false, 0, 0)
+		gl.BindBuffer(gl.ARRAY_BUFFER, track.vertexVbo)
+		vertexPositionAttribute := gl.GetAttribLocation(program, "aVertexPosition")
+		gl.EnableVertexAttribArray(vertexPositionAttribute)
+		gl.VertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0)
 
-	for row := 0; row < rowCount; row++ {
-		gl.DrawArrays(gl.TRIANGLE_STRIP, row*2*rowLength, 2*rowLength)
+		gl.BindBuffer(gl.ARRAY_BUFFER, track.colorVbo)
+		vertexColorAttribute := gl.GetAttribLocation(program, "aVertexColor")
+		gl.EnableVertexAttribArray(vertexColorAttribute)
+		gl.VertexAttribPointer(vertexColorAttribute, 3, gl.UNSIGNED_BYTE, true, 0, 0)
+
+		gl.BindBuffer(gl.ARRAY_BUFFER, track.terrTypeVbo)
+		vertexTerrTypeAttribute := gl.GetAttribLocation(program, "aVertexTerrType")
+		gl.EnableVertexAttribArray(vertexTerrTypeAttribute)
+		gl.VertexAttribPointer(vertexTerrTypeAttribute, 1, gl.FLOAT, false, 0, 0)
+
+		rowCount := int(track.Depth) - 1
+		rowLength := int(track.Width)
+
+		for row := 0; row < rowCount; row++ {
+			gl.DrawArrays(gl.TRIANGLE_STRIP, row*2*rowLength, 2*rowLength)
+		}
 	}
+	gl.UseProgram(gl.Program{})
 }
 
 // ---
 
 func cStringToGoString(cString []byte) string {
-	n := 0
-	for i, b := range cString {
-		if b == 0 {
-			break
-		}
-		n = i + 1
+	i := bytes.IndexByte(cString, 0)
+	if i < 0 {
+		return ""
 	}
-	return string(cString[:n])
+	return string(cString[:i])
 }
 
 // =====
@@ -548,7 +527,7 @@ func (this *Camera) Apply() mgl32.Mat4 {
 
 // =====
 
-func loadTexture(path string) (*gogl.Texture, error) {
+func loadTexture(path string) (gl.Texture, error) {
 	fmt.Printf("Trying to load texture %q: ", path)
 	started := time.Now()
 	defer func() {
@@ -558,14 +537,14 @@ func loadTexture(path string) (*gogl.Texture, error) {
 	// Open the file
 	file, err := glfw.Open(path)
 	if err != nil {
-		return nil, err
+		return gl.Texture{}, err
 	}
 	defer file.Close()
 
 	// Decode the image
 	img, _, err := image.Decode(file)
 	if err != nil {
-		return nil, err
+		return gl.Texture{}, err
 	}
 
 	bounds := img.Bounds()
@@ -585,11 +564,11 @@ func loadTexture(path string) (*gogl.Texture, error) {
 	gl.BindTexture(gl.TEXTURE_2D, texture)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, bounds.Dx(), bounds.Dy(), 0, gl.RGBA, gl.UNSIGNED_BYTE, pix)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, bounds.Dx(), bounds.Dy(), gl.RGBA, gl.UNSIGNED_BYTE, pix)
 	gl.GenerateMipmap(gl.TEXTURE_2D)
 
 	if glError := gl.GetError(); glError != 0 {
-		return nil, fmt.Errorf("gl.GetError: %v", glError)
+		return gl.Texture{}, fmt.Errorf("gl.GetError: %v", glError)
 	}
 
 	return texture, nil
