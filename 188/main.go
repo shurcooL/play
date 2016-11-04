@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -77,19 +78,19 @@ type ImplicitDirFS struct {
 }*/
 
 func (id ImplicitDirFS) OpenFile(name string, flag int, perm os.FileMode) (webdav.File, error) {
-	f, err := id.fs.OpenFile(name, flag, perm)
+	f, err := id.fs.OpenFile(context.Background(), name, flag, perm)
 	if os.IsNotExist(err) && flag&os.O_CREATE == os.O_CREATE {
 		err = vfsutil.MkdirAll(id.fs, pathpkg.Dir(name), 0755)
 		if err != nil {
 			return nil, err
 		}
-		f, err = id.fs.OpenFile(name, flag, perm)
+		f, err = id.fs.OpenFile(context.Background(), name, flag, perm)
 	}
 	return f, err
 }
 
 func (id ImplicitDirFS) RemoveAll(name string) error {
-	err := id.fs.RemoveAll(name)
+	err := id.fs.RemoveAll(context.Background(), name)
 	if err != nil {
 		return err
 	}
@@ -99,11 +100,11 @@ func (id ImplicitDirFS) RemoveAll(name string) error {
 
 func (id ImplicitDirFS) Rename(oldName string, newName string) error {
 	// TODO: Consider MkdirAll, rmdirAll implications, etc.?
-	return id.fs.Rename(oldName, newName)
+	return id.fs.Rename(context.Background(), oldName, newName)
 }
 
 func (id ImplicitDirFS) Stat(name string) (os.FileInfo, error) {
-	return id.fs.Stat(name)
+	return id.fs.Stat(context.Background(), name)
 }
 
 // rmdirAll removes empty directory at path and any empty parents.
@@ -119,7 +120,7 @@ func rmdirAll(fs webdav.FileSystem, path string) {
 			return
 		}
 
-		err = fs.RemoveAll(path)
+		err = fs.RemoveAll(context.Background(), path)
 		if err != nil {
 			return
 		}
@@ -135,7 +136,7 @@ func rmdirAll(fs webdav.FileSystem, path string) {
 
 // emptyDir reports if name is an empty directory.
 func emptyDir(fs webdav.FileSystem, name string) (bool, error) {
-	f, err := fs.OpenFile(name, os.O_RDONLY, 0)
+	f, err := fs.OpenFile(context.Background(), name, os.O_RDONLY, 0)
 	if err != nil {
 		return false, err
 	}
