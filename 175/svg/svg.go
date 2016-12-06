@@ -26,7 +26,7 @@ func Render(symbol string) string {
 func Octicon(symbol string) *html.Node {
 	e, err := html.ParseFragment(strings.NewReader(Render(symbol)), nil)
 	if err != nil {
-		panic(fmt.Errorf("internal error: html.Parse failed: %v", err))
+		panic(fmt.Errorf("internal error: html.ParseFragment failed: %v", err))
 	}
 	svg := e[0].LastChild.FirstChild // TODO: Is there a better way to just get the <svg>...</svg> element directly, skipping <html><head></head><body><svg>...</svg></body></html>?
 	svg.Parent.RemoveChild(svg)
