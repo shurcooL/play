@@ -1,22 +1,24 @@
 // HTML Video Stream server.
+//
+// Based on http://phoboslab.org/log/2013/09/html5-live-video-streaming-via-websockets.
 package main
 
 import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
-	"time"
 
-	"github.com/shurcooL/go/gists/gist6096872"
 	"golang.org/x/net/websocket"
 )
 
-// ffmpeg -s 640x480 -f video4linux2 -i /dev/video0 -f mpeg1video -b 800k -r 30 'http://10.0.0.22:8080/input?width=640&height=480'
+// ffmpeg -s 640x480 -f video4linux2 -i /dev/video0 -f mpeg1video -b 800k -r 30 'http://127.0.0.1:8084/input?width=640&height=480'
+// goexec 'http.ListenAndServe(":8080", http.FileServer(http.Dir(".")))'
 
-var data = make(gist6096872.ChanWriter)
+var data = make(ChanWriter)
 
 var state = struct {
 	Statuses      map[*websocket.Conn]struct{}
@@ -52,7 +54,8 @@ func output(c *websocket.Conn) {
 
 	state.Unlock()
 
-	time.Sleep(30 * time.Second)
+	//time.Sleep(30 * time.Second)
+	select {} // TODO: Fix leak and unreachable code below.
 
 	defer func() {
 		state.Lock()
@@ -86,7 +89,9 @@ func input(w http.ResponseWriter, r *http.Request) {
 			//n, err := c.Write(b)
 			err := websocket.Message.Send(c, b)
 			if err != nil {
-				panic(err)
+				log.Println(err)
+				delete(state.Statuses, c)
+				continue
 			}
 			fmt.Println("Wrote", n, "bytes to some websocket")
 		}
@@ -116,4 +121,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// ChanWriter writes bytes into a channel.
+type ChanWriter chan []byte
+
+// Write implements io.Writer.
+func (cw ChanWriter) Write(p []byte) (n int, err error) {
+	// Make a copy of p in order to avoid retaining it.
+	b := make([]byte, len(p))
+	copy(b, p)
+	cw <- b
+	return len(b), nil
 }
