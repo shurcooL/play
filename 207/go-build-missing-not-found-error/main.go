@@ -31,13 +31,27 @@ func find(importPath string) error {
 	return nil
 }
 
+func find2(importPath string) error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	_, err = build.Import(importPath, wd, 0)
+	if err != nil {
+		return fmt.Errorf("can't find package %q (first check, using relative import path): %v", importPath, err)
+	}
+
+	return nil
+}
+
 func main() {
 	//goon.DumpExpr(doesnotexist.Orly)
 	//return
 
 	const importPath = "./doesnotexist"
 
-	fmt.Printf("finding %q import path:\n%v\n", importPath, find(importPath))
+	fmt.Printf("finding %q import path:\n%v\n", importPath, find2(importPath))
 
 	// Output:
 	// finding "./doesnotexist" import path:
