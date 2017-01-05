@@ -66,15 +66,35 @@ func render(req *http.Request) ([]*html.Node, error) {
 			}, nil
 		}
 	case "/issues/1":
-		return []*html.Node{htmlg.Div(htmlg.Text("Issue 1")), htmlg.Div(htmlg.Text("Open")), htmlg.Div(htmlg.Text("blah blah blah"))}, nil
+		return []*html.Node{
+			htmlg.Div(a("/issues", htmlg.Text("Issues"))),
+			htmlg.Div(htmlg.Text("-")),
+			htmlg.Div(htmlg.Text("Issue 1")), htmlg.Div(htmlg.Text("Open")), htmlg.Div(htmlg.Text("blah blah blah")),
+		}, nil
 	case "/issues/2":
-		return []*html.Node{htmlg.Div(htmlg.Text("Issue 2")), htmlg.Div(htmlg.Text("Open")), htmlg.Div(htmlg.Text("blah blah blah"))}, nil
+		return []*html.Node{
+			htmlg.Div(a("/issues", htmlg.Text("Issues"))),
+			htmlg.Div(htmlg.Text("-")),
+			htmlg.Div(htmlg.Text("Issue 2")), htmlg.Div(htmlg.Text("Open")), htmlg.Div(htmlg.Text("blah blah blah")),
+		}, nil
 	case "/issues/3":
-		return []*html.Node{htmlg.Div(htmlg.Text("Issue 3")), htmlg.Div(htmlg.Text("Open")), htmlg.Div(htmlg.Text("blah blah blah"))}, nil
+		return []*html.Node{
+			htmlg.Div(a("/issues", htmlg.Text("Issues"))),
+			htmlg.Div(htmlg.Text("-")),
+			htmlg.Div(htmlg.Text("Issue 3")), htmlg.Div(htmlg.Text("Open")), htmlg.Div(htmlg.Text("blah blah blah")),
+		}, nil
 	case "/issues/4":
-		return []*html.Node{htmlg.Div(htmlg.Text("Issue 4")), htmlg.Div(htmlg.Text("Closed")), htmlg.Div(htmlg.Text("blah blah blah"))}, nil
+		return []*html.Node{
+			htmlg.Div(a("/issues", htmlg.Text("Issues"))),
+			htmlg.Div(htmlg.Text("-")),
+			htmlg.Div(htmlg.Text("Issue 4")), htmlg.Div(htmlg.Text("Closed")), htmlg.Div(htmlg.Text("blah blah blah")),
+		}, nil
 	case "/issues/5":
-		return []*html.Node{htmlg.Div(htmlg.Text("Issue 5")), htmlg.Div(htmlg.Text("Closed")), htmlg.Div(htmlg.Text("blah blah blah"))}, nil
+		return []*html.Node{
+			htmlg.Div(a("/issues", htmlg.Text("Issues"))),
+			htmlg.Div(htmlg.Text("-")),
+			htmlg.Div(htmlg.Text("Issue 5")), htmlg.Div(htmlg.Text("Closed")), htmlg.Div(htmlg.Text("blah blah blah")),
+		}, nil
 	}
 	return nil, &os.PathError{Op: "open", Path: req.URL.String(), Err: os.ErrNotExist}
 }

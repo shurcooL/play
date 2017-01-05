@@ -39,6 +39,8 @@ func setup() {
 }
 
 func Go(this dom.HTMLElement, event dom.Event) {
+	event.PreventDefault()
+
 	// TODO: dom.GetWindow().History().PushState(...)
 	js.Global.Get("window").Get("history").Call("pushState", nil, nil, this.(*dom.HTMLAnchorElement).Href) // TODO: Preserve query, hash? Maybe Href already contains some of that?
 
@@ -46,8 +48,6 @@ func Go(this dom.HTMLElement, event dom.Event) {
 	if err != nil {
 		panic(err)
 	}
-
-	event.PreventDefault()
 }
 
 func renderBody(url string) error {
