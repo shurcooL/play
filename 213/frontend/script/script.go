@@ -22,7 +22,7 @@ var document = dom.GetWindow().Document().(dom.HTMLDocument)
 func main() {
 	switch readyState := document.ReadyState(); readyState {
 	case "loading":
-		document.AddEventListener("DOMContentLoaded", false, func(_ dom.Event) {
+		document.AddEventListener("DOMContentLoaded", false, func(dom.Event) {
 			go setup()
 		})
 	case "interactive", "complete":
@@ -53,6 +53,10 @@ func setup() {
 	}
 
 	fixupAnchors()
+
+	dom.GetWindow().AddEventListener("popstate", false, func(dom.Event) {
+		go renderBody(dom.GetWindow().Location().Pathname)
+	})
 }
 
 func fixupAnchors() {
@@ -78,10 +82,13 @@ func (a anchor) ClickHandler(e dom.Event) {
 		return
 	}
 
-	go renderBody(a.Pathname, a.Href)
+	// TODO: dom.GetWindow().History().PushState(...)
+	js.Global.Get("window").Get("history").Call("pushState", nil, nil, a.Href) // TODO: Preserve query, hash? Maybe Href already contains some of that?
+
+	go renderBody(a.Pathname)
 }
 
-func renderBody(page, href string) {
+func renderBody(page string) {
 	switch page {
 	case "/resume":
 		var buf bytes.Buffer
@@ -104,7 +111,4 @@ func renderBody(page, href string) {
 	}
 
 	fixupAnchors()
-
-	// TODO: dom.GetWindow().History().PushState(...)
-	js.Global.Get("window").Get("history").Call("pushState", nil, nil, href) // TODO: Preserve query, hash? Maybe Href already contains some of that?
 }
