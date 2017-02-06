@@ -4,13 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/gopherjs/gopherjs/js"
+	homecomponent "github.com/shurcooL/home/component"
 	"github.com/shurcooL/home/http"
 	"github.com/shurcooL/home/idiomaticgo"
+	"github.com/shurcooL/htmlg"
 	"github.com/shurcooL/issues"
 	"github.com/shurcooL/notifications"
+	notificationscomponent "github.com/shurcooL/notificationsapp/component"
 	"github.com/shurcooL/notificationsapp/httpclient"
 	"github.com/shurcooL/reactions"
 	"github.com/shurcooL/resume"
@@ -61,10 +65,10 @@ func setup() {
 }
 
 func fixupAnchors() {
-	for _, n := range document.QuerySelectorAll("header.header .nav a") {
+	for _, n := range document.QuerySelectorAll("header.header a") {
 		a := n.(*dom.HTMLAnchorElement)
 		switch a.Pathname {
-		case "/idiomatic-go", "/resume":
+		case "/idiomatic-go", "/resume", "/notifications":
 			a.AddEventListener("click", false, anchor{a}.ClickHandler)
 		}
 	}
@@ -109,7 +113,48 @@ func renderBody(page string) {
 			return
 		}
 		document.Body().SetInnerHTML(buf.String())
+	case "/notifications":
+		var buf bytes.Buffer
+		returnURL := dom.GetWindow().Location().Pathname + dom.GetWindow().Location().Search
+		err := renderNotificationsBodyInnerHTML(context.TODO(), &buf, notificationsService, authenticatedUser, returnURL)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		document.Body().SetInnerHTML(buf.String())
 	}
 
 	fixupAnchors()
+}
+
+func renderNotificationsBodyInnerHTML(ctx context.Context, w io.Writer, notificationsService notifications.Service, authenticatedUser users.User, returnURL string) error {
+	_, err := io.WriteString(w, `<div style="max-width: 800px; margin: 0 auto 100px auto;">`)
+	if err != nil {
+		return err
+	}
+
+	// Render the header.
+	header := homecomponent.Header{
+		CurrentUser:   authenticatedUser,
+		ReturnURL:     returnURL,
+		Notifications: notificationsService, // THINK: This is doing duplicate work with notifications.List below. Great motivation to remove htmlg.ComponentContext!
+	}
+	err = htmlg.RenderComponentsContext(ctx, w, header)
+	if err != nil {
+		return err
+	}
+
+	// TODO, THINK: Move this.
+	ns, err := notificationsService.List(ctx, notifications.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = htmlg.RenderComponents(w, notificationscomponent.NotificationsByRepo{Notifications: ns})
+	if err != nil {
+		return err
+	}
+
+	_, err = io.WriteString(w, `</div>`)
+	return err
 }
