@@ -14,9 +14,12 @@ import (
 	"github.com/shurcooL/home/httphandler"
 	"github.com/shurcooL/home/httputil"
 	"github.com/shurcooL/home/idiomaticgo"
+	"github.com/shurcooL/httperror"
 	"github.com/shurcooL/httpgzip"
 	issuesfs "github.com/shurcooL/issues/fs"
 	"github.com/shurcooL/notifications"
+	notificationshttphandler "github.com/shurcooL/notificationsapp/httphandler"
+	"github.com/shurcooL/notificationsapp/httproute"
 	"github.com/shurcooL/play/213/frontend/assets"
 	reactionsfs "github.com/shurcooL/reactions/fs"
 	"github.com/shurcooL/resume"
@@ -68,26 +71,26 @@ func run() error {
 	}
 
 	usersAPIHandler := httphandler.Users{Users: users}
-	http.Handle("/api/userspec", httputil.ErrorHandler(usersAPIHandler.GetAuthenticatedSpec))
-	http.Handle("/api/user", httputil.ErrorHandler(usersAPIHandler.GetAuthenticated))
+	http.Handle("/api/userspec", httputil.ErrorHandler(users, usersAPIHandler.GetAuthenticatedSpec))
+	http.Handle("/api/user", httputil.ErrorHandler(users, usersAPIHandler.GetAuthenticated))
 
 	reactionsAPIHandler := httphandler.Reactions{Reactions: reactions}
-	http.Handle("/api/react", httputil.ErrorHandler(reactionsAPIHandler.GetOrToggle))
+	http.Handle("/api/react", httputil.ErrorHandler(users, reactionsAPIHandler.GetOrToggle))
 
-	notificationsAPIHandler := httphandler.Notifications{Notifications: notifications}
-	http.Handle("/api/notifications/count", httputil.ErrorHandler(notificationsAPIHandler.Count))
+	notificationsAPIHandler := notificationshttphandler.Notifications{Notifications: notifications}
+	http.Handle(httproute.Count, httputil.ErrorHandler(users, notificationsAPIHandler.Count))
 
 	issuesAPIHandler := httphandler.Issues{Issues: issues}
-	http.Handle("/api/issues/list", httputil.ErrorHandler(issuesAPIHandler.List))
-	http.Handle("/api/issues/count", httputil.ErrorHandler(issuesAPIHandler.Count))
-	http.Handle("/api/issues/list-comments", httputil.ErrorHandler(issuesAPIHandler.ListComments))
-	http.Handle("/api/issues/edit-comment", httputil.ErrorHandler(issuesAPIHandler.EditComment))
+	http.Handle("/api/issues/list", httputil.ErrorHandler(users, issuesAPIHandler.List))
+	http.Handle("/api/issues/count", httputil.ErrorHandler(users, issuesAPIHandler.Count))
+	http.Handle("/api/issues/list-comments", httputil.ErrorHandler(users, issuesAPIHandler.ListComments))
+	http.Handle("/api/issues/edit-comment", httputil.ErrorHandler(users, issuesAPIHandler.EditComment))
 
 	http.Handle("/", httpgzip.FileServer(assets.Assets, httpgzip.FileServerOptions{ServeError: httpgzip.Detailed}))
 
-	http.Handle("/resume", httputil.ErrorHandler(func(w http.ResponseWriter, req *http.Request) error {
+	http.Handle("/resume", httputil.ErrorHandler(users, func(w http.ResponseWriter, req *http.Request) error {
 		if req.Method != "GET" {
-			return httputil.MethodError{Allowed: []string{"GET"}}
+			return httperror.Method{Allowed: []string{"GET"}}
 		}
 
 		time.Sleep(backendDelay) // XXX: Artifical delay.
@@ -113,9 +116,9 @@ func run() error {
 		return err
 	}))
 
-	http.Handle("/idiomatic-go", httputil.ErrorHandler(func(w http.ResponseWriter, req *http.Request) error {
+	http.Handle("/idiomatic-go", httputil.ErrorHandler(users, func(w http.ResponseWriter, req *http.Request) error {
 		if req.Method != "GET" {
-			return httputil.MethodError{Allowed: []string{"GET"}}
+			return httperror.Method{Allowed: []string{"GET"}}
 		}
 
 		time.Sleep(backendDelay) // XXX: Artifical delay.

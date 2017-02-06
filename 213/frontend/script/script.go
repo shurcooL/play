@@ -11,6 +11,7 @@ import (
 	"github.com/shurcooL/home/idiomaticgo"
 	"github.com/shurcooL/issues"
 	"github.com/shurcooL/notifications"
+	"github.com/shurcooL/notificationsapp/httpclient"
 	"github.com/shurcooL/reactions"
 	"github.com/shurcooL/resume"
 	"github.com/shurcooL/users"
@@ -43,7 +44,7 @@ func setup() {
 	fmt.Println("Started.")
 
 	reactionsService = http.Reactions{}
-	notificationsService = http.Notifications{}
+	notificationsService = httpclient.Notifications{}
 	issuesService = http.NewIssues("", "")
 	var err error
 	authenticatedUser, err = http.Users{}.GetAuthenticated(context.TODO())

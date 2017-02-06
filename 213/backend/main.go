@@ -12,6 +12,7 @@ import (
 
 	"github.com/shurcooL/home/httputil"
 	"github.com/shurcooL/home/idiomaticgo"
+	"github.com/shurcooL/httperror"
 	issuesfs "github.com/shurcooL/issues/fs"
 	"github.com/shurcooL/notifications"
 	reactionsfs "github.com/shurcooL/reactions/fs"
@@ -59,9 +60,9 @@ func run() error {
 		return err
 	}
 
-	http.Handle("/resume", httputil.ErrorHandler(func(w http.ResponseWriter, req *http.Request) error {
+	http.Handle("/resume", httputil.ErrorHandler(users, func(w http.ResponseWriter, req *http.Request) error {
 		if req.Method != "GET" {
-			return httputil.MethodError{Allowed: []string{"GET"}}
+			return httperror.Method{Allowed: []string{"GET"}}
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -85,9 +86,9 @@ func run() error {
 		return err
 	}))
 
-	http.Handle("/idiomatic-go", httputil.ErrorHandler(func(w http.ResponseWriter, req *http.Request) error {
+	http.Handle("/idiomatic-go", httputil.ErrorHandler(users, func(w http.ResponseWriter, req *http.Request) error {
 		if req.Method != "GET" {
-			return httputil.MethodError{Allowed: []string{"GET"}}
+			return httperror.Method{Allowed: []string{"GET"}}
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")

@@ -1,3 +1,4 @@
+// Play with a simple typed representation of words, sentences, etc.
 package main
 
 import (
