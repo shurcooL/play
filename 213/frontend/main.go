@@ -77,6 +77,7 @@ func run() error {
 
 	reactionsAPIHandler := httphandler.Reactions{Reactions: reactions}
 	http.Handle("/api/react", httputil.ErrorHandler(users, reactionsAPIHandler.GetOrToggle))
+	http.Handle("/api/react/list", httputil.ErrorHandler(users, reactionsAPIHandler.List))
 
 	notificationsAPIHandler := notificationshttphandler.Notifications{Notifications: notifications}
 	http.Handle(httproute.List, httputil.ErrorHandler(users, notificationsAPIHandler.List))

@@ -128,6 +128,15 @@ func renderBody(page string) {
 }
 
 func renderNotificationsBodyInnerHTML(ctx context.Context, w io.Writer, notificationsService notifications.Service, authenticatedUser users.User, returnURL string) error {
+	var ns notifications.Notifications
+	if authenticatedUser.ID != 0 {
+		var err error
+		ns, err = notificationsService.List(ctx, notifications.ListOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
 	_, err := io.WriteString(w, `<div style="max-width: 800px; margin: 0 auto 100px auto;">`)
 	if err != nil {
 		return err
@@ -135,17 +144,11 @@ func renderNotificationsBodyInnerHTML(ctx context.Context, w io.Writer, notifica
 
 	// Render the header.
 	header := homecomponent.Header{
-		CurrentUser:   authenticatedUser,
-		ReturnURL:     returnURL,
-		Notifications: notificationsService, // THINK: This is doing duplicate work with notifications.List below. Great motivation to remove htmlg.ComponentContext!
+		CurrentUser:       authenticatedUser,
+		NotificationCount: uint64(len(ns)),
+		ReturnURL:         returnURL,
 	}
-	err = htmlg.RenderComponentsContext(ctx, w, header)
-	if err != nil {
-		return err
-	}
-
-	// TODO, THINK: Move this.
-	ns, err := notificationsService.List(ctx, notifications.ListOptions{})
+	err = htmlg.RenderComponents(w, header)
 	if err != nil {
 		return err
 	}
