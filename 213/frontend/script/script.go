@@ -48,7 +48,7 @@ func setup() {
 	fmt.Println("Started.")
 
 	reactionsService = http.Reactions{}
-	notificationsService = httpclient.Notifications{}
+	notificationsService = httpclient.NewNotifications(nil, "", "")
 	issuesService = http.NewIssues("", "")
 	var err error
 	authenticatedUser, err = http.Users{}.GetAuthenticated(context.TODO())
