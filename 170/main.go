@@ -27,7 +27,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 	case os.IsPermission(err):
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusForbidden)
 	case err != nil:
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
