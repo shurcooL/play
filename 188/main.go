@@ -80,7 +80,7 @@ type ImplicitDirFS struct {
 func (id ImplicitDirFS) OpenFile(name string, flag int, perm os.FileMode) (webdav.File, error) {
 	f, err := id.fs.OpenFile(context.Background(), name, flag, perm)
 	if os.IsNotExist(err) && flag&os.O_CREATE == os.O_CREATE {
-		err = vfsutil.MkdirAll(id.fs, pathpkg.Dir(name), 0755)
+		err = vfsutil.MkdirAll(context.Background(), id.fs, pathpkg.Dir(name), 0755)
 		if err != nil {
 			return nil, err
 		}
