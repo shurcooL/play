@@ -66,7 +66,7 @@ func run() error {
 	notifications := mockNotifications{}
 	issues, err := issuesfs.NewService(
 		webdav.Dir(filepath.Join(os.Getenv("HOME"), "Dropbox", "Store", "issues")),
-		notifications, users)
+		notifications, nil, users)
 	if err != nil {
 		return err
 	}

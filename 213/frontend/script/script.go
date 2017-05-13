@@ -94,35 +94,29 @@ func (a anchor) ClickHandler(e dom.Event) {
 }
 
 func renderBody(page string) {
+	returnURL := dom.GetWindow().Location().Pathname + dom.GetWindow().Location().Search
+	var buf bytes.Buffer
 	switch page {
 	case "/resume":
-		var buf bytes.Buffer
-		returnURL := dom.GetWindow().Location().Pathname + dom.GetWindow().Location().Search
 		err := resume.RenderBodyInnerHTML(context.TODO(), &buf, reactionsService, notificationsService, authenticatedUser, returnURL)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		document.Body().SetInnerHTML(buf.String())
 	case "/idiomatic-go":
-		var buf bytes.Buffer
-		returnURL := dom.GetWindow().Location().Pathname + dom.GetWindow().Location().Search
 		err := idiomaticgo.RenderBodyInnerHTML(context.TODO(), &buf, issuesService, notificationsService, authenticatedUser, returnURL)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		document.Body().SetInnerHTML(buf.String())
 	case "/notifications":
-		var buf bytes.Buffer
-		returnURL := dom.GetWindow().Location().Pathname + dom.GetWindow().Location().Search
 		err := renderNotificationsBodyInnerHTML(context.TODO(), &buf, notificationsService, authenticatedUser, returnURL)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		document.Body().SetInnerHTML(buf.String())
 	}
+	document.Body().SetInnerHTML(buf.String())
 
 	fixupAnchors()
 }
