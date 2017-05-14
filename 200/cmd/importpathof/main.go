@@ -111,13 +111,6 @@ func importPath(file string) (string, error) {
 }
 
 func run() error {
-	flag.Parse()
-
-	if flag.NArg() != 1 {
-		fmt.Fprintln(os.Stderr, "usage: importpathof file")
-		os.Exit(2)
-	}
-
 	table, err := table(flag.Arg(0))
 	if err != nil {
 		return err
@@ -136,6 +129,12 @@ func run() error {
 }
 
 func main() {
+	flag.Parse()
+	if flag.NArg() != 1 {
+		fmt.Fprintln(os.Stderr, "usage: importpathof file")
+		os.Exit(2)
+	}
+
 	err := run()
 	if err != nil {
 		log.Fatalln(err)
