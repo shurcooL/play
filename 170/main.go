@@ -19,7 +19,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	switch {
 	default:
 		w.Header().Set("Content-Type", "text/html")
-		io.WriteString(w, string(htmlg.Render(nodes...)))
+		io.WriteString(w, htmlg.Render(nodes...))
 	case IsRedirect(err):
 		http.Redirect(w, req, string(err.(Redirect).URL), http.StatusSeeOther)
 	case os.IsNotExist(err):

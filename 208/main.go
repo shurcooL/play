@@ -4,7 +4,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"strings"
@@ -57,7 +56,7 @@ func (a activity) Render() []*html.Node {
 		switch p := e.Payload().(type) {
 		case *github.IssuesEvent:
 			nodes = append(nodes,
-				htmlg.H4(htmlg.Text(fmt.Sprintf("%v %v issue ", *e.Actor.Login, *p.Action)), htmlg.A(*p.Issue.Title, template.URL(*p.Issue.HTMLURL)), htmlg.Text(fmt.Sprintf(" in %v", *e.Repo.Name))),
+				htmlg.H4(htmlg.Text(fmt.Sprintf("%v %v issue ", *e.Actor.Login, *p.Action)), htmlg.A(*p.Issue.Title, *p.Issue.HTMLURL), htmlg.Text(fmt.Sprintf(" in %v", *e.Repo.Name))),
 			)
 			if *p.Action == "opened" {
 				body := string(github_flavored_markdown.Markdown([]byte(*p.Issue.Body)))
@@ -68,12 +67,12 @@ func (a activity) Render() []*html.Node {
 
 		case *github.IssueCommentEvent:
 			nodes = append(nodes,
-				htmlg.H4(htmlg.Text(fmt.Sprintf("%v commented on issue ", *e.Actor.Login)), htmlg.A(*p.Issue.Title, template.URL(*p.Issue.HTMLURL)), htmlg.Text(fmt.Sprintf(" in %v", *e.Repo.Name))),
+				htmlg.H4(htmlg.Text(fmt.Sprintf("%v commented on issue ", *e.Actor.Login)), htmlg.A(*p.Issue.Title, *p.Issue.HTMLURL), htmlg.Text(fmt.Sprintf(" in %v", *e.Repo.Name))),
 			)
 			body := string(github_flavored_markdown.Markdown([]byte(*p.Comment.Body)))
 			nodes = append(nodes,
 				htmlg.P(parseNodes(body)...),
-				htmlg.P(htmlg.A("source", template.URL(*p.Comment.HTMLURL))),
+				htmlg.P(htmlg.A("source", *p.Comment.HTMLURL)),
 			)
 		case *github.CommitCommentEvent:
 			nodes = append(nodes,
@@ -82,7 +81,7 @@ func (a activity) Render() []*html.Node {
 			body := string(github_flavored_markdown.Markdown([]byte(*p.Comment.Body)))
 			nodes = append(nodes,
 				htmlg.P(parseNodes(body)...),
-				htmlg.P(htmlg.A("source", template.URL(*p.Comment.HTMLURL))),
+				htmlg.P(htmlg.A("source", *p.Comment.HTMLURL)),
 			)
 		case *github.PullRequestReviewCommentEvent:
 			nodes = append(nodes,
@@ -91,7 +90,7 @@ func (a activity) Render() []*html.Node {
 			body := string(github_flavored_markdown.Markdown([]byte(*p.Comment.Body)))
 			nodes = append(nodes,
 				htmlg.P(parseNodes(body)...),
-				htmlg.P(htmlg.A("source", template.URL(*p.Comment.HTMLURL))),
+				htmlg.P(htmlg.A("source", *p.Comment.HTMLURL)),
 			)
 
 		case *github.PushEvent:
@@ -130,7 +129,7 @@ func (e event) Render() []*html.Node {
 			htmlg.Text(" "),
 			htmlg.Text(e.Verb),
 			htmlg.Text(" in "),
-			htmlg.A(e.TargetURL, template.URL("https://"+e.TargetURL)),
+			htmlg.A(e.TargetURL, "https://"+e.TargetURL),
 			htmlg.Text(" at "),
 			htmlg.Text(humanize.Time(e.Time)),
 		),

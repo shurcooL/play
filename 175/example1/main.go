@@ -71,11 +71,11 @@ func genHandler(w http.ResponseWriter, req *http.Request) {
 	</head>
 	<body>`)
 
-	io.WriteString(w, string(htmlg.Render(openBadge{}.Render()...)))
+	io.WriteString(w, htmlg.Render(openBadge{}.Render()...))
 
-	io.WriteString(w, string(htmlg.Render(newClosedEventIcon().Render()...)))
+	io.WriteString(w, htmlg.Render(newClosedEventIcon().Render()...))
 
-	io.WriteString(w, string(htmlg.Render(Notifications{Unread: true}.Render()...)))
+	io.WriteString(w, htmlg.Render(Notifications{Unread: true}.Render()...))
 
 	io.WriteString(w, "<span>some more stuff</span>")
 

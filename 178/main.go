@@ -74,7 +74,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	default:
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		io.WriteString(w, string(htmlg.Render(nodes...)))
+		io.WriteString(w, htmlg.Render(nodes...))
 	}
 }
 

@@ -116,7 +116,7 @@ func run(_ dom.Event) {
 	v := NewVisitor()
 	ast.Walk(v, fileAST)
 	nodes := visit(v.Root.Children[0])
-	elements.SetInnerHTML(string(htmlg.Render(nodes...)))
+	elements.SetInnerHTML(htmlg.Render(nodes...))
 }
 
 func setup() {
@@ -137,11 +137,11 @@ func MouseOver(this dom.HTMLElement) {
 	div := this.(*dom.HTMLDivElement)
 	pos, _ := strconv.Atoi(div.GetAttribute("data-pos"))
 	end, _ := strconv.Atoi(div.GetAttribute("data-end"))
-	highlighted.SetInnerHTML(string(htmlg.Render(
+	highlighted.SetInnerHTML(htmlg.Render(
 		htmlg.Text(source.Value[:pos]),
 		htmlg.SpanClass("h", htmlg.Text(source.Value[pos:end])),
 		htmlg.Text(source.Value[end:]),
-	)))
+	))
 }
 
 func MouseOut() {
@@ -170,7 +170,7 @@ func main() {
 		n := htmlg.DivClass("node", htmlg.Text(fmt.Sprintf("line %v", i)))
 		nodes = append(nodes, n)
 	}
-	elements.SetInnerHTML(string(htmlg.Render(nodes...)))
+	elements.SetInnerHTML(htmlg.Render(nodes...))
 }
 
 func run(_ dom.Event) {

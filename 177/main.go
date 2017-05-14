@@ -59,7 +59,7 @@ func renderBody(url string) error {
 	if err != nil {
 		return err
 	}
-	document.Body().SetInnerHTML(string(htmlg.Render(nodes...)))
+	document.Body().SetInnerHTML(htmlg.Render(nodes...))
 	return nil
 }
 

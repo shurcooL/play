@@ -37,5 +37,5 @@ func Tabs(query url.Values) template.HTML {
 		ns = append(ns, a)
 	}
 
-	return htmlg.Render(ns...)
+	return template.HTML(htmlg.Render(ns...))
 }
