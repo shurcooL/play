@@ -6,10 +6,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/shurcooL/play/31/elem"
-	"github.com/shurcooL/play/31/prop"
-	"github.com/shurcooL/play/31/vecty"
-	"golang.org/x/net/html/atom"
+	"github.com/shurcooL/play/217/attr"
+	"github.com/shurcooL/play/217/elem"
+	"github.com/shurcooL/play/217/vec"
 )
 
 func main() {
@@ -21,7 +20,7 @@ func main() {
 
 func run() error {
 	c := &CommitID{ID: "abcdef1234567890"}
-	err := vecty.Render(os.Stdout, c)
+	err := vec.Render(os.Stdout, c)
 	if err != nil {
 		return err
 	}
@@ -34,12 +33,17 @@ type CommitID struct {
 	ID string
 }
 
-func (c *CommitID) Render() *vecty.HTML {
-	return elem.Abbreviation(
-		vecty.Property(atom.Title, c.ID),
-		elem.Code(
-			prop.Class("commitID"),
-			vecty.Text(c.commitID()),
+func (c *CommitID) Render() *vec.HTML {
+	/*
+		<abbr title="{{.ID}}">
+			<code class="commitID">
+				{{.commitID}}
+			</code>
+		</abbr>
+	*/
+	return elem.Abbr(attr.Title(c.ID),
+		elem.Code(attr.Class("commitID"),
+			c.commitID(),
 		),
 	)
 }
