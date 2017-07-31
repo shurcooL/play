@@ -86,8 +86,6 @@ func a(href template.URL, nodes ...*html.Node) *html.Node {
 		Type: html.ElementNode, Data: atom.A.String(),
 		Attr: []html.Attribute{{Key: atom.Href.String(), Val: string(href)}},
 	}
-	for _, n := range nodes {
-		a.AppendChild(n)
-	}
+	htmlg.AppendChildren(a, nodes...)
 	return a
 }

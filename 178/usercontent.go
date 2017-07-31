@@ -208,9 +208,7 @@ func input(typ, name, value string, nodes ...*html.Node) *html.Node {
 			{Key: atom.Value.String(), Val: value},
 		},
 	}
-	for _, n := range nodes {
-		input.AppendChild(n)
-	}
+	htmlg.AppendChildren(input, nodes...)
 	return input
 }
 
@@ -222,9 +220,7 @@ func form(method string, action template.URL, nodes ...*html.Node) *html.Node {
 			{Key: atom.Action.String(), Val: string(action)},
 		},
 	}
-	for _, n := range nodes {
-		form.AppendChild(n)
-	}
+	htmlg.AppendChildren(form, nodes...)
 	return form
 }
 

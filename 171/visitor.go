@@ -108,8 +108,6 @@ func nodeDiv(node Node, triangle bool, nodes ...*html.Node) *html.Node {
 			{Key: "data-end", Val: fmt.Sprint(node.Node.End() - 1)},
 		},
 	}
-	for _, n := range nodes {
-		div.AppendChild(n)
-	}
+	htmlg.AppendChildren(div, nodes...)
 	return div
 }

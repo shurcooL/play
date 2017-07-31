@@ -71,8 +71,6 @@ func a(href template.URL, nodes ...*html.Node) *html.Node {
 			{Key: atom.Onclick.String(), Val: "Go(this, event)"},
 		},
 	}
-	for _, n := range nodes {
-		a.AppendChild(n)
-	}
+	htmlg.AppendChildren(a, nodes...)
 	return a
 }
