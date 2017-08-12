@@ -12,9 +12,8 @@ import (
 	"github.com/dustin/go-humanize"
 
 	"sourcegraph.com/sourcegraph/go-vcs/vcs"
+	gogit "sourcegraph.com/sourcegraph/go-vcs/vcs/git"
 	"sourcegraph.com/sourcegraph/go-vcs/vcs/gitcmd"
-
-	gogit "github.com/shazow/go-vcs/vcs/git"
 
 	"github.com/shurcooL/play/229/vcs/git"
 )
@@ -78,6 +77,10 @@ func main() {
 	// TIMING: /net/http: 12.187826555s
 	// TIMING: /net/http: 1.289728148s
 	// TIMING: /net/http: 497.956958ms
+
+	// TIMING: /github.com/google/go-github/github: 10.356989166s
+	// TIMING: /github.com/google/go-github/github: 2.967798226s
+	// TIMING: /github.com/google/go-github/github: 688.446594ms
 }
 
 func runDisk(dir string) error {
