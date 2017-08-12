@@ -48,12 +48,12 @@ func (fs fileSystem) Open(path string) (http.File, error) {
 	env.Set("LANG", "en_US.UTF-8")
 	cmd.Env = env
 
-	t := time.Now()
+	//t := time.Now()
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("git.fileSystem.Open: %v: %v", strings.Join(cmd.Args, " "), err)
 	}
-	fmt.Println("ls-treeing:", time.Since(t))
+	//fmt.Println("ls-treeing:", time.Since(t))
 
 	idx := bytes.IndexByte(out, '\x00')
 	if idx == -1 {
@@ -73,12 +73,12 @@ func (fs fileSystem) Open(path string) (http.File, error) {
 		env.Set("LANG", "en_US.UTF-8")
 		cmd.Env = env
 
-		t := time.Now()
+		//t := time.Now()
 		out, err := cmd.Output()
 		if err != nil {
 			return nil, fmt.Errorf("git.fileSystem.Open: %v: %v", strings.Join(cmd.Args, " "), err)
 		}
-		fmt.Println("cat-filing:", time.Since(t))
+		//fmt.Println("cat-filing:", time.Since(t))
 
 		return file{
 			fs:   fs,
