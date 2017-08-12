@@ -20,8 +20,10 @@ import (
 )
 
 func main() {
-	const dir = "/src/net/http"
+	const repo = "/tmp/try/vcs-store/git/https/go.googlesource.com/go"
+	//const repo = "/home/dmitri/store/vcsstore/git/https/go.googlesource.com/go"
 	//const dir = "/src/encoding"
+	const dir = "/src/net/http"
 	const tag = "go1.9rc2"
 
 	{
@@ -33,7 +35,7 @@ func main() {
 
 	{
 		gitcmd.SetModTime = true
-		err := runGit(func(dir string) (vcs.Repository, error) { return gitcmd.Open(dir) }, dir, tag)
+		err := runGit(func(dir string) (vcs.Repository, error) { return gitcmd.Open(dir) }, repo, dir, tag)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -41,21 +43,21 @@ func main() {
 
 	{
 		gitcmd.SetModTime = false
-		err := runGit(func(dir string) (vcs.Repository, error) { return gitcmd.Open(dir) }, dir, tag)
+		err := runGit(func(dir string) (vcs.Repository, error) { return gitcmd.Open(dir) }, repo, dir, tag)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	}
 
 	{
-		err := runGit(func(dir string) (vcs.Repository, error) { return gogit.Open(dir) }, dir, tag)
+		err := runGit(func(dir string) (vcs.Repository, error) { return gogit.Open(dir) }, repo, dir, tag)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	}
 
 	if false {
-		err := runNewGit(dir, tag)
+		err := runNewGit(repo, dir, tag)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -66,6 +68,16 @@ func main() {
 	// net/http: read total: 6.591873992s 1.2 MB (1182569 bytes) 3fcc1476bde7246ce53e3fbc5a71cd9ec0e4cbead3a7ed941385f4dd2742dd7e
 	// net/http: read total: 815.592838ms 1.2 MB (1182569 bytes) 3fcc1476bde7246ce53e3fbc5a71cd9ec0e4cbead3a7ed941385f4dd2742dd7e
 	// net/http: read total: 1.608730649s 1.2 MB (1182569 bytes) 3fcc1476bde7246ce53e3fbc5a71cd9ec0e4cbead3a7ed941385f4dd2742dd7e
+
+	// net/http: read total: 10.297202ms 1.2 MB (1182569 bytes) 3fcc1476bde7246ce53e3fbc5a71cd9ec0e4cbead3a7ed941385f4dd2742dd7e
+	// net/http: read total: 6.135850236s 1.2 MB (1182569 bytes) 3fcc1476bde7246ce53e3fbc5a71cd9ec0e4cbead3a7ed941385f4dd2742dd7e
+	// net/http: read total: 814.003669ms 1.2 MB (1182569 bytes) 3fcc1476bde7246ce53e3fbc5a71cd9ec0e4cbead3a7ed941385f4dd2742dd7e
+	// net/http: read total: 100.391421ms 1.2 MB (1182569 bytes) 3fcc1476bde7246ce53e3fbc5a71cd9ec0e4cbead3a7ed941385f4dd2742dd7e
+
+	// TIMING: /net/http: 343.475347ms
+	// TIMING: /net/http: 12.187826555s
+	// TIMING: /net/http: 1.289728148s
+	// TIMING: /net/http: 497.956958ms
 }
 
 func runDisk(dir string) error {
@@ -112,9 +124,9 @@ func runDisk(dir string) error {
 	return nil
 }
 
-func runGit(open vcs.Opener, dir, tag string) error {
+func runGit(open vcs.Opener, repo, dir, tag string) error {
 	t := time.Now()
-	r, err := open("/tmp/try/vcs-store/git/https/go.googlesource.com/go")
+	r, err := open(repo)
 	if err != nil {
 		return err
 	}
@@ -159,9 +171,9 @@ func runGit(open vcs.Opener, dir, tag string) error {
 	return nil
 }
 
-func runNewGit(dir, tag string) error {
+func runNewGit(repo, dir, tag string) error {
 	t := time.Now()
-	r, err := git.Open("/tmp/try/vcs-store/git/https/go.googlesource.com/go")
+	r, err := git.Open(repo)
 	if err != nil {
 		return err
 	}
