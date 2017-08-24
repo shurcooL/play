@@ -37,7 +37,7 @@ func visit(fs ImplicitDirFS, path, indent string) (dirs, files int, err error) {
 	if err != nil {
 		return 1, 0, fmt.Errorf("read dir %s: %v", path, err)
 	}
-	sort.Sort(byName(fis))
+	sort.Slice(fis, func(i, j int) bool { return fis[i].Name() < fis[j].Name() })
 	add := "│   "
 	for i, fi := range fis {
 		if i == len(fis)-1 {
@@ -54,9 +54,3 @@ func visit(fs ImplicitDirFS, path, indent string) (dirs, files int, err error) {
 	}
 	return dirs + 1, files, nil
 }
-
-type byName []os.FileInfo
-
-func (s byName) Len() int           { return len(s) }
-func (s byName) Less(i, j int) bool { return s[i].Name() < s[j].Name() }
-func (s byName) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
