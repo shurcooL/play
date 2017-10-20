@@ -23,12 +23,19 @@ func paint() {
 	ctx.SetTransform(10, 0, 0, 10, 160, 160)
 	ctx.Rotate(-1.2)
 
+	gradient := ctx.CreateRadialGradient(0, 0, 8*1.75, 0, 0, 0)
+	gradient.AddColorStop(0, "rgba(0, 0, 0, 0)")
+	gradient.AddColorStop(1, "rgba(0, 0, 0, 0.3)")
+	ctx.Set("fillStyle", gradient)
+	ctx.Ellipse(0, 0, 8*1.75, 8*1.75, 0, 0, Tau, false)
+	ctx.Fill()
+
 	ctx.FillStyle = "red"
 	ctx.FillRect(2, -1, 11, 2)
 
+	ctx.BeginPath()
 	ctx.StrokeStyle = "red"
 	ctx.LineWidth = 2
-	ctx.BeginPath()
 	ctx.Ellipse(0, 0, 7, 7, Tau*1/12, 0, Tau*10/12, false)
 	ctx.Stroke()
 }
