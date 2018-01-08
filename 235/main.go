@@ -15,21 +15,22 @@ import (
 )
 
 func main() {
-	err := run()
+	err := run(1000, 1000)
 	if err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func run() error {
-	//f, err := sfnt.Parse(goregular.TTF)
-	//if err != nil {
-	//	return err
-	//}
-	//face, err := opentype.NewFace(f, nil)
-	//if err != nil {
-	//	return err
-	//}
+func run(width, height int) error {
+	// Load font from TTF data.
+	/*f, err := sfnt.Parse(goregular.TTF)
+	if err != nil {
+		return err
+	}
+	face, err := opentype.NewFace(f, nil)
+	if err != nil {
+		return err
+	}*/
 	f, err := truetype.Parse(goregular.TTF)
 	if err != nil {
 		return err
@@ -40,16 +41,18 @@ func run() error {
 		//Hinting: font.HintingVertical,
 	})
 
-	m := image.NewNRGBA(image.Rect(0, 0, 1000, 1000))
+	m := image.NewNRGBA(image.Rect(0, 0, width, height))
 
+	// Draw text on image.
 	fd := font.Drawer{
 		Dst:  m,
 		Src:  image.Black,
 		Face: face,
-		Dot:  fixed.P(100, 900),
+		Dot:  fixed.P(100, height-100),
 	}
 	fd.DrawString("Hello.")
 
+	// Output image to a PNG file.
 	var buf bytes.Buffer
 	err = png.Encode(&buf, m)
 	if err != nil {
