@@ -3,7 +3,7 @@ package task
 import "fmt"
 
 func ExampleTask() {
-	sampleInput := collectionᐸDataᐸintᐳᐳ{
+	var sampleData Dataᐸintᐳ = c{
 		e(1),
 		c{e(2), e(3), e(4)},
 		e(5),
@@ -19,7 +19,7 @@ func ExampleTask() {
 		e(9),
 	}
 
-	var di DeepIteratorᐸintᐳ = NewDeepIteratorᐸintᐳ(sampleInput)
+	var di DeepIteratorᐸintᐳ = NewDeepIteratorᐸintᐳ(sampleData)
 
 	for di.HasNext() {
 		fmt.Println(di.Next())

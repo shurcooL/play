@@ -5,16 +5,16 @@ package task
 // e implements Dataᐸintᐳ interface for a single element.
 type e int
 
-func (_ e) IsCollection() bool                   { return false }
-func (_ e) GetCollection() CollectionᐸDataᐸintᐳᐳ { panic("not collection") }
-func (e e) GetElement() int                      { return int(e) }
+func (_ e) IsCollection() bool                { return false }
+func (_ e) Collection() CollectionᐸDataᐸintᐳᐳ { panic("not collection") }
+func (e e) Element() int                      { return int(e) }
 
 // c implements Dataᐸintᐳ interface for a collection of Dataᐸintᐳ.
 type c collectionᐸDataᐸintᐳᐳ
 
-func (_ c) IsCollection() bool                   { return true }
-func (c c) GetCollection() CollectionᐸDataᐸintᐳᐳ { return collectionᐸDataᐸintᐳᐳ(c) }
-func (_ c) GetElement() int                      { panic("not element") }
+func (_ c) IsCollection() bool                { return true }
+func (c c) Collection() CollectionᐸDataᐸintᐳᐳ { return collectionᐸDataᐸintᐳᐳ(c) }
+func (_ c) Element() int                      { panic("not element") }
 
 // collectionᐸDataᐸintᐳᐳ implements CollectionᐸEᐳ where E is Dataᐸintᐳ.
 type collectionᐸDataᐸintᐳᐳ []Dataᐸintᐳ

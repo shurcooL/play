@@ -3,8 +3,8 @@ package task
 // DataᐸTᐳ where T is int.
 type Dataᐸintᐳ interface {
 	IsCollection() bool
-	GetCollection() CollectionᐸDataᐸintᐳᐳ
-	GetElement() int
+	Collection() CollectionᐸDataᐸintᐳᐳ
+	Element() int
 }
 
 // Java's CollectionᐸEᐳ interface (partial).
