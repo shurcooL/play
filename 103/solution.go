@@ -3,21 +3,21 @@ package task
 // deepIteratorᐸintᐳ is a basic implementation of DeepIteratorᐸTᐳ where T is int.
 type deepIteratorᐸintᐳ struct {
 	its     []IteratorᐸDataᐸintᐳᐳ
-	hasNext bool
 	next    int
+	hasNext bool
 }
 
 func NewDeepIteratorᐸintᐳ(data Dataᐸintᐳ) DeepIteratorᐸintᐳ {
 	if !data.IsCollection() {
 		return &deepIteratorᐸintᐳ{
-			hasNext: true,
 			next:    data.Element(),
+			hasNext: true,
 		}
 	}
 	di := &deepIteratorᐸintᐳ{
 		its: []IteratorᐸDataᐸintᐳᐳ{data.Collection().Iterator()},
 	}
-	di.findNext()
+	di.next, di.hasNext = di.findNext()
 	return di
 }
 
@@ -32,12 +32,12 @@ func (di *deepIteratorᐸintᐳ) Next() int {
 	if !di.hasNext {
 		panic("no next")
 	}
-	next := di.next
-	di.findNext()
-	return next
+	el := di.next
+	di.next, di.hasNext = di.findNext()
+	return el
 }
 
-func (di *deepIteratorᐸintᐳ) findNext() {
+func (di *deepIteratorᐸintᐳ) findNext() (next int, ok bool) {
 	for len(di.its) > 0 {
 		it := di.its[len(di.its)-1] // Deepest iterator on stack.
 		if !it.HasNext() {
@@ -49,9 +49,9 @@ func (di *deepIteratorᐸintᐳ) findNext() {
 			di.its = append(di.its, data.Collection().Iterator()) // Push new collection iterator onto stack.
 			continue
 		}
-		di.hasNext = true
-		di.next = data.Element()
-		return
+		// Found the next element.
+		return data.Element(), true
 	}
-	di.hasNext = false
+	// Nothing left.
+	return 0, false
 }
