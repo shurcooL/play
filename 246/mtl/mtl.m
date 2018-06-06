@@ -2,15 +2,19 @@
 #import <Metal/Metal.h>
 #include "mtl.h"
 
-struct Device CreateSystemDefaultDevice() {
+// Caller must call free(d).
+struct Device * CreateSystemDefaultDevice() {
 	id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+	if (!device) {
+		return NULL;
+	}
 
-	struct Device d;
-	d.headless = device.headless;
-	d.lowPower = device.lowPower;
-	d.removable = device.removable;
-	d.registryID = device.registryID;
-	d.name = device.name.UTF8String;
+	struct Device * d = malloc(sizeof(struct Device));
+	d->headless = device.headless;
+	d->lowPower = device.lowPower;
+	d->removable = device.removable;
+	d->registryID = device.registryID;
+	d->name = device.name.UTF8String;
 	return d;
 }
 

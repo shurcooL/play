@@ -14,5 +14,5 @@ struct Devices {
 	int             length;
 };
 
-struct Device CreateSystemDefaultDevice();
+struct Device * CreateSystemDefaultDevice();
 struct Devices CopyAllDevices();

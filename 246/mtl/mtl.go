@@ -1,6 +1,11 @@
 // Package mtl is a tiny subset of the Metal API.
 package mtl
 
+import (
+	"errors"
+	"unsafe"
+)
+
 /*
 #cgo darwin CFLAGS: -x objective-c
 #cgo darwin LDFLAGS: -framework Metal
@@ -8,7 +13,6 @@ package mtl
 #include "mtl.h"
 */
 import "C"
-import "unsafe"
 
 // Device is abstract representation of the GPU that
 // serves as the primary interface for a Metal app.
@@ -30,8 +34,12 @@ type Device struct {
 }
 
 // CreateSystemDefaultDevice returns the preferred system default Metal device.
-func CreateSystemDefaultDevice() Device {
+func CreateSystemDefaultDevice() (Device, error) {
 	d := C.CreateSystemDefaultDevice()
+	if d == nil {
+		return Device{}, errors.New("Metal is not supported on this system")
+	}
+	defer C.free(unsafe.Pointer(d))
 
 	return Device{
 		Headless:   d.headless != 0,
@@ -39,7 +47,7 @@ func CreateSystemDefaultDevice() Device {
 		Removable:  d.removable != 0,
 		RegistryID: uint64(d.registryID),
 		Name:       C.GoString(d.name),
-	}
+	}, nil
 }
 
 // CopyAllDevices returns all Metal devices in the system.
