@@ -16,6 +16,38 @@ import (
 	"strings"
 )
 
+func main() {
+	flag.Parse()
+	if flag.NArg() != 1 {
+		fmt.Fprintln(os.Stderr, "usage: importpathof file")
+		os.Exit(2)
+	}
+	file := flag.Arg(0)
+
+	err := run(file)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func run(file string) error {
+	table, err := table(file)
+	if err != nil {
+		return err
+	}
+	mainFile, err := mainFile(table)
+	if err != nil {
+		return err
+	}
+	importPath, err := importPath(mainFile)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(importPath)
+	return nil
+}
+
 // table extracts a Go symbol and line number table embedded in Go binary
 // that file points to.
 func table(file string) (*gosym.Table, error) {
@@ -108,35 +140,4 @@ func importPath(file string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("couldn't find an import path corresponding to %q", file)
-}
-
-func run() error {
-	table, err := table(flag.Arg(0))
-	if err != nil {
-		return err
-	}
-	file, err := mainFile(table)
-	if err != nil {
-		return err
-	}
-	importPath, err := importPath(file)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(importPath)
-	return nil
-}
-
-func main() {
-	flag.Parse()
-	if flag.NArg() != 1 {
-		fmt.Fprintln(os.Stderr, "usage: importpathof file")
-		os.Exit(2)
-	}
-
-	err := run()
-	if err != nil {
-		log.Fatalln(err)
-	}
 }
