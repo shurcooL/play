@@ -12,7 +12,7 @@ import (
 	"unicode"
 
 	"github.com/shurcooL/Conception-go/pkg/gist6003701"
-	"github.com/shurcooL/go/ctxhttp"
+	"golang.org/x/net/context/ctxhttp"
 )
 
 type Client struct {
