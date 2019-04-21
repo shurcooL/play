@@ -1,0 +1,22 @@
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width">
+		<link href="/-/fonts/fonts.css" rel="stylesheet" type="text/css">
+		<link href="https://fonts.googleapis.com/css?family=Work+Sans:600|Roboto" rel="stylesheet">
+		<link href="/-/style.css" rel="stylesheet" type="text/css">
+		<script src="/-/wasm_exec.js"></script>
+		<script>
+			if (!WebAssembly.instantiateStreaming) { // polyfill for Safari :/
+				WebAssembly.instantiateStreaming = async (resp, importObject) => {
+					const source = await (await resp).arrayBuffer();
+					return await WebAssembly.instantiate(source, importObject);
+				};
+			}
+			const go = new Go();
+			WebAssembly.instantiateStreaming(fetch("/-/main.wasm"), go.importObject).then((result) => {
+				go.run(result.instance);
+			});
+		</script>
+	</head>
+	<body></body>
+</html>

@@ -1,0 +1,46 @@
+body {
+	font-family: "Roboto";
+	font-size: 85%;
+	color: #333;
+
+	margin-left: auto;
+	margin-right: auto;
+	width: 700px;
+}
+a {
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+h1, h2, h3, h4, h5, h6 {
+	font-family: "Work Sans";
+}
+
+code, pre {
+	font-family: "Go Mono";
+	font-size: 0.875em;
+}
+pre {
+	padding: 0.75em;
+	background-color: #f5f5f5;
+	border: 1px solid #ccc;
+	border-radius: 0.3em;
+	overflow-x: scroll;
+	tab-size: 4;
+}
+
+@media (prefers-color-scheme: dark) {
+	body {
+		color: #ddd;
+		background-color: #222;
+	}
+	a {
+		color: rgb(173, 216, 230);
+	}
+	pre {
+		color: #ddd;
+		background-color: #333;
+		border-color: #555;
+	}
+}
