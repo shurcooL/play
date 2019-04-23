@@ -13,6 +13,8 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 )
 
+// Proxy implements the module proxy protocol
+// by proxying off another module proxy at URL.
 type Proxy struct {
 	URL url.URL
 }
@@ -66,7 +68,10 @@ func (p Proxy) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 		body, _ := ioutil.ReadAll(resp.Body)
 		return fmt.Errorf("non-200 OK status code: %v body: %q", resp.Status, body)
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// TODO: confirm when HTML content-type needs to be set
+	/*if strings.HasSuffix(req.URL.Path, "/") {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	}*/
 	_, err = io.Copy(w, resp.Body)
 	return err
 }

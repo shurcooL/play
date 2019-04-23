@@ -22,6 +22,7 @@ import (
 	"github.com/shurcooL/htmlg"
 	modulepkg "github.com/shurcooL/play/256/module"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 func serveGodoc(ctx context.Context, query string, mp modulepkg.Proxy) error {
@@ -48,7 +49,7 @@ func serveGodoc(ctx context.Context, query string, mp modulepkg.Proxy) error {
 	t = time.Now()
 	var buf bytes.Buffer
 	err = htmlg.RenderComponents(&buf, godocComponent{
-		FS:      fset,
+		Fset:    fset,
 		Package: d,
 	})
 	if err != nil {
@@ -109,7 +110,7 @@ func readFile(f *zip.File) ([]byte, error) {
 }
 
 type godocComponent struct {
-	FS *token.FileSet
+	Fset *token.FileSet
 	*doc.Package
 }
 
@@ -133,7 +134,7 @@ func (p godocComponent) Render() []*html.Node {
 	for _, c := range p.Consts {
 		ns = append(ns,
 			htmlg.Pre(
-				htmlg.Text(printerutil.SprintAst(p.FS, c.Decl)),
+				htmlg.Text(printerutil.SprintAst(p.Fset, c.Decl)),
 			),
 		)
 	}
@@ -145,7 +146,7 @@ func (p godocComponent) Render() []*html.Node {
 	for _, v := range p.Vars {
 		ns = append(ns,
 			htmlg.Pre(
-				htmlg.Text(printerutil.SprintAst(p.FS, v.Decl)),
+				htmlg.Text(printerutil.SprintAst(p.Fset, v.Decl)),
 			),
 			htmlg.P(
 				parseHTML(docHTML(v.Doc)),
@@ -155,10 +156,14 @@ func (p godocComponent) Render() []*html.Node {
 
 	// Functions.
 	for _, f := range p.Funcs {
+		heading := htmlg.H2(htmlg.Text("func "+f.Name+" "), htmlg.A("¶", "#"+f.Name))
+		heading.Attr = append(heading.Attr, html.Attribute{
+			Key: atom.Id.String(), Val: f.Name,
+		})
 		ns = append(ns,
-			htmlg.H2(htmlg.Text("func "+f.Name)),
+			heading,
 			htmlg.Pre(
-				htmlg.Text(printerutil.SprintAst(p.FS, f.Decl)),
+				htmlg.Text(printerutil.SprintAst(p.Fset, f.Decl)),
 			),
 			htmlg.P(
 				parseHTML(docHTML(f.Doc)),
@@ -171,7 +176,7 @@ func (p godocComponent) Render() []*html.Node {
 		ns = append(ns,
 			htmlg.H2(htmlg.Text("type "+t.Name)),
 			htmlg.Pre(
-				htmlg.Text(printerutil.SprintAst(p.FS, t.Decl)),
+				htmlg.Text(printerutil.SprintAst(p.Fset, t.Decl)),
 			),
 			htmlg.P(
 				parseHTML(docHTML(t.Doc)),
@@ -180,7 +185,7 @@ func (p godocComponent) Render() []*html.Node {
 		for _, c := range t.Consts {
 			ns = append(ns,
 				htmlg.Pre(
-					htmlg.Text(printerutil.SprintAst(p.FS, c.Decl)),
+					htmlg.Text(printerutil.SprintAst(p.Fset, c.Decl)),
 				),
 				htmlg.P(
 					parseHTML(docHTML(c.Doc)),
@@ -191,7 +196,7 @@ func (p godocComponent) Render() []*html.Node {
 			ns = append(ns,
 				htmlg.H3(htmlg.Text("func ("+m.Recv+") "+m.Name)),
 				htmlg.Pre(
-					htmlg.Text(printerutil.SprintAst(p.FS, m.Decl)),
+					htmlg.Text(printerutil.SprintAst(p.Fset, m.Decl)),
 				),
 				htmlg.P(
 					parseHTML(docHTML(m.Doc)),

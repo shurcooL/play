@@ -5,9 +5,11 @@ body {
 
 	margin-left: auto;
 	margin-right: auto;
+	margin-bottom: 100px;
 	width: 700px;
 }
 a {
+	color: #375eab;
 	text-decoration: none;
 }
 a:hover {
@@ -15,6 +17,13 @@ a:hover {
 }
 h1, h2, h3, h4, h5, h6 {
 	font-family: "Work Sans";
+}
+
+h2 a {
+	display: none;
+}
+h2:hover a {
+	display: initial;
 }
 
 code, pre {
