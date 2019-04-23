@@ -6,15 +6,19 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"syscall/js"
+	"time"
 
 	"github.com/rogpeppe/go-internal/modfile"
 	"github.com/rogpeppe/go-internal/module"
 )
 
-func serveGraph2(ctx context.Context, query string, mp moduleProxy) error {
-	mod := parseQuery(query)
-	frontier := []module.Version{mod}
+func serveGraph2(ctx context.Context, query string, sleep time.Duration, mp moduleProxy) error {
+	var frontier []module.Version
+	for _, q := range strings.Split(query, ",") {
+		frontier = append(frontier, parseQuery(q))
+	}
 	type edge struct {
 		From, To module.Version
 	}
@@ -52,21 +56,23 @@ func serveGraph2(ctx context.Context, query string, mp moduleProxy) error {
 			}
 			edges[e] = struct{}{}
 		}
-		var g bytes.Buffer
-		g.WriteString("digraph \"\" {\n")
-		for e := range edges {
-			fmt.Fprintf(&g, "	%q -> %q [URL=%q];\n", e.From.Path+"@"+e.From.Version, e.To.Path+"@"+e.To.Version, "/gomod/"+e.From.Path+"@"+e.From.Version)
+		if len(frontier) == 0 || sleep != 0 {
+			var g bytes.Buffer
+			g.WriteString("digraph \"\" {\n")
+			for e := range edges {
+				fmt.Fprintf(&g, "	%q -> %q [URL=%q];\n", e.From.Path+"@"+e.From.Version, e.To.Path+"@"+e.To.Version, "/gomod/"+e.From.Path+"@"+e.From.Version)
+			}
+			for m := range bad {
+				fmt.Fprintf(&g, "	%q [color=\"red\"];\n", m.Path)
+			}
+			g.WriteString("}")
+			svg, err := renderGraph(ctx, &g)
+			if err != nil {
+				return err
+			}
+			js.Global().Get("document").Get("body").Set("innerHTML", string(svg))
+			time.Sleep(sleep)
 		}
-		for m := range bad {
-			fmt.Fprintf(&g, "	%q [color=\"red\"];\n", m.Path)
-		}
-		g.WriteString("}")
-		svg, err := renderGraph(ctx, &g)
-		if err != nil {
-			return err
-		}
-		js.Global().Get("document").Get("body").Set("innerHTML", string(svg))
-		//time.Sleep(3 * time.Second)
 	}
 	fmt.Println("done")
 	return nil

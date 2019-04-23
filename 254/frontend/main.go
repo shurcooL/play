@@ -9,11 +9,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
+	"strconv"
 	"strings"
 	"syscall/js"
+	"time"
 
 	"github.com/rogpeppe/go-internal/module"
+	modulepkg "github.com/shurcooL/play/256/module"
 	"golang.org/x/net/context/ctxhttp"
 )
 
@@ -22,7 +24,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	mp := moduleProxy{url.URL{Path: "/-/api/gomod/"}}
+	mp := modulepkg.Proxy{url.URL{Path: "/-/api/proxy/"}}
 	switch {
 	case strings.HasPrefix(u.Path, "/gomod/"):
 		query := u.Path[len("/gomod/"):]
@@ -32,19 +34,19 @@ func main() {
 		}
 	case strings.HasPrefix(u.Path, "/modgraph/"):
 		query := u.Path[len("/modgraph/"):]
-		err := serveGraph(context.Background(), query, mp)
+		err := serveGraph(context.Background(), query, sleep(u.Query()), mp)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	case strings.HasPrefix(u.Path, "/modgraph2/"):
 		query := u.Path[len("/modgraph2/"):]
-		err := serveGraph2(context.Background(), query, mp)
+		err := serveGraph2(context.Background(), query, sleep(u.Query()), mp)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	case strings.HasPrefix(u.Path, "/modgraph3/"):
 		query := u.Path[len("/modgraph3/"):]
-		err := serveGraph3(context.Background(), query, mp)
+		err := serveGraph3(context.Background(), query, sleep(u.Query()), mp)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -69,34 +71,14 @@ func parseQuery(query string) module.Version {
 	return module.Version{Path: query, Version: "latest"}
 }
 
-type moduleProxy struct {
-	url url.URL
+func sleep(v url.Values) time.Duration {
+	seconds, _ := strconv.Atoi(v.Get("sleep"))
+	return time.Duration(seconds) * time.Second
 }
 
-// GoMod fetches the go.mod file for the given module version.
-func (mp moduleProxy) GoMod(ctx context.Context, mod module.Version) ([]byte, error) {
-	p, err := module.EncodePath(mod.Path)
-	if err != nil {
-		return nil, err
-	}
-	v, err := module.EncodeVersion(mod.Version)
-	if err != nil {
-		return nil, err
-	}
-	u := url.URL{Path: p + "/@v/" + v + ".mod"}
-	resp, err := ctxhttp.Get(ctx, nil, mp.url.ResolveReference(&u).String())
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusNotFound {
-		return nil, os.ErrNotExist
-	} else if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("non-200 OK status code: %v body: %q", resp.Status, body)
-	}
-	b, err := ioutil.ReadAll(resp.Body)
-	return b, err
+type moduleProxy interface {
+	// GoMod fetches the go.mod file for the given module version.
+	GoMod(ctx context.Context, mod module.Version) ([]byte, error)
 }
 
 func renderGraph(ctx context.Context, g io.Reader) ([]byte, error) {

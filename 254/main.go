@@ -5,7 +5,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -18,7 +17,7 @@ import (
 	"github.com/shurcooL/go/osutil"
 	"github.com/shurcooL/httperror"
 	"github.com/shurcooL/httpgzip"
-	"golang.org/x/net/context/ctxhttp"
+	modulepkg "github.com/shurcooL/play/256/module"
 )
 
 func main() {
@@ -35,18 +34,23 @@ func run() error {
 	if !ok {
 		return fmt.Errorf("a Go module proxy must be provided via PLAY254_GOPROXY env var")
 	}
-	proxy, err := url.Parse(v)
+	proxyURL, err := url.Parse(v)
 	if err != nil {
 		return err
 	}
+	if proxyURL.Scheme == "file" {
+		http.DefaultTransport.(*http.Transport).RegisterProtocol("file", http.NewFileTransport(http.Dir(proxyURL.Path)))
+		proxyURL.Path = "/"
+	}
+	mp := modulepkg.Proxy{URL: *proxyURL}
 
 	log.Println("serving at http://localhost:8080")
-	return http.ListenAndServe("localhost:8080", errorHandler{handler{fs: fs, proxy: *proxy}.ServeHTTP})
+	return http.ListenAndServe("localhost:8080", errorHandler{handler{fs: fs, mp: mp}.ServeHTTP})
 }
 
 type handler struct {
-	fs    http.Handler
-	proxy url.URL
+	fs http.Handler
+	mp modulepkg.Proxy
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
@@ -77,20 +81,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 		}
 		w.Header().Set("Content-Type", "application/wasm")
 		return serveFile(w, req, wasmFile)
-	case strings.HasPrefix(req.URL.Path, "/-/api/gomod/"):
-		p := req.URL.Path[len("/-/api/gomod/"):]
-		resp, err := ctxhttp.Get(req.Context(), nil, h.proxy.ResolveReference(&url.URL{Path: p}).String())
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusNotFound {
-			return os.ErrNotExist
-		} else if resp.StatusCode != http.StatusOK {
-			body, _ := ioutil.ReadAll(resp.Body)
-			return fmt.Errorf("non-200 OK status code: %v body: %q", resp.Status, body)
-		}
-		_, err = io.Copy(w, resp.Body)
+	case req.URL.Path == "/-/api/proxy" || strings.HasPrefix(req.URL.Path, "/-/api/proxy/"):
+		req = stripPrefix(req, len("/-/api/proxy"))
+		err := h.mp.ServeHTTP(w, req)
 		return err
 	case req.URL.Path == "/-/api/dot":
 		if req.Method != http.MethodPost {
@@ -125,4 +118,19 @@ func serveFile(w http.ResponseWriter, req *http.Request, path string) error {
 	}
 	httpgzip.ServeContent(w, req, fi.Name(), fi.ModTime(), f)
 	return nil
+}
+
+// stripPrefix returns request r with prefix of length prefixLen stripped from r.URL.Path.
+// prefixLen must not be longer than len(r.URL.Path), otherwise stripPrefix panics.
+// If r.URL.Path is empty after the prefix is stripped, the path is changed to "/".
+func stripPrefix(r *http.Request, prefixLen int) *http.Request {
+	r2 := new(http.Request)
+	*r2 = *r
+	r2.URL = new(url.URL)
+	*r2.URL = *r.URL
+	r2.URL.Path = r.URL.Path[prefixLen:]
+	if r2.URL.Path == "" {
+		r2.URL.Path = "/"
+	}
+	return r2
 }
