@@ -29,14 +29,14 @@ h2:hover a {
 code, pre {
 	font-family: "Go Mono";
 	font-size: 0.875em;
+	tab-size: 4;
 }
 pre {
 	padding: 0.75em;
 	background-color: #f5f5f5;
 	border: 1px solid #ccc;
 	border-radius: 0.3em;
-	overflow-x: scroll;
-	tab-size: 4;
+	overflow-x: auto;
 }
 
 @media (prefers-color-scheme: dark) {

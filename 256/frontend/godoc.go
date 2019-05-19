@@ -48,10 +48,16 @@ func serveGodoc(ctx context.Context, query string, mp modulepkg.Proxy) error {
 	fmt.Println("computeDoc taken:", time.Since(t))
 	t = time.Now()
 	var buf bytes.Buffer
-	err = htmlg.RenderComponents(&buf, godocComponent{
-		Fset:    fset,
-		Package: d,
-	})
+	err = htmlg.RenderComponents(&buf,
+		htmlg.NodeComponent(*htmlg.H1(htmlg.Text("package " + d.Name))),
+		htmlg.NodeComponent(*htmlg.P(
+			htmlg.Code(htmlg.Text("import " + strconv.Quote(d.ImportPath))),
+		)),
+		godocComponent{
+			Fset:    fset,
+			Package: d,
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -116,10 +122,6 @@ type godocComponent struct {
 
 func (p godocComponent) Render() []*html.Node {
 	ns := []*html.Node{
-		htmlg.H1(htmlg.Text("package " + p.Name)),
-		htmlg.P(
-			htmlg.Code(htmlg.Text("import " + strconv.Quote(p.ImportPath))),
-		),
 		htmlg.P(
 			parseHTML(docHTML(p.Doc)),
 		),
@@ -189,6 +191,21 @@ func (p godocComponent) Render() []*html.Node {
 				),
 				htmlg.P(
 					parseHTML(docHTML(c.Doc)),
+				),
+			)
+		}
+		for _, f := range t.Funcs {
+			heading := htmlg.H2(htmlg.Text("func "+f.Name+" "), htmlg.A("¶", "#"+f.Name))
+			heading.Attr = append(heading.Attr, html.Attribute{
+				Key: atom.Id.String(), Val: f.Name,
+			})
+			ns = append(ns,
+				heading,
+				htmlg.Pre(
+					htmlg.Text(printerutil.SprintAst(p.Fset, f.Decl)),
+				),
+				htmlg.P(
+					parseHTML(docHTML(f.Doc)),
 				),
 			)
 		}
