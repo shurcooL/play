@@ -33,7 +33,7 @@ type Client struct {
 // List fetches the list of versions for the given module.
 // It returns os.ErrNotExist if it doesn't exist.
 func (c Client) List(ctx context.Context, modulePath string) ([]string, error) {
-	enc, err := module.EscapePath(modulePath)
+	enc, err := escapePath(modulePath)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (c Client) Zip(ctx context.Context, mod module.Version) ([]byte, error) {
 }
 
 func (c Client) fetchFile(ctx context.Context, mod module.Version, suffix string) ([]byte, error) {
-	enc, err := module.EscapePath(mod.Path)
+	enc, err := escapePath(mod.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (c Client) fetchFile(ctx context.Context, mod module.Version, suffix string
 }
 
 func (c Client) fetchLatest(ctx context.Context, modulePath string) ([]byte, error) {
-	enc, err := module.EscapePath(modulePath)
+	enc, err := escapePath(modulePath)
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +134,20 @@ func (c Client) fetchLatest(ctx context.Context, modulePath string) ([]byte, err
 		return nil, fmt.Errorf("non-200 OK status code: %v body: %q", resp.Status, body)
 	}
 	return ioutil.ReadAll(resp.Body)
+}
+
+// escapePath returns the escaped form of the given module path.
+// It fails if the module path is invalid.
+//
+// It behaves just like module.EscapePath with one exception,
+// it accepts "std" as a valid module path.
+func escapePath(path string) (escaped string, err error) {
+	switch path {
+	case "std":
+		return "std", nil
+	default:
+		return module.EscapePath(path)
+	}
 }
 
 // Server implements the module proxy protocol
