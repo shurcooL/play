@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,7 +18,7 @@ import (
 	"github.com/shurcooL/go/osutil"
 	"github.com/shurcooL/httperror"
 	"github.com/shurcooL/httpgzip"
-	modulepkg "github.com/shurcooL/play/256/module"
+	"github.com/shurcooL/play/256/moduleproxy"
 )
 
 func main() {
@@ -42,7 +43,7 @@ func run() error {
 		http.DefaultTransport.(*http.Transport).RegisterProtocol("file", http.NewFileTransport(http.Dir(proxyURL.Path)))
 		proxyURL.Path = "/"
 	}
-	mp := modulepkg.Proxy{URL: *proxyURL}
+	mp := moduleproxy.Server{URL: *proxyURL}
 
 	log.Println("serving at http://localhost:8080")
 	return http.ListenAndServe("localhost:8080", errorHandler{handler{fs: fs, mp: mp}.ServeHTTP})
@@ -50,7 +51,7 @@ func run() error {
 
 type handler struct {
 	fs http.Handler
-	mp modulepkg.Proxy
+	mp moduleproxy.Server
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
@@ -81,6 +82,22 @@ func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 		}
 		w.Header().Set("Content-Type", "application/wasm")
 		return serveFile(w, req, wasmFile)
+	case req.URL.Path == "/-/api/proxy/main.localhost/@latest":
+		io.WriteString(w, `{"Version": "v0.0.0"}`)
+		return nil
+	case req.URL.Path == "/-/api/proxy/main.localhost/@v/v0.0.0.mod":
+		io.WriteString(w, `module github.com/shurcooL/tictactoe
+
+go 1.12
+
+require (
+	github.com/shurcooL/component v0.0.0-20190503025225-90263df59ff6 // indirect
+	github.com/shurcooL/htmlg v0.0.0-20190503024804-b6326af49ef6
+	golang.org/x/net v0.0.0-20190522155817-f3200d17e092
+	honnef.co/go/js/dom/v2 v2.0.0-20190526011328-ebc4cf92d81f
+)
+`)
+		return nil
 	case req.URL.Path == "/-/api/proxy" || strings.HasPrefix(req.URL.Path, "/-/api/proxy/"):
 		req = stripPrefix(req, len("/-/api/proxy"))
 		err := h.mp.ServeHTTP(w, req)

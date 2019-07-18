@@ -10,16 +10,22 @@ import (
 	"text/template"
 
 	"github.com/rogpeppe/go-internal/modfile"
+	"github.com/shurcooL/play/256/moduleproxy"
 	"github.com/sourcegraph/annotate"
 )
 
-func serveGoMod(ctx context.Context, query string, mp moduleProxy) error {
+func serveGoMod(ctx context.Context, query string, mp moduleproxy.Client) error {
 	mod := parseQuery(query)
-	goMod, err := mp.GoMod(ctx, mod)
+	info, err := mp.Info(ctx, mod)
 	if os.IsNotExist(err) {
 		js.Global().Get("document").Get("body").Set("innerHTML", "404 Not Found")
 		return nil
 	} else if err != nil {
+		return err
+	}
+	mod.Version = info.Version
+	goMod, err := mp.GoMod(ctx, mod)
+	if err != nil {
 		return err
 	}
 	f, err := modfile.Parse("go.mod", goMod, nil)

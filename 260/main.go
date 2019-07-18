@@ -37,16 +37,6 @@ func run() error {
 	return nil
 }
 
-// nonChangeRefLister is implemented by *maintner.GerritProject,
-// or something that acts like it for testing.
-type nonChangeRefLister interface {
-	// ForeachNonChangeRef calls fn for each git ref on the server that is
-	// not a change (code review) ref. In general, these correspond to
-	// submitted changes. fn is called serially with sorted ref names.
-	// Iteration stops with the first non-nil error returned by fn.
-	ForeachNonChangeRef(fn func(ref string, hash maintner.GitHash) error) error
-}
-
 func ListGoReleases(goProj nonChangeRefLister) ([]*apipb.GoRelease, error) {
 	type (
 		majorMinor struct {
@@ -136,4 +126,14 @@ func ListGoReleases(goProj nonChangeRefLister) ([]*apipb.GoRelease, error) {
 	})
 
 	return rs, nil
+}
+
+// nonChangeRefLister is implemented by *maintner.GerritProject,
+// or something that acts like it for testing.
+type nonChangeRefLister interface {
+	// ForeachNonChangeRef calls fn for each git ref on the server that is
+	// not a change (code review) ref. In general, these correspond to
+	// submitted changes. fn is called serially with sorted ref names.
+	// Iteration stops with the first non-nil error returned by fn.
+	ForeachNonChangeRef(fn func(ref string, hash maintner.GitHash) error) error
 }

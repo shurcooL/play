@@ -1,4 +1,4 @@
-// Play with walking Go repositories.
+// Play with walking Go repositories via sourcegraph/go-vcs.
 package main
 
 import (
@@ -25,21 +25,27 @@ func main() {
 func run() error {
 	const base = "/tmp/walkgorepos"
 
-	for origin := range gerritProjects {
-		fmt.Printf("updating or cloning %v to %v ...\n", origin, base)
-		err := updateOrCloneRepository(filepath.Join(base, path.Base(origin)), origin)
+	for servProj := range gerritProjects {
+		if servProj != "go.googlesource.com/oauth2" {
+			continue
+		}
+		log.Printf("updating or cloning %v to %v ...\n", servProj, base)
+		err := updateOrCloneRepository(filepath.Join(base, path.Base(servProj)), "https://"+servProj)
 		if err != nil {
 			return err
 		}
 	}
-	fmt.Println("done")
+	log.Println("done")
 
 	var existingDirectories = make(map[string]struct{})
-	for origin, repoRoot := range gerritProjects {
-		dirs, err := walkRepository(filepath.Join(base, path.Base(origin)), repoRoot,
+	for servProj, repoRoot := range gerritProjects {
+		if servProj != "go.googlesource.com/oauth2" {
+			continue
+		}
+		dirs, err := walkRepository(filepath.Join(base, path.Base(servProj)), repoRoot,
 			[]string{"master", "release-branch.go1.12", "release-branch.go1.11"})
 		if err != nil {
-			return fmt.Errorf("walkRepository(%q): %v", origin, err)
+			return fmt.Errorf("walkRepository(%q): %v", servProj, err)
 		}
 		for d := range dirs {
 			existingDirectories[d] = struct{}{}
@@ -82,12 +88,12 @@ var gerritProjects = map[string]string{
 	"go.googlesource.com/vgo":        "golang.org/x/vgo",
 }
 
-func updateOrCloneRepository(gitDir, origin string) error {
+func updateOrCloneRepository(gitDir, repoURL string) error {
 	if r, err := gitcmd.Open(gitDir); err == nil {
 		_, err := r.UpdateEverything(vcs.RemoteOpts{})
 		r.Close()
 		return err
-	} else if r, err := gitcmd.Clone("https://"+origin, gitDir, vcs.CloneOpt{Bare: true, Mirror: true}); err == nil {
+	} else if r, err := gitcmd.Clone(repoURL, gitDir, vcs.CloneOpt{Bare: true, Mirror: true}); err == nil {
 		r.Close()
 		return nil
 	} else {
@@ -126,7 +132,7 @@ func walkRepository(gitDir, repoRoot string, branches []string) (map[string]stru
 					return err
 				}
 				if dir == "/src" {
-					// Skip root directory of main Go repository.
+					// Skip root of "/src" of main Go repository.
 					return nil
 				}
 				if !fi.IsDir() {

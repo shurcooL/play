@@ -17,25 +17,37 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/rogpeppe/go-internal/module"
+	"github.com/shurcooL/component"
 	"github.com/shurcooL/go/printerutil"
 	"github.com/shurcooL/htmlg"
-	modulepkg "github.com/shurcooL/play/256/module"
+	issuescomponent "github.com/shurcooL/issuesapp/component"
+	"github.com/shurcooL/play/256/moduleproxy"
+	"golang.org/x/mod/module"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
 
-func serveGodoc(ctx context.Context, query string, mp modulepkg.Proxy) error {
-	t := time.Now()
+func serveGodoc(ctx context.Context, query string, mp moduleproxy.Client) error {
 	mod, pkg := parseQuery(query)
-	b, err := mp.Zip(ctx, mod)
+
+	t := time.Now()
+	info, err := mp.Info(ctx, mod)
 	if os.IsNotExist(err) {
 		js.Global().Get("document").Get("body").Set("innerHTML", "404 Not Found")
 		return nil
 	} else if err != nil {
 		return err
 	}
+	mod.Version = info.Version
+	fmt.Println("mp.Info taken:", time.Since(t))
+
+	t = time.Now()
+	b, err := mp.Zip(ctx, mod)
+	if err != nil {
+		return err
+	}
 	fmt.Println("mp.Zip taken:", time.Since(t))
+
 	t = time.Now()
 	z, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
 	if err != nil {
@@ -46,12 +58,16 @@ func serveGodoc(ctx context.Context, query string, mp modulepkg.Proxy) error {
 		return err
 	}
 	fmt.Println("computeDoc taken:", time.Since(t))
+
 	t = time.Now()
 	var buf bytes.Buffer
 	err = htmlg.RenderComponents(&buf,
 		htmlg.NodeComponent(*htmlg.H1(htmlg.Text("package " + d.Name))),
 		htmlg.NodeComponent(*htmlg.P(
 			htmlg.Code(htmlg.Text("import " + strconv.Quote(d.ImportPath))),
+		)),
+		htmlg.NodeComponent(*htmlg.P(
+			component.Join("Version ", info.Version, " from ", issuescomponent.Time{info.Time}, ".").Render()...,
 		)),
 		godocComponent{
 			Fset:    fset,
@@ -62,6 +78,7 @@ func serveGodoc(ctx context.Context, query string, mp modulepkg.Proxy) error {
 		return err
 	}
 	fmt.Println("RenderComponents taken:", time.Since(t))
+
 	js.Global().Get("document").Get("body").Set("innerHTML", buf.String())
 	return nil
 }

@@ -14,8 +14,8 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/rogpeppe/go-internal/module"
-	modulepkg "github.com/shurcooL/play/256/module"
+	"github.com/shurcooL/play/256/moduleproxy"
+	"golang.org/x/mod/module"
 	"golang.org/x/net/context/ctxhttp"
 )
 
@@ -24,7 +24,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	mp := modulepkg.Proxy{url.URL{Path: "/-/api/proxy/"}}
+	mp := moduleproxy.Client{URL: url.URL{Path: "/-/api/proxy/"}}
 	switch {
 	case strings.HasPrefix(u.Path, "/gomod/"):
 		query := u.Path[len("/gomod/"):]
@@ -58,7 +58,9 @@ func main() {
 • /modgraph2/<module>@<version>
 • /modgraph3/<module>@<version>
 
-"@<version>" can be left out, then "@latest" is used`)+"</pre>")
+"@<version>" can be left out, then "@latest" is used
+
+the special module "main.localhost" refers to a main module on the local filesystem`)+"</pre>")
 	}
 }
 
@@ -74,11 +76,6 @@ func parseQuery(query string) module.Version {
 func sleep(v url.Values) time.Duration {
 	seconds, _ := strconv.Atoi(v.Get("sleep"))
 	return time.Duration(seconds) * time.Second
-}
-
-type moduleProxy interface {
-	// GoMod fetches the go.mod file for the given module version.
-	GoMod(ctx context.Context, mod module.Version) ([]byte, error)
 }
 
 func renderGraph(ctx context.Context, g io.Reader) ([]byte, error) {

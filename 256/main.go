@@ -17,7 +17,8 @@ import (
 	"github.com/shurcooL/go/osutil"
 	"github.com/shurcooL/gofontwoff"
 	"github.com/shurcooL/httpgzip"
-	modulepkg "github.com/shurcooL/play/256/module"
+	"github.com/shurcooL/play/256/moduleproxy"
+	"github.com/shurcooL/play/256/moduleproxy/std"
 )
 
 func main() {
@@ -44,7 +45,10 @@ func run() error {
 		http.DefaultTransport.(*http.Transport).RegisterProtocol("file", http.NewFileTransport(http.Dir(proxyURL.Path)))
 		proxyURL.Path = "/"
 	}
-	mp := modulepkg.Proxy{URL: *proxyURL}
+	mp, err := std.NewServer(moduleproxy.Server{URL: *proxyURL})
+	if err != nil {
+		return err
+	}
 
 	err = http.ListenAndServe("localhost:8080", errorHandler{handler{fontsHandler: fontsHandler, mp: mp}.ServeHTTP})
 	return err
@@ -52,7 +56,7 @@ func run() error {
 
 type handler struct {
 	fontsHandler http.Handler
-	mp           modulepkg.Proxy
+	mp           std.Server
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {

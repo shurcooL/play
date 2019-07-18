@@ -7,8 +7,8 @@ import (
 	"strings"
 	"syscall/js"
 
-	"github.com/rogpeppe/go-internal/module"
-	modulepkg "github.com/shurcooL/play/256/module"
+	"github.com/shurcooL/play/256/moduleproxy"
+	"golang.org/x/mod/module"
 	"golang.org/x/net/html"
 )
 
@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	mp := modulepkg.Proxy{url.URL{Path: "/-/api/proxy/"}}
+	mp := moduleproxy.Client{url.URL{Path: "/-/api/proxy/"}}
 	switch {
 	case strings.HasPrefix(u.Path, "/godoc/"):
 		query := u.Path[len("/godoc/"):]
@@ -28,9 +28,9 @@ func main() {
 	default:
 		js.Global().Get("document").Get("body").Set("innerHTML", "<pre>"+html.EscapeString(`Usage: visit one of these URLs:
 
-• /godoc/<module>@<version>/<package> - shows godoc of specified package
+• /godoc/<module>@<version>/<package> - view godoc of specified package
 
-"@<version>" can be left out, then "@latest" is used`)+"</pre>")
+for packages at module root, "@<version>" can be left out, then "@latest" is used`)+"</pre>")
 	}
 }
 

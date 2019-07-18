@@ -5,16 +5,16 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"syscall/js"
 	"time"
 
 	"github.com/rogpeppe/go-internal/modfile"
-	"github.com/rogpeppe/go-internal/module"
+	"github.com/shurcooL/play/256/moduleproxy"
+	"golang.org/x/mod/module"
 )
 
-func serveGraph(ctx context.Context, query string, sleep time.Duration, mp moduleProxy) error {
+func serveGraph(ctx context.Context, query string, sleep time.Duration, mp moduleproxy.Client) error {
 	var frontier []module.Version
 	for _, q := range strings.Split(query, ",") {
 		frontier = append(frontier, parseQuery(q))
@@ -28,27 +28,29 @@ func serveGraph(ctx context.Context, query string, sleep time.Duration, mp modul
 	for len(frontier) > 0 {
 		mod := frontier[0]
 		frontier = frontier[1:]
-		fmt.Printf("finding: %s@%s (%d left...)\n", mod.Path, mod.Version, len(frontier))
+		fmt.Printf("finding %s@%s (%d left...)\n", mod.Path, mod.Version, len(frontier))
+		info, err := mp.Info(ctx, mod)
+		if err != nil {
+			return err
+		}
+		mod.Version = info.Version
 		goMod, err := mp.GoMod(ctx, mod)
-		if os.IsNotExist(err) {
-			log.Printf("go.mod for %v not found, skipping\n", mod)
-			continue
-		} else if err != nil {
+		if err != nil {
 			return err
 		}
 		f, err := modfile.Parse("go.mod", goMod, nil)
 		if err != nil {
 			return err
 		}
-		if mod.Path != f.Module.Mod.Path {
+		if mod.Path != f.Module.Mod.Path && mod.Path != "main.localhost" {
 			log.Printf("module %q go.mod module path mismatch: %q\n", mod.Path, f.Module.Mod.Path)
 			bad[mod] = struct{}{}
 			continue
 		}
 		for _, r := range f.Require {
-			if !seen[r.Mod] {
-				frontier = append(frontier, r.Mod)
-				seen[r.Mod] = true
+			if !seen[module.Version(r.Mod)] {
+				frontier = append(frontier, module.Version(r.Mod))
+				seen[module.Version(r.Mod)] = true
 			}
 			e := edge{
 				From: mod.Path,

@@ -16,6 +16,15 @@
 			WebAssembly.instantiateStreaming(fetch("/-/main.wasm"), go.importObject).then((result) => {
 				go.run(result.instance);
 			});
+			window.addEventListener('keydown', (event) => {
+				if (event.key !== '®') {
+					return;
+				}
+				WebAssembly.instantiateStreaming(fetch("/-/main.wasm"), go.importObject).then((result) => {
+					go.run(result.instance);
+				});
+				event.preventDefault();
+			});
 		</script>
 	</head>
 	<body></body>

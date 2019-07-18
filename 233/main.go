@@ -44,6 +44,7 @@ func paintBullet(ctx *dom.CanvasRenderingContext2D) {
 	ctx.SetTransform(10, 0, 0, 10, 160, 160)
 	ctx.Rotate(-0.4)
 
+	// Bullet.
 	gradient := ctx.CreateLinearGradient(-10, 0, 10, 0)
 	gradient.AddColorStop(0, "rgba(100%, 100%, 0%, 0.2)")
 	gradient.AddColorStop(1, "rgba(100%, 65%, 0%, 0.4)")
