@@ -4,18 +4,22 @@ package std
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/shurcooL/httperror"
 	"github.com/shurcooL/play/256/moduleproxy"
 	"golang.org/x/build/maintner/maintnerd/maintapi/version"
+	"golang.org/x/mod/semver"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -25,8 +29,24 @@ import (
 )
 
 type Server struct {
-	versions map[string]string // Semantic version → Go version.
+	// Go standard library versions.
+	versionsMu sync.Mutex
+	versions   map[string]goVersion // Semantic version → Go version.
+
+	// sortedList is a cached /std/@v/list endpoint response.
+	sortedList []byte
+
 	fallback moduleproxy.Server
+}
+
+type goVersion struct {
+	Version string // Go version, like "go1.12".
+	module
+}
+
+type module struct {
+	Time time.Time // Version time.
+	Zip  []byte    // Module zip.
 }
 
 func NewServer(fallback moduleproxy.Server) (Server, error) {
@@ -38,7 +58,7 @@ func NewServer(fallback moduleproxy.Server) (Server, error) {
 	if err != nil {
 		return Server{}, err
 	}
-	var versions = make(map[string]string) // Semantic version → Go version.
+	var versions = make(map[string]goVersion) // Semantic version → Go version.
 	for _, r := range refs {
 		name := string(r.Name())
 		if !strings.HasPrefix(name, "refs/tags/") {
@@ -49,12 +69,35 @@ func NewServer(fallback moduleproxy.Server) (Server, error) {
 		if !ok {
 			continue
 		}
-		versions[fmt.Sprintf("v%d.%d.%d", major, minor, patch)] = tagName
+		versions[fmt.Sprintf("v%d.%d.%d", major, minor, patch)] = goVersion{Version: tagName}
 	}
+	// TODO: Support all pre-release versions.
+	versions["v1.13.0-beta.1"] = goVersion{Version: "go1.13beta1"}
+	versions["v1.13.0-rc.1"] = goVersion{Version: "go1.13rc1"}
+	versions["v1.13.0-rc.2"] = goVersion{Version: "go1.13rc2"}
+
+	// Create a sorted list of versions.
+	var list []string
+	for v := range versions {
+		list = append(list, v)
+	}
+	sort.Slice(list, func(i, j int) bool {
+		cmp := semver.Compare(list[i], list[j])
+		if cmp == 0 {
+			return list[i] < list[j]
+		}
+		return cmp < 0
+	})
+	var buf bytes.Buffer
+	for _, v := range list {
+		fmt.Fprintln(&buf, v)
+	}
+	sortedList := buf.Bytes()
 
 	return Server{
-		versions: versions,
-		fallback: fallback,
+		versions:   versions,
+		sortedList: sortedList,
+		fallback:   fallback,
 	}, nil
 }
 
@@ -62,6 +105,8 @@ func (s Server) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 	if req.Method != http.MethodGet {
 		return httperror.Method{Allowed: []string{http.MethodGet}}
 	}
+
+	// TODO: Consider parsing proxy request with parseModuleProxyRequest. See https://github.com/shurcooL/home/blob/1718d872828ef4fda604d7586f9347751c5e5d4e/internal/code/module.go#L64-L73.
 
 	if !strings.HasPrefix(req.URL.Path, "/std/@v/") {
 		err := s.fallback.ServeHTTP(w, req)
@@ -71,10 +116,8 @@ func (s Server) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 
 	if rest == "list" {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		for v := range s.versions {
-			fmt.Fprintln(w, v)
-		}
-		return nil
+		_, err := w.Write(s.sortedList)
+		return err
 	}
 
 	ext := path.Ext(rest)
@@ -86,10 +129,25 @@ func (s Server) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 		return nil
 	}
 	semVer := rest[:len(rest)-len(ext)]
-	goVer, ok := s.versions[semVer]
+	s.versionsMu.Lock()
+	goVersion, ok := s.versions[semVer]
+	s.versionsMu.Unlock()
 	if !ok {
 		http.Error(w, "404 Not Found", http.StatusNotFound)
 		return nil
+	}
+
+	// TODO: Use sync.Once or equivalent to avoid duplicate work.
+	if goVersion.Zip == nil {
+		module, err := fetchAndCreateStd(semVer, goVersion.Version)
+		if err != nil {
+			return err
+		}
+		goVersion.module = module
+
+		s.versionsMu.Lock()
+		s.versions[semVer] = goVersion
+		s.versionsMu.Unlock()
 	}
 
 	switch ext {
@@ -99,7 +157,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 		enc.SetIndent("", "\t")
 		err := enc.Encode(revInfo{
 			Version: semVer,
-			Time:    time.Now().UTC(), // TODO.
+			Time:    goVersion.Time,
 		})
 		return err
 	case ".mod":
@@ -108,13 +166,8 @@ func (s Server) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 		return err
 	case ".zip":
 		w.Header().Set("Content-Type", "application/zip")
-		z := zip.NewWriter(w)
-		err := walkGoRepository(z, semVer, goVer)
-		if err != nil {
-			return err
-		}
-		err = z.Close()
-		return err
+		http.ServeContent(w, req, "", goVersion.Time, bytes.NewReader(goVersion.Zip))
+		return nil
 	default:
 		panic("unreachable")
 	}
@@ -126,7 +179,7 @@ type revInfo struct {
 	Time    time.Time // Commit time.
 }
 
-func walkGoRepository(z *zip.Writer, semVer, goVer string) error {
+func fetchAndCreateStd(semVer, goVer string) (module, error) {
 	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 		URL:           "https://go.googlesource.com/go",
 		ReferenceName: plumbing.NewTagReferenceName(goVer),
@@ -135,25 +188,33 @@ func walkGoRepository(z *zip.Writer, semVer, goVer string) error {
 		Tags:          git.NoTags,
 	})
 	if err != nil {
-		return err
+		return module{}, err
 	}
 	head, err := r.Head()
 	if err != nil {
-		return err
+		return module{}, err
 	}
 	commit, err := r.CommitObject(head.Hash())
 	if err != nil {
-		return err
+		return module{}, err
 	}
 	tree, err := r.TreeObject(commit.TreeHash)
 	if err != nil {
-		return err
+		return module{}, err
 	}
 	tree, err = subTree(r, tree, "src")
 	if err != nil {
-		return err
+		return module{}, err
 	}
-	// TODO: For very old versions, also mind the "pkg" subdirectory.
+	// For versions older than v1.4.0, skip over the extra "pkg" subdirectory.
+	if semver.Compare(semVer, "v1.4.0") == -1 {
+		tree, err = subTree(r, tree, "pkg")
+		if err != nil {
+			return module{}, err
+		}
+	}
+	var buf bytes.Buffer
+	z := zip.NewWriter(&buf)
 	type treePath struct {
 		*object.Tree
 		Path string
@@ -168,24 +229,24 @@ func walkGoRepository(z *zip.Writer, semVer, goVer string) error {
 			case filemode.Regular, filemode.Executable:
 				blob, err := r.BlobObject(e.Hash)
 				if err != nil {
-					return err
+					return module{}, err
 				}
 				dst, err := z.Create(path.Join(t.Path, e.Name))
 				if err != nil {
-					return err
+					return module{}, err
 				}
 				src, err := blob.Reader()
 				if err != nil {
-					return err
+					return module{}, err
 				}
 				_, err = io.Copy(dst, src)
 				if err != nil {
 					src.Close()
-					return err
+					return module{}, err
 				}
 				err = src.Close()
 				if err != nil {
-					return err
+					return module{}, err
 				}
 			case filemode.Dir:
 				if e.Name == "testdata" {
@@ -193,7 +254,7 @@ func walkGoRepository(z *zip.Writer, semVer, goVer string) error {
 				}
 				tree, err := r.TreeObject(e.Hash)
 				if err != nil {
-					return err
+					return module{}, err
 				}
 				frontier = append(frontier, treePath{
 					Tree: tree,
@@ -202,7 +263,14 @@ func walkGoRepository(z *zip.Writer, semVer, goVer string) error {
 			}
 		}
 	}
-	return nil
+	err = z.Close()
+	if err != nil {
+		return module{}, err
+	}
+	return module{
+		Time: commit.Committer.When,
+		Zip:  buf.Bytes(),
+	}, nil
 }
 
 // subTree looks non-recursively for a directory with the given name in t,

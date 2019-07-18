@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"html"
 	"log"
 	"net/url"
 	"strings"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/shurcooL/play/256/moduleproxy"
 	"golang.org/x/mod/module"
-	"golang.org/x/net/html"
 )
 
 func main() {

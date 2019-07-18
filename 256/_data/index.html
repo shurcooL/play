@@ -13,7 +13,16 @@
 				};
 			}
 			const go = new Go();
-			WebAssembly.instantiateStreaming(fetch("/-/main.wasm"), go.importObject).then((result) => {
+			const resp = fetch("/-/main.wasm").then((resp) => {
+				if (!resp.ok) {
+					resp.text().then((body) => {
+						document.body.innerHTML = "<pre>" + body + "</pre>";
+					});
+					throw new Error("did not get acceptable status code: " + resp.status);
+				}
+				return resp;
+			});
+			WebAssembly.instantiateStreaming(resp, go.importObject).then((result) => {
 				go.run(result.instance);
 			});
 			window.addEventListener('keydown', (event) => {

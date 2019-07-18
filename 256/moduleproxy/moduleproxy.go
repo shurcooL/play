@@ -1,5 +1,4 @@
-// Package moduleproxy provides a Go module proxy
-// client and server.
+// Package moduleproxy provides a Go module proxy client and server.
 package moduleproxy
 
 import (
@@ -12,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"time"
 
 	"golang.org/x/mod/module"
@@ -24,8 +24,7 @@ type Info struct {
 	Time    time.Time // commit time
 }
 
-// Client is a module proxy client
-// that targets the proxy at URL.
+// Client is a low-level module proxy client that targets the proxy at URL.
 type Client struct {
 	URL url.URL
 }
@@ -37,8 +36,7 @@ func (c Client) List(ctx context.Context, modulePath string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	u := url.URL{Path: enc + "/@v/list"}
-	resp, err := ctxhttp.Get(ctx, nil, c.URL.ResolveReference(&u).String())
+	resp, err := ctxhttp.Get(ctx, nil, urlJoinPath(c.URL, enc+"/@v/list"))
 	if err != nil {
 		return nil, err
 	}
@@ -60,23 +58,12 @@ func (c Client) List(ctx context.Context, modulePath string) ([]string, error) {
 // Info fetches the .info file for the given module version.
 // It returns os.ErrNotExist if it doesn't exist.
 func (c Client) Info(ctx context.Context, mod module.Version) (Info, error) {
-	var b []byte
-	switch mod.Version {
-	default:
-		var err error
-		b, err = c.fetchFile(ctx, mod, "info")
-		if err != nil {
-			return Info{}, err
-		}
-	case "latest":
-		var err error
-		b, err = c.fetchLatest(ctx, mod.Path)
-		if err != nil {
-			return Info{}, err
-		}
+	b, err := c.fetchFile(ctx, mod, "info")
+	if err != nil {
+		return Info{}, err
 	}
 	var info Info
-	err := json.Unmarshal(b, &info)
+	err = json.Unmarshal(b, &info)
 	return info, err
 }
 
@@ -92,6 +79,19 @@ func (c Client) Zip(ctx context.Context, mod module.Version) ([]byte, error) {
 	return c.fetchFile(ctx, mod, "zip")
 }
 
+// Latest fetches the optional /@latest endpoint for the given module.
+// It returns os.ErrNotExist if the module doesn't exist, or
+// if the optional /@latest endpoint isn't implemented by the server.
+func (c Client) Latest(ctx context.Context, modulePath string) (Info, error) {
+	b, err := c.fetchLatest(ctx, modulePath)
+	if err != nil {
+		return Info{}, err
+	}
+	var info Info
+	err = json.Unmarshal(b, &info)
+	return info, err
+}
+
 func (c Client) fetchFile(ctx context.Context, mod module.Version, suffix string) ([]byte, error) {
 	enc, err := escapePath(mod.Path)
 	if err != nil {
@@ -101,8 +101,7 @@ func (c Client) fetchFile(ctx context.Context, mod module.Version, suffix string
 	if err != nil {
 		return nil, err
 	}
-	u := url.URL{Path: enc + "/@v/" + encVer + "." + suffix}
-	resp, err := ctxhttp.Get(ctx, nil, c.URL.ResolveReference(&u).String())
+	resp, err := ctxhttp.Get(ctx, nil, urlJoinPath(c.URL, enc+"/@v/"+encVer+"."+suffix))
 	if err != nil {
 		return nil, err
 	}
@@ -121,8 +120,7 @@ func (c Client) fetchLatest(ctx context.Context, modulePath string) ([]byte, err
 	if err != nil {
 		return nil, err
 	}
-	u := url.URL{Path: enc + "/@latest"}
-	resp, err := ctxhttp.Get(ctx, nil, c.URL.ResolveReference(&u).String())
+	resp, err := ctxhttp.Get(ctx, nil, urlJoinPath(c.URL, enc+"/@latest"))
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +155,10 @@ type Server struct {
 }
 
 func (s Server) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
-	originURL := s.URL.ResolveReference(&url.URL{Path: req.URL.Path}).String()
-	resp, err := ctxhttp.Get(req.Context(), nil, originURL)
+	if req.URL.Path == "/" { // XXX, HACK, TODO
+		return os.ErrNotExist
+	}
+	resp, err := ctxhttp.Get(req.Context(), nil, urlJoinPath(s.URL, req.URL.Path))
 	if err != nil {
 		return err
 	}
@@ -171,4 +171,9 @@ func (s Server) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 	}
 	_, err = io.Copy(w, resp.Body)
 	return err
+}
+
+func urlJoinPath(u url.URL, p string) string {
+	u.Path = path.Join(u.Path, p)
+	return u.String()
 }
