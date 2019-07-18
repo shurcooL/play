@@ -36,14 +36,12 @@ func setup() {
 	document.Head().AppendChild(style)
 
 	c := component.RepoNotifications{
-		Repo:    notifications.RepoSpec{URI: "dmitri.shuralyov.com/idiomatic-go"},
-		RepoURL: "https://dmitri.shuralyov.com/idiomatic-go",
+		Repo: notifications.RepoSpec{URI: "dmitri.shuralyov.com/idiomatic-go"},
 		Notifications: []component.Notification{{
 			Notification: notifications.Notification{
-				AppID:         "issues",
 				RepoSpec:      notifications.RepoSpec{URI: "dmitri.shuralyov.com/idiomatic-go"},
+				ThreadType:    "issues",
 				ThreadID:      4,
-				RepoURL:       "https://example.org",
 				Title:         "Avoid unused method receiver names",
 				Icon:          notifications.OcticonID("issue-opened"),
 				Color:         notifications.RGB{R: 108, G: 198, B: 68},
@@ -52,7 +50,6 @@ func setup() {
 				HTMLURL:       "https://dmitri.shuralyov.com/issues/dmitri.shuralyov.com/idiomatic-go/4#comment-6",
 				Participating: false,
 			},
-			Read: false,
 		}},
 	}
 
