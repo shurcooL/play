@@ -1,0 +1,113 @@
+body {
+	font-family: Go;
+	font-size: 75%;
+	color: rgb(35, 35, 35);
+}
+a {
+	color: #375eab;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+a.black {
+	color: black;
+}
+a.black:hover {
+	color: #375eab;
+	text-decoration: none;
+}
+
+td {
+	padding: 0;
+}
+pre.ln {
+	background-color: hsla(0, 0%, 99%, 1);
+	border-right: 1px solid hsla(0, 0%, 95%, 1);
+	text-align: right;
+	color: #b0b0b0;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+}
+span.ln {
+	display: inline-block;
+	width: 24px;
+	cursor: pointer;
+}
+span.ln:hover {
+	color: #555;
+}
+
+.anchor {
+	display: none;
+}
+h1:hover .anchor, h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, h5:hover .anchor, h6:hover .anchor {
+	display: inline;
+}
+.anchor-icon {
+	display: inline-block;
+	vertical-align: middle;
+	color: black;
+	margin-left: 8px;
+	cursor: pointer;
+}
+
+.header a:hover {
+	text-decoration: none;
+}
+
+pre, code {
+	font-family: "Go Mono";
+	font-size: 85%;
+	tab-size: 4;
+	line-height: 1.3;
+}
+
+div.highlight {
+	position: relative;
+	border: 1px solid hsla(0, 0%, 88%, 1);
+}
+div.background {
+	position: absolute;
+	z-index: -2;
+	width: 100%;
+	height: 100%;
+	background-color: hsla(0, 0%, 99%, 1);
+}
+div.selection {
+	position: absolute;
+	z-index: -1;
+	background-color: rgb(236, 217, 145);
+	width: 100%;
+}
+pre.file {
+	background: none !important;
+}
+
+.highlight h3 {
+	display: inline;
+	font-size: inherit;
+	margin-top: 0;
+	margin-bottom: 0;
+	font-weight: normal;
+}
+.highlight h3.highlighted {
+	background-color: rgb(243, 136, 73);
+}
+.highlight h3.highlighted-fade {
+	background-color: rgba(243, 136, 73, 0.0);
+	transition: background 0.5s ease-in-out;
+}
+
+.highlight pre {
+	font-family: "Go Mono";
+	font-size: 12px;
+	padding: 10px;
+	margin: 0;
+}
+
+.highlight .kwd { color: rgb(0.4%, 0%, 69.4%); font-weight: bold; }
+.highlight .dec { color: rgb(80.4%, 0%, 0%); }
+.highlight .str { color: rgb(80.4%, 0%, 0%); }
+.highlight .lit { color: rgb(0.8%, 2.4%, 100%); }
+.highlight .com { color: rgb(0%, 50.6%, 9.4%); }

@@ -1,0 +1,44 @@
+#gts-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	margin-left: auto;
+	margin-right: auto;
+	width: 600px;
+	display: none;
+	z-index: 1000;
+
+	font-family: inherit;
+	font-size: 12px;
+	line-height: 1.3;
+}
+
+#gts-command {
+	width: 600px;
+
+	font-family: inherit;
+	font-size: inherit;
+}
+
+#gts-results {
+	overflow: scroll;
+	max-height: 500px;
+	border: 1px solid black;
+}
+
+.gts-entry {
+	cursor: default;
+	background: white;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.gts-entry:hover {
+	background: rgb(92.5%, 92.5%, 92.5%);
+}
+.gts-highlighted, .gts-highlighted:hover {
+	color: white;
+	background: rgb(21%, 45%, 84%);
+}
