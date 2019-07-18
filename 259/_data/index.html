@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<script src="/-/wasm_exec.js"></script>
+		<script>
+			if (!WebAssembly.instantiateStreaming) { // polyfill for Safari :/
+				WebAssembly.instantiateStreaming = async (resp, importObject) => {
+					const source = await (await resp).arrayBuffer();
+					return await WebAssembly.instantiate(source, importObject);
+				};
+			}
+			const go = new Go();
+			WebAssembly.instantiateStreaming(fetch("/-/main.wasm"), go.importObject).then((result) => {
+				go.run(result.instance);
+			});
+			window.addEventListener('keydown', (event) => {
+				if (event.key !== '®') {
+					return;
+				}
+				WebAssembly.instantiateStreaming(fetch("/-/main.wasm"), go.importObject).then((result) => {
+					go.run(result.instance);
+				});
+				event.preventDefault();
+			});
+		</script>
+	</head>
+	<body></body>
+</html>
