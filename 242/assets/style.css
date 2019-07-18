@@ -1,0 +1,24 @@
+body {
+	font-family: Go;
+	font-size: 14px;
+	color: rgb(35, 35, 35);
+}
+a {
+	color: #4183c4;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+a.black {
+	color: black;
+}
+a.black:hover {
+	color: #4183c4;
+	text-decoration: none;
+}
+
+.center {
+	max-width: 800px;
+	margin: 0 auto 0 auto;
+}
