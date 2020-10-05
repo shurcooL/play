@@ -27,6 +27,10 @@ type Info struct {
 // Client is a low-level module proxy client that targets the proxy at URL.
 type Client struct {
 	URL url.URL
+
+	// DisableModuleFetch controls whether to set the
+	// non-standard Disable-Module-Fetch: true header.
+	DisableModuleFetch bool
 }
 
 // List fetches the list of versions for the given module.
@@ -101,7 +105,14 @@ func (c Client) fetchFile(ctx context.Context, mod module.Version, suffix string
 	if err != nil {
 		return nil, err
 	}
-	resp, err := ctxhttp.Get(ctx, nil, urlJoinPath(c.URL, enc+"/@v/"+encVer+"."+suffix))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlJoinPath(c.URL, enc+"/@v/"+encVer+"."+suffix), nil)
+	if err != nil {
+		return nil, err
+	}
+	if c.DisableModuleFetch {
+		req.Header.Set("Disable-Module-Fetch", "true")
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
